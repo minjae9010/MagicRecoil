@@ -1,0 +1,18 @@
+name: MagicRecoil
+version: '${version}'
+main: dev.magicrecoil.MagicRecoilPlugin
+description: Relative camera recoil for MagicSpells.
+api-version: '1.21.11'
+depend: [MagicSpells]
+authors: [MagicRecoil contributors]
+website: https://github.com/minjae9010/MagicRecoil
+commands:
+  magicrecoil:
+    description: Show status or clear a player's recoil.
+    usage: /magicrecoil status | reset <player>
+    permission: magicrecoil.admin
+    aliases: [mrecoil]
+permissions:
+  magicrecoil.admin:
+    description: Access MagicRecoil diagnostics and reset.
+    default: op

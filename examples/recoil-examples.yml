@@ -1,0 +1,89 @@
+# Copy selected entries into plugins/MagicSpells/spells-recoil.yml.
+# These are recoil-only presets, not a gun system. Names are freely editable.
+# Defaults require only recoil; gate production weapons with require-success-of.
+Recoil_Minimal:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  recoil: 2.5
+
+Recoil_AR:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 2.5
+  vertical: 1.0
+  horizontal: 0.4
+  smoothness: 0.8
+  growth: 0.08
+  reset-delay: 400
+  pattern: valorant
+  auto-return: false
+
+Recoil_SMG:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 1.2
+  horizontal: 0.5
+  growth: 0.04
+  reset-delay: 250
+  recoil-steps: 3
+
+Recoil_LMG:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 2.0
+  horizontal: 0.65
+  growth: 0.06
+  max-recoil: 5.0
+  reset-delay: 500
+
+Recoil_SR:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 6.0
+  horizontal: 0.0
+  growth: 0.0
+  pattern: vertical
+  recoil-steps: 4
+
+Recoil_DMR:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 3.8
+  growth: 0.03
+  horizontal: 0.15
+  reset-delay: 500
+
+Recoil_SG:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 5.0
+  pattern: random
+  vertical-min: 0.8
+  vertical-max: 1.1
+  horizontal-min: -0.3
+  horizontal-max: 0.3
+  growth: 0.0
+
+Recoil_Pistol:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 2.0
+  pattern: vertical
+  recoil-steps: 2
+
+Recoil_Custom:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 2.0
+  pattern: custom
+  pattern-repeat: loop
+  pattern-randomness: 0.02
+  horizontal-bias: 0.05
+  custom-pattern:
+    - {vertical: 1.0, horizontal: 0.0}
+    - {vertical: 1.1, horizontal: 0.3}
+    - {vertical: 1.2, horizontal: 0.6}
+    - {vertical: 1.0, horizontal: -0.4}
+
+Stop_Recoil:
+  spell-class: "dev.magicrecoil.spells.StopRecoilSpell"
+  helper-spell: true

@@ -1,0 +1,7 @@
+{
+  "name": "magicrecoil-protocol-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Optional headless protocol probe for an isolated local Paper server",
+  "dependencies": { "minecraft-protocol": "1.68.0" }
+}

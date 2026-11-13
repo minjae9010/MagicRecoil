@@ -1,0 +1,13 @@
+name: MagicRecoilProbe
+version: '1.0'
+main: dev.magicrecoil.probe.RuntimeProbe
+api-version: '1.21.11'
+depend: [MagicRecoil, MagicSpells]
+softdepend: [ProtocolLib]
+commands:
+  mrprobe:
+    description: Isolated test server diagnostics only.
+    permission: magicrecoil.probe
+permissions:
+  magicrecoil.probe:
+    default: op

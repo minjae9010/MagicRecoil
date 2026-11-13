@@ -1,0 +1,30 @@
+# Replacement for ONLY the old recoil spell. The original full weapon YAML was
+# not supplied; this is not a verified rewrite of that file.
+# Merge this block into the original file, replacing its old RotateSpell block.
+# Do not keep duplicate spell names in another spells*.yml file.
+Weapon_파이먼_반동:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 2.5
+  vertical: 1.0
+  horizontal: 0.4
+  smoothness: 0.8
+  growth: 0.08
+  reset-delay: 400
+  pattern: valorant
+  auto-return: false
+  max-recoil: 8.0
+  require-success-of: Weapon_파이먼_PP
+  stop-on-buff-end:
+    - Weapon_파이먼_Buff
+  # Add your ACTUAL reload-start spell name (not supplied) to stop-on-spells.
+  # stop-on-spells:
+  #   - Your_Existing_Reload_Start
+
+# Keep the existing successful-fire branch, ammunition checks and all effects:
+# Weapon_파이먼_Left_Ticks:
+#   ... existing settings ...
+#   spells:
+#     - Weapon_파이먼_PP
+#     - Weapon_파이먼_반동
+# Both calls must be consecutive in the same tick. See docs/en/integration.md.

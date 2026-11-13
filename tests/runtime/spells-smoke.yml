@@ -1,0 +1,48 @@
+# Isolated test server only: plugins/MagicSpells/spells-smoke.yml
+MR_Smoke:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  recoil: 3.0
+  growth: 0.0
+  recoil-steps: 3
+  pattern: vertical
+MR_Gated:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  recoil: 3.0
+  growth: 0.0
+  recoil-steps: 3
+  require-success-of: MR_PP
+  stop-on-spells: [MR_Reload]
+MR_PP:
+  spell-class: .instant.ParticleProjectileSpell
+  projectile-velocity: 10
+  max-distance: 10
+  check-plugins: true
+MR_Fire:
+  spell-class: .MultiSpell
+  spells: [MR_PP, MR_Gated]
+MR_Reload:
+  spell-class: .instant.DummySpell
+MR_Stop:
+  spell-class: dev.magicrecoil.spells.StopRecoilSpell
+MR_Long:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  recoil: 3.0
+  recoil-steps: 20
+  reset-delay: 2000
+MR_Failed_PP:
+  spell-class: .targeted.DummySpell
+  range: 1
+  can-target: players
+MR_Failed_Gated:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  recoil: 3
+  require-success-of: MR_Failed_PP
+MR_Failed:
+  spell-class: .MultiSpell
+  spells: [MR_Failed_PP, MR_Failed_Gated]
+MR_Fire_Stop:
+  spell-class: .MultiSpell
+  spells: [MR_PP, MR_Gated, MR_Reload]
+MR_Stop_Before_Recoil:
+  spell-class: .MultiSpell
+  spells: [MR_PP, MR_Reload, MR_Gated]

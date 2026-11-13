@@ -1,0 +1,13 @@
+.gradle/
+.gradle-user/
+.work/
+build/
+out/
+.idea/
+*.iml
+.vscode/
+*.log
+libs/
+.DS_Store
+node_modules/
+packets.jsonl
