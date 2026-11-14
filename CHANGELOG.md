@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add task-based bilingual documentation navigation, per-page tables of contents, getting-started/recoil-logic/troubleshooting guides, previous/next links, and a checked GitHub Wiki exporter with Home, sidebar, and footer.
+- Document recoil formulas, pattern-specific horizontal behavior, fixed-vertical/random-horizontal setup, tick weights, limits, success gating, resets, and recovery. Clarify that default valorant starts sideways motion on shot five.
 - Use generic English spell identifiers and `weapon-integration.yml` throughout the examples and bilingual integration guides.
 - Add an 18-shot visual test fixture for reproducible recoil recordings.
 - Add an actual MCP-captured recoil GIF to both READMEs, with recording settings, measured results, and capture limitations.

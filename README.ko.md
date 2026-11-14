@@ -1,12 +1,30 @@
 # MagicRecoil
 
-[English](README.md) · [한국어](README.ko.md) · [상세 한국어 문서](docs/ko/README.md)
+[English](README.md) · [한국어](README.ko.md) · [상세 한국어 문서](docs/ko/README.md) · [Wiki](https://github.com/minjae9010/MagicRecoil/wiki)
 
 **Paper 1.21.11에서 기존 MagicSpells 총기에 상대 시점 반동을 추가하는 애드온입니다.**
 
 발사체, 탄약, 데미지, 재장전, 효과, 연사 로직은 기존 설정을 사용합니다. 기존 반동 주문을 `RecoilSpell`로 교체하면 한 발의 yaw/pitch 변화량을 여러 서버 틱으로 나누어 적용합니다. 마우스로 반동을 제어할 수 있도록 상대 회전을 사용하며, 기본값에서는 시점을 이전 각도로 강제로 되돌리지 않습니다.
 
 > **실험 버전입니다.** 서버 패킷으로 구현한 FPS 반동 근사치이며 VALORANT와 같은 프레임 단위 카메라 애니메이션을 보장하지 않습니다. 빌드·자동 테스트·로컬 서버 패킷 검증과, 실제 사람이 확인해야 하는 조작감·지연·안티치트·원본 총기 검증은 [테스트 문서](docs/ko/testing.md)에 구분했습니다.
+
+처음 사용하면 **[빠른 시작](docs/ko/getting-started.md)**부터 읽으세요. 수평 반동 문제는 **[증상별 진단](docs/ko/troubleshooting.md)**, 전체 문서 탐색은 **[문서 안내](docs/ko/README.md)** 또는 **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)**에서 시작할 수 있습니다.
+
+<!-- toc:start -->
+## 목차
+
+- [반동 테스트 GIF](#반동-테스트-gif)
+- [지원 환경](#지원-환경)
+- [설치](#설치)
+- [실제 총기용 예시](#실제-총기용-예시)
+- [반동 계산과 설정 규칙](#반동-계산과-설정-규칙)
+- [기능](#기능)
+- [설정과 문서](#설정과-문서)
+- [리로드와 명령어](#리로드와-명령어)
+- [Gradle 빌드](#gradle-빌드)
+- [도입 전에 확인할 한계](#도입-전에-확인할-한계)
+- [라이선스](#라이선스)
+<!-- toc:end -->
 
 ## 반동 테스트 GIF
 
@@ -70,6 +88,45 @@ MyGun_Recoil:
 
 이번 탄환을 먼저 발사하고 그 뒤 새 반동을 예약합니다. 후속 탄환은 서버가 알고 있는 변경된 조준 방향을 사용합니다. 산탄총은 펠릿마다 반동을 호출하지 말고 한 번 발사할 때 한 번 호출하세요.
 
+## 반동 계산과 설정 규칙
+
+**`horizontal`은 각도가 아니라 패턴의 수평 계수에 곱하는 배율입니다. 계수가 0이면 배율만 높여도 좌우로 움직이지 않습니다.**
+
+```text
+강도 = recoil × (1 + growth × 발사번호)   # 첫 발은 0
+yaw   = 수평 계수 × horizontal × 강도   # 양수: 오른쪽
+pitch = -수직 계수 × vertical × 강도    # 음수: 위쪽
+```
+
+| 원하는 동작 | 설정 규칙 |
+| --- | --- |
+| 위쪽으로만 반동 | `pattern: vertical`. 기본 bias·범위에서는 `horizontal`을 올려도 수평 0 |
+| 연사 초반 상승 후 좌우 흔들림 | `pattern: valorant`. 기본값은 첫 **4발 수평 0**, 5발째부터 흔들림 |
+| 첫 발부터 무작위 좌우 반동 | `pattern: random`과 수평 범위·배율 지정 |
+| 직접 정한 순서대로 반동 | `pattern: custom`과 `custom-pattern`의 수직·수평 계수 지정 |
+
+예를 들어 아래 수치는 발당 위쪽 **0.5°**, 무작위 좌우 **-0.75°..+0.75°**입니다. 기존 `RecoilSpell` 아래에 넣고 발사 연결·중지 옵션은 유지합니다.
+
+```yaml
+recoil: 0.5
+vertical: 1.0
+horizontal: 1.5
+pattern: random
+vertical-min: 1.0
+vertical-max: 1.0
+horizontal-min: -1.0
+horizontal-max: 1.0
+growth: 0.0
+recoil-steps: 2
+auto-return: false
+```
+
+수직 범위를 1로 고정하지 않으면 random의 기본 범위 0..2에 따라 위쪽 강도도 달라집니다. 수평 값은 범위 안에서 추출하므로 방향이 항상 번갈아 나오지는 않습니다. 발당·틱당·시야 제한에 걸리면 실제 적용량이 줄어듭니다.
+
+2틱은 `2/3, 1/3`으로 나누며, `recoil-steps`가 `smoothness`보다 우선합니다. `reset-delay`는 연사 패턴 초기화 간격이고 자동 복귀가 아닙니다. 발사 간격이 기본 400ms 이상이면 valorant은 매번 첫 발부터 시작하므로 수평 구간에 도달하지 못합니다.
+
+계수·잡음·bias·제한의 정확한 순서, 모든 패턴과 연사·복귀 규칙은 **[반동 로직 상세](docs/ko/recoil-logic.md)**에서 이어서 설명합니다. 수평이 보이지 않으면 **[수평 반동 진단](docs/ko/troubleshooting.md#수평-반동이-없음)**을 먼저 확인하세요.
+
 ## 기능
 
 - 플레이어별 연사 증가, `valorant` / `vertical` / `random` / `custom` 패턴.
@@ -85,6 +142,9 @@ MyGun_Recoil:
 
 | 문서 | 내용 |
 | --- | --- |
+| [설치와 첫 발사](docs/ko/getting-started.md) | 처음 설치, 최소 주문, 콘솔 시험 |
+| [반동 로직 상세](docs/ko/recoil-logic.md) | 수평·수직 계산식, 패턴, 분할·중첩·초기화 |
+| [증상별 문제 해결](docs/ko/troubleshooting.md) | 수평 0, 전체 무반동, 강도와 탄퍼짐 |
 | [설정 전체 설명](docs/ko/configuration.md) | 단위, 범위, 적용 순서, 충돌 처리, 패턴 |
 | [연동 가이드](docs/ko/integration.md) | 발사 성공 확인, 재장전, 범용 총기 연동, 문제 해결 |
 | [구조와 기술 조사](docs/ko/architecture.md) | Paper API·상대 패킷·ProtocolLib·NMS 비교 |
@@ -93,7 +153,7 @@ MyGun_Recoil:
 | [총기 예시 YAML](examples/recoil-examples.yml) | 숫자 중심 프리셋과 사용자 패턴 |
 | [총기 반동 연동 YAML](examples/weapon-integration.yml) | 기존 반동 주문 블록만 교체 |
 
-원본 실서버 총기 YAML은 **첨부되지 않았습니다**. 범용 연동 예시는 `Weapon_AR_Recoil`, `Weapon_AR_Projectile` 같은 영어 식별자를 사용하므로 기존 총기에 맞춰 모든 참조를 연결해야 합니다. 원본 전체를 검토·수정한 완성본은 아닙니다. 탄약·발사체·재장전·효과·ON/OFF 로직은 원본에서 유지하고 검증해야 합니다.
+범용 연동 예시는 `Weapon_AR_Recoil`, `Weapon_AR_Projectile` 같은 영어 식별자를 사용하므로 기존 총기에 맞춰 모든 참조를 연결해야 합니다. 원본 전체를 검토·수정한 완성본은 아닙니다. 탄약·발사체·재장전·효과·ON/OFF 로직은 원본에서 유지하고 검증해야 합니다.
 
 ## 리로드와 명령어
 

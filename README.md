@@ -1,12 +1,30 @@
 # MagicRecoil
 
-[English](README.md) · [한국어](README.ko.md) · [Documentation](docs/en/README.md) · [한국어 문서](docs/ko/README.md)
+[English](README.md) · [한국어](README.ko.md) · [Documentation](docs/en/README.md) · [한국어 문서](docs/ko/README.md) · [Wiki](https://github.com/minjae9010/MagicRecoil/wiki)
 
 **Relative camera recoil for existing MagicSpells guns on Paper 1.21.11.**
 
 MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damage, reload, sound, and firing logic; replace the recoil spell. Each shot adds small relative yaw/pitch impulses over server ticks. Players can compensate with normal mouse movement, and the default configuration never returns them to a saved camera angle.
 
 > **Experimental release.** This is a server-side approximation, not a VALORANT camera animation. A vanilla client receives discrete rotations; there is no frame-rate interpolation contract. Local server/protocol checks and automated tests are documented in [Testing](docs/en/testing.md). Human camera-feel acceptance, real weapon integration, and latency/anti-cheat testing remain necessary.
+
+Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, open **[Troubleshooting](docs/en/troubleshooting.md)**; use the **[documentation map](docs/en/README.md)** or **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)** to browse all topics.
+
+<!-- toc:start -->
+## On this page
+
+- [Recoil demo](#recoil-demo)
+- [Requirements](#requirements)
+- [Install](#install)
+- [A practical gun preset](#a-practical-gun-preset)
+- [Recoil calculations and configuration rules](#recoil-calculations-and-configuration-rules)
+- [Features](#features)
+- [Configuration and examples](#configuration-and-examples)
+- [Reload and commands](#reload-and-commands)
+- [Build from source](#build-from-source)
+- [Limits you should evaluate](#limits-you-should-evaluate)
+- [License](#license)
+<!-- toc:end -->
 
 ## Recoil demo
 
@@ -70,6 +88,45 @@ Replace the three referenced names with actual spell names. In the existing succ
 
 The projectile fires before the new shot's recoil, and subsequent shots use the updated aim known to the server. Do not put one recoil call after each pellet unless you intentionally want recoil per pellet.
 
+## Recoil calculations and configuration rules
+
+**`horizontal` scales a pattern coefficient; it is not an angle. A zero coefficient remains zero regardless of the multiplier.**
+
+```text
+strength = recoil × (1 + growth × shotIndex)  # first shot is 0
+yaw   = horizontalCoefficient × horizontal × strength  # positive: right
+pitch = -verticalCoefficient × vertical × strength    # negative: up
+```
+
+| Intended behavior | Configuration rule |
+| --- | --- |
+| Upward recoil only | `pattern: vertical`; default bias/bounds give zero yaw regardless of horizontal scaling |
+| Initial rise followed by sideways sway | `pattern: valorant`; with defaults, the first **four shots have zero yaw**, and sway begins on shot five |
+| Random sideways motion from the first shot | `pattern: random`, with horizontal bounds and scaling |
+| A chosen sequence | `pattern: custom`, with vertical/horizontal coefficients in `custom-pattern` |
+
+For example, the following settings produce **0.5° upward** and a random horizontal delta in **-0.75°..+0.75°** per shot. Put them under an existing `RecoilSpell`, preserving its firing and stop hooks.
+
+```yaml
+recoil: 0.5
+vertical: 1.0
+horizontal: 1.5
+pattern: random
+vertical-min: 1.0
+vertical-max: 1.0
+horizontal-min: -1.0
+horizontal-max: 1.0
+growth: 0.0
+recoil-steps: 2
+auto-return: false
+```
+
+Equal vertical bounds fix that coefficient at 1; otherwise random's default 0..2 interval varies upward strength too. Random yaw does not guarantee alternating directions. Per-shot, per-tick, and view limits can reduce delivered amounts.
+
+Two steps use weights `2/3, 1/3`; explicit `recoil-steps` overrides `smoothness`. `reset-delay` resets burst state rather than returning the camera. With gaps of at least the default 400 ms, valorant repeatedly restarts at shot zero and never reaches its sideways phase.
+
+See **[Recoil logic](docs/en/recoil-logic.md)** for coefficient/noise/bias/limit order, every pattern, overlap, resets, and recovery. For missing yaw, start with **[No sideways motion](docs/en/troubleshooting.md#no-sideways-motion)**.
+
 ## Features
 
 - Per-player burst growth and four patterns: `valorant`, `vertical`, `random`, `custom`.
@@ -87,11 +144,14 @@ See the [full configuration reference](docs/en/configuration.md) for units, rang
 
 | File | Purpose |
 | --- | --- |
+| [Getting started](docs/en/getting-started.md) | Installation, minimal spell, first console check |
+| [Recoil logic](docs/en/recoil-logic.md) | Axis formulas, patterns, splitting, overlap and resets |
+| [Troubleshooting](docs/en/troubleshooting.md) | Missing yaw, integration failures, strength and spread |
 | [recoil-examples.yml](examples/recoil-examples.yml) | Minimal example, seven weapon presets, custom pattern, stop spell |
 | [weapon-integration.yml](examples/weapon-integration.yml) | Replacement for `Weapon_AR_Recoil` only |
 | [Integration guide](docs/en/integration.md) | Success gating, reload hooks, weapon migration, troubleshooting |
 
-The original production weapon YAML was **not supplied**. The integration example uses generic English identifiers such as `Weapon_AR_Recoil` and `Weapon_AR_Projectile`; adapt every reference to your existing gun. It is a replacement fragment, not a verified edit of the complete weapon file. Existing projectile, ammunition, damage, reload, effects, and ON/OFF logic must be preserved and tested against the original.
+The integration example uses generic English identifiers such as `Weapon_AR_Recoil` and `Weapon_AR_Projectile`; adapt every reference to your existing gun. It is a replacement fragment, not a verified edit of the complete weapon file. Existing projectile, ammunition, damage, reload, effects, and ON/OFF logic must be preserved and tested against the original.
 
 ## Reload and commands
 

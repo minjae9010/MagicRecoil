@@ -4,6 +4,19 @@
 
 All options below live in an individual MagicSpells spell. Values are literal YAML numbers/booleans, not MagicSpells expressions. Quoted numbers, NaN, infinity, invalid enum values, inverted bounds, and fractional integers are rejected at spell construction with the spell name in the error. An invalid spell does not silently fall back to a different pattern.
 
+A lookup reference for tuning a working spell. Start with [Getting started](getting-started.md) for installation, [Recoil logic](recoil-logic.md) for calculations, or [Troubleshooting](troubleshooting.md) for diagnosis.
+
+<!-- toc:start -->
+## On this page
+
+- [Basic options](#basic-options)
+- [Advanced options](#advanced-options)
+- [Exact calculation order](#exact-calculation-order)
+- [Pattern definitions](#pattern-definitions)
+- [Integration options](#integration-options)
+- [Optional recovery](#optional-recovery)
+<!-- toc:end -->
+
 ## Basic options
 
 | Option | Default | Unit / accepted values | Meaning |
@@ -56,10 +69,12 @@ Example: default settings with `recoil: 2.5` produce a first shot of yaw `0°`, 
 
 ## Pattern definitions
 
-- `valorant`: vertical coefficient `1`; horizontal `0` for shots 0..2, then `sin((n-3)π/6)`. This is an original, deterministic rise-then-sway approximation. It is not a pattern extracted from VALORANT. Default randomness is zero.
+- `valorant`: vertical coefficient `1`; horizontal `0` for zero-based shots 0..2, then `sin((n-3)π/6)`. Since shot index 3 also gives sin(0), **the first four shots have zero yaw with defaults; sideways motion begins on shot five**. This is an original, deterministic rise-then-sway approximation, not a pattern extracted from VALORANT. Default randomness is zero.
 - `vertical`: coefficients `(1, 0)`; no horizontal random noise. Explicit bias/range settings can still create horizontal motion.
 - `random`: independent uniform draws from configured bounds, followed by the same noise/bias/clamp pipeline. Equal bounds are valid and deterministic.
 - `custom`: one normalized point per shot. `loop` restarts at point zero; `hold` keeps the last point; `stop` returns a zero impulse after the last point. Looping does not reset burst growth.
+
+`horizontal` multiplies the pattern coefficient. With default bias/bounds, vertical has zero horizontal coefficient, so increasing its multiplier alone cannot produce sideways motion. To enable random horizontal motion from the first shot while keeping vertical recoil constant, combine `pattern: random`, `vertical-min: 1`, `vertical-max: 1`, and the intended horizontal bounds/scaling. See [Recoil logic](recoil-logic.md) for formulas, the 0.5°/±0.75° example, reset behavior, and recovery.
 
 ```yaml
 Recoil_Custom:
@@ -90,3 +105,7 @@ A configured stop event also invalidates the player's successful-shot receipt an
 With `auto-return: true`, recovery starts only after the reset gap and outgoing tail finish. It subtracts the sum of actually delivered deltas over the same step count; the recorded sum is bounded to ±90° per axis. Pitch discarded at the view limit is not recorded. A new shot after the gap cancels recovery and begins a new burst. Weapon switch, reload, death, logout, and reset discard recovery entirely.
 
 This does not know how much the player compensated with their mouse, so it can overcorrect relative to the intended aim. Leave it off for the requested default behavior.
+
+---
+
+[Previous: Recoil logic](recoil-logic.md) · [Documentation](README.md) · [Next: Integration](integration.md)

@@ -2,6 +2,18 @@
 
 [English index](README.md) · [한국어](../ko/development.md)
 
+For building, code changes, version ports, and documentation maintenance. For installation only, use [Getting started](getting-started.md); see [Architecture](architecture.md) for the design.
+
+<!-- toc:start -->
+## On this page
+
+- [Reproducible entry point](#reproducible-entry-point)
+- [Code map](#code-map)
+- [Porting to a later Minecraft version](#porting-to-a-later-minecraft-version)
+- [CI and releases](#ci-and-releases)
+- [Documentation and Wiki maintenance](#documentation-and-wiki-maintenance)
+<!-- toc:end -->
+
 ## Reproducible entry point
 
 Use JDK 21 and the committed Gradle 9.3.0 wrapper. `./gradlew clean build` compiles against the real Paper 1.21.11 development bundle and the official MagicSpells Beta 18 release. The download task verifies MagicSpells' SHA-256. The wrapper distribution is also checksum-pinned. Paper's dev bundle remains a versioned Maven snapshot, so a fully hermetic offline build is not claimed.
@@ -41,3 +53,31 @@ Java integrations can call `MagicRecoilPlugin.instance().reset(player.getUniqueI
 GitHub Actions runs `clean build` with Java 21 on Linux and Windows for pushes and pull requests. It publishes build artifacts for download. A manual release should attach the plugin JAR, source JAR, and SHA-256 checksums, and state any uncompleted human/server acceptance tests. Never commit local server worlds, credentials, downloaded third-party JARs, or `.work/`.
 
 Contributions should include tests for meaningful state, calculation, or lifecycle changes, and update both English and Korean documentation. Avoid promising frame-level smoothness from server packets.
+
+## Documentation and Wiki maintenance
+
+Edit repository READMEs and docs/ko plus docs/en as the source of truth. Keep purpose notes and previous/next links, and update both languages. TOCs between toc:start and toc:end are generated; do not edit them manually.
+
+```sh
+python scripts/docs.py
+python scripts/docs.py --check
+```
+
+The first command regenerates TOCs; the second checks TOCs, local links, and heading anchors without changing documents. Only Python standard-library modules are needed.
+
+Wiki is a separate Git repository. If it has no pages yet, create Home once through GitHub. Review the generated diff before publishing, and publish source documentation changes too so repository links resolve.
+
+```sh
+git clone https://github.com/minjae9010/MagicRecoil.wiki.git .work/wiki
+python scripts/docs.py --export-wiki .work/wiki
+git -C .work/wiki diff --check
+git -C .work/wiki add -- "*.md"
+git -C .work/wiki commit -m "Update bilingual documentation"
+git -C .work/wiki push origin HEAD
+```
+
+For an existing checkout, use git -C .work/wiki pull --ff-only instead of cloning again. Export generates both languages, Home, sidebar, and footer, rewriting relative document links for Wiki. Unrelated Wiki pages are not deleted. Never commit credentials or .work.
+
+---
+
+[Previous: Architecture](architecture.md) · [Documentation](README.md)

@@ -2,6 +2,20 @@
 
 [English index](README.md) · [한국어](../ko/architecture.md)
 
+Implementation evidence for developers. Operators should start with [Configuration](configuration.md); read [Recoil logic](recoil-logic.md) for how numbers become camera motion.
+
+<!-- toc:start -->
+## On this page
+
+- [Decision](#decision)
+- [Four approaches compared](#four-approaches-compared)
+  - [Difference from Beta 18 RotateSpell](#difference-from-beta-18-rotatespell)
+- [Class loading](#class-loading)
+- [Recoil state](#recoil-state)
+- [Compatibility boundaries](#compatibility-boundaries)
+- [Primary evidence](#primary-evidence)
+<!-- toc:end -->
+
 ## Decision
 
 Use an isolated NMS adapter for Paper 1.21.11 that calls `ServerPlayer.forceSetRotation(yawDelta, true, pitchDelta, true)`. Inspection of the mapped server bytecode confirms that the server updates yaw, head yaw, pitch, and old rotation, then sends `ClientboundPlayerRotationPacket`. Its payload contains yaw, relative-yaw, pitch, and relative-pitch; it has no position or teleport identifier.
@@ -71,3 +85,7 @@ All Bukkit/NMS operations run on the main server thread. Async recoil calls fail
 - Actual mapped Paper 1.21.11 server bytecode inspected with `javap -c`: `Entity.forceSetRotation` and `ServerPlayer.forceSetRotation`. This establishes server state updates and the packet construction used by the adapter.
 - [ProtocolLib packet declarations](https://github.com/dmulloy2/ProtocolLib/blob/master/src/main/java/com/comphenix/protocol/PacketType.java) and [5.4.0 release notes](https://github.com/dmulloy2/ProtocolLib/releases/tag/5.4.0). The optional comparison uses Maven Central's `ProtocolLib-5.4.0-all.jar`, SHA-256 `db046e206bd3c4f8df2d8e994352c0f283b53f4f0e0589abfcf2ec5c3d4b011e`.
 - [Paper Java requirements](https://docs.papermc.io/paper/getting-started/): consult the historical version table for 1.21.11 (Java 21), rather than the current release's Java requirement.
+
+---
+
+[Previous: Testing](testing.md) · [Documentation](README.md) · [Next: Development](development.md)

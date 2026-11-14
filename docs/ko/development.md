@@ -2,6 +2,18 @@
 
 [한국어 목차](README.md) · [English](../en/development.md)
 
+빌드·코드 수정·버전 대응·문서 관리를 위한 개발 안내입니다. 사용만 하려면 [빠른 시작](getting-started.md)을, 내부 설계는 [구조](architecture.md)를 확인하세요.
+
+<!-- toc:start -->
+## 목차
+
+- [빌드와 의존성](#빌드와-의존성)
+- [소스 구성](#소스-구성)
+- [차기 Minecraft 버전 대응](#차기-minecraft-버전-대응)
+- [CI와 배포](#ci와-배포)
+- [문서와 Wiki 관리](#문서와-wiki-관리)
+<!-- toc:end -->
+
 ## 빌드와 의존성
 
 JDK 21과 저장소에 포함된 Gradle 9.3.0 Wrapper를 사용합니다. `./gradlew clean build`는 실제 Paper 1.21.11 개발 번들과 공식 MagicSpells Beta 18 JAR을 사용합니다. MagicSpells 다운로드 및 Gradle 배포본은 SHA-256으로 검증합니다. Paper 개발 번들은 버전별 Maven snapshot이므로 완전히 고정된 오프라인 빌드를 주장하지는 않습니다.
@@ -43,3 +55,31 @@ Java 연동은 플러그인 활성화를 확인하고 메인 스레드에서 `Ma
 GitHub Actions는 push와 pull request마다 Java 21, Linux/Windows에서 clean build를 수행하고 JAR과 소스 JAR을 아티팩트로 올립니다. 릴리스에는 플러그인 JAR, 소스 JAR, SHA-256 체크섬과 아직 수행하지 못한 수동 시험 항목을 포함합니다.
 
 서버 월드, 자격 증명, 외부에서 받은 의존성 JAR, `.work/`는 커밋하지 않습니다. 동작 변경에는 필요한 검증을 추가하고 영어·한국어 문서를 함께 갱신하세요. 서버 패킷만으로 프레임 단위 부드러움을 보장한다고 설명하면 안 됩니다.
+
+## 문서와 Wiki 관리
+
+저장소의 README와 `docs/ko/`, `docs/en/`를 원본으로 편집합니다. 각 페이지의 목적 설명과 이전·다음 링크를 유지하고, 두 언어를 함께 갱신합니다. `toc:start`와 `toc:end` 사이 목차는 자동 생성하므로 직접 고치지 않습니다.
+
+```sh
+python scripts/docs.py
+python scripts/docs.py --check
+```
+
+첫 명령은 목차를 다시 만들고, 두 번째는 목차·로컬 링크·제목 앵커를 변경 없이 검사합니다. Python 표준 라이브러리만 사용합니다.
+
+Wiki는 GitHub의 별도 Git 저장소입니다. 초기 페이지가 없으면 GitHub Wiki 화면에서 Home을 한 번 생성합니다. 아래 작업은 준비한 문서를 Wiki에 게시하므로 diff를 확인한 뒤 실행합니다. 저장소 문서 링크가 유효하도록 원본 문서 변경도 함께 게시하세요.
+
+```sh
+git clone https://github.com/minjae9010/MagicRecoil.wiki.git .work/wiki
+python scripts/docs.py --export-wiki .work/wiki
+git -C .work/wiki diff --check
+git -C .work/wiki add -- "*.md"
+git -C .work/wiki commit -m "Update bilingual documentation"
+git -C .work/wiki push origin HEAD
+```
+
+이미 받은 Wiki에서는 clone 대신 `git -C .work/wiki pull --ff-only`를 먼저 실행합니다. 내보내기는 한국어·영어 페이지와 Home·사이드바·푸터를 생성하고 상대 문서 링크를 Wiki 링크로 바꿉니다. 원본에 없는 임의의 Wiki 페이지는 삭제하지 않습니다. 인증 정보와 `.work/`는 커밋하지 않습니다.
+
+---
+
+[이전: 구조](architecture.md) · [문서 안내](README.md)

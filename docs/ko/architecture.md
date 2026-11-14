@@ -2,6 +2,19 @@
 
 [한국어 목차](README.md) · [English](../en/architecture.md)
 
+개발자를 위한 구현 근거입니다. 운영 설정은 [설정 표](configuration.md), 숫자가 시점으로 바뀌는 과정은 [반동 로직](recoil-logic.md)을 먼저 읽으세요.
+
+<!-- toc:start -->
+## 목차
+
+- [구현 선택](#구현-선택)
+- [네 가지 방법 비교](#네-가지-방법-비교)
+- [RotateSpell과의 차이 및 한계](#rotatespell과의-차이-및-한계)
+- [클래스 로딩](#클래스-로딩)
+- [반동 처리 흐름](#반동-처리-흐름)
+- [호환성 경계와 근거](#호환성-경계와-근거)
+<!-- toc:end -->
+
 ## 구현 선택
 
 Paper 1.21.11 전용 어댑터에서 `ServerPlayer.forceSetRotation(yaw변화량, true, pitch변화량, true)`을 호출합니다. 실제 매핑된 서버 바이트코드를 확인한 결과 서버의 yaw·머리 yaw·pitch·이전 회전값을 갱신한 뒤 `ClientboundPlayerRotationPacket`을 보냅니다. 이 패킷에는 yaw, 상대 yaw 여부, pitch, 상대 pitch 여부만 있고 좌표와 텔레포트 번호가 없습니다.
@@ -58,3 +71,7 @@ plugin.yml에 `depend: [MagicSpells]`를 선언합니다. 모든 플러그인의
 1.21.11만 명시적으로 지원하며 다른 버전을 reflection으로 추측해서 실행하지 않습니다. Folia나 다른 플러그인의 회전·텔레포트 개입도 별도 검증 대상입니다. 향후 26.3 대응 시 NMS 어댑터와 MagicSpells API·로더·이벤트를 다시 검토해야 합니다.
 
 공식 자료와 정확한 소스 기준점은 [영어 문서의 Primary evidence](../en/architecture.md#primary-evidence)에 모았습니다. 핵심 기준은 MagicSpells 커밋 `1996743cacaac8c5742ac146e7ff905caf270f8a`, 공식 Beta 18 JAR, Paper 커밋 `c5eb0790f199da6c38d0a650e1e5cd5415b28185`와 실제 개발 번들의 서버 바이트코드입니다. Java 버전은 Paper의 현재 최신 버전 설명이 아니라 1.21.11에 해당하는 표를 적용하여 21을 사용합니다.
+
+---
+
+[이전: 테스트](testing.md) · [문서 안내](README.md) · [다음: 개발](development.md)

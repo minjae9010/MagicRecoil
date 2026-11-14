@@ -2,6 +2,20 @@
 
 [English index](README.md) · [한국어](../ko/integration.md)
 
+Connect recoil while preserving the existing firing, ammunition, and reload logic. Verify the [minimal spell](getting-started.md), then follow replacement → success gating → stop hooks.
+
+<!-- toc:start -->
+## On this page
+
+- [Preserve the gun, replace the recoil](#preserve-the-gun-replace-the-recoil)
+- [Why the success guard exists](#why-the-success-guard-exists)
+  - [Casting mode and success limitations](#casting-mode-and-success-limitations)
+- [Reload and stop integration](#reload-and-stop-integration)
+- [Aim and shot order](#aim-and-shot-order)
+- [`/ms reload`](#ms-reload)
+- [Troubleshooting](#troubleshooting)
+<!-- toc:end -->
+
 ## Preserve the gun, replace the recoil
 
 MagicRecoil does not detect clicks, consume ammunition, spawn projectiles, apply damage, schedule automatic fire, or implement reloading. Those remain in the existing MagicSpells configuration. First identify the exact branch that successfully fires one shot, including its ammunition, cooldown, reload-state, and ON/OFF checks.
@@ -93,7 +107,12 @@ This supports numeric changes and newly added recoil spells with `/ms reload`. I
 | Recoil when ammo is empty | Existing parent checks; partial cast mode bypassing costs; guard missing or wrong source |
 | Tail continues during reload | Actual reload-start name; whether cast events occur; explicit stop helper |
 | Too slow or floaty | Lower `recoil-steps` to 2–3, check TPS; steps do not become faster with more packets per frame |
+| No sideways motion | Default vertical has coefficient zero; increasing horizontal alone cannot change that. Default valorant has zero yaw for the first four shots and restarts after reset-delay. Also check whether both horizontal bounds are zero |
 | Too much sideways motion | Lower `horizontal`, bias, or randomness; check min/max coefficients |
 | Same-slot weapon replacement does not reset | Use separate recoil spell names or invoke StopRecoilSpell |
 | Bullets ignore view changes | Check cached origin/direction in the firing loop and use the manual trajectory test |
 | Jitter with other plugins | Test without anti-cheat/teleport/camera plugins, then reintroduce them one by one |
+
+---
+
+[Previous: Configuration](configuration.md) · [Documentation](README.md) · [Next: Troubleshooting](troubleshooting.md)

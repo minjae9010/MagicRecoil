@@ -2,6 +2,13 @@
 
 These fixtures are for an **isolated local Paper 1.21.11 server** only and are not part of the plugin JAR. The Node protocol client does not simulate Minecraft rendering; the [visual burst fixture](#visual-burst-fixture) runs with a real Minecraft client. Keep the server bound to `127.0.0.1`, use a disposable world, and do not connect the offline protocol client to a production server.
 
+<!-- toc:start -->
+## On this page
+
+- [Protocol checks](#protocol-checks)
+- [Visual burst fixture](#visual-burst-fixture)
+<!-- toc:end -->
+
 ## Protocol checks
 
 1. Build with Java 21: `./gradlew build runtimeProbeJar`.

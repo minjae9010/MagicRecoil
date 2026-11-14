@@ -4,6 +4,19 @@
 
 Status: **experimental / human acceptance pending**. Compilation, local protocol behavior, and subjective camera feel are different claims. This document deliberately separates them.
 
+Separates algorithm checks, running-server observations, and camera feel requiring a person. Use the checklist after installation/integration, or open [Troubleshooting](troubleshooting.md) for a failure.
+
+<!-- toc:start -->
+## On this page
+
+- [Environment](#environment)
+- [Automated checks](#automated-checks)
+- [Running-server observations](#running-server-observations)
+- [Recorded recoil demo](#recorded-recoil-demo)
+- [Human acceptance checklist](#human-acceptance-checklist)
+- [Not established by this release](#not-established-by-this-release)
+<!-- toc:end -->
+
 ## Environment
 
 - Date: 2026-11-14, Asia/Seoul.
@@ -100,3 +113,7 @@ Use a real vanilla 1.21.11 client with the original weapon YAML. Compare identic
 - Minecraft 26.3, Folia, and alternative MagicSpells releases.
 
 A client mod with frame-based additive recoil is the next step if the vanilla client cannot meet the feel requirement. This alpha should be evaluated, not described as having completed that acceptance test.
+
+---
+
+[Previous: Troubleshooting](troubleshooting.md) · [Documentation](README.md) · [Next: Architecture](architecture.md)
