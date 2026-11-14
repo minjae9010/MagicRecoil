@@ -27,7 +27,8 @@ class RecoilSettingsTest {
     @ValueSource(strings = {"recoil: .nan", "recoil: .inf", "recoil: -1", "recoil: '2.5'", "recoil: 46",
             "vertical: -1", "horizontal: 11", "smoothness: 1.1", "growth: -1", "reset-delay: 0",
             "reset-delay: 400.5", "reset-delay: 60001", "recoil-steps: 0", "recoil-steps: 21",
-            "max-recoil: 0", "pattern-randomness: 2", "auto-return: 'false'", "pattern: typo",
+            "max-recoil: 0", "valorant-max-rise: -1", "valorant-max-rise: 91", "valorant-max-rise: .nan",
+            "pattern-randomness: 2", "auto-return: 'false'", "pattern: typo",
             "vertical-min: 3\nvertical-max: 2", "horizontal-min: 1\nhorizontal-max: -1",
             "pattern: custom", "custom-pattern: [1, 2]", "stop-on-spells: reload",
             "pattern-repeat: loop", "pattern: custom\ncustom-pattern: [{vertical: .nan, horizontal: 0}]"})

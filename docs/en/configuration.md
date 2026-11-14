@@ -43,6 +43,7 @@ Reset delays use monotonic real time. Animations use server ticks. At 20 TPS, th
 | `horizontal-min` | `-1.0` | normalized coefficient, -10..10 | Lower horizontal bound |
 | `horizontal-max` | `1.0` | normalized coefficient, -10..10 | Upper horizontal bound |
 | `horizontal-bias` | `0.0` | normalized coefficient, -10..10 | Added to the pattern's horizontal coefficient before clamping |
+| `valorant-max-rise` | `15.0` | degrees, 0..90 | Cumulative scheduled upward recoil per valorant burst; not a fixed bullet count; ignored by other patterns |
 | `max-recoil` | `8.0` | degrees, 0.01..45 | Maximum **combined vector length per shot**, not accumulated camera angle |
 | `pattern-randomness` | `0.0` | normalized amplitude, 0..1 | Independent uniform additive noise in `[-value, +value]` |
 | `recoil-steps` | derived | ticks, integer 1..20 | Overrides the step count derived from `smoothness` |
@@ -60,8 +61,8 @@ An explicit `recoil-steps` wins over `smoothness`. Every impulse uses the same f
 3. Add uniform noise to vertical, and to horizontal except for `vertical`. Add `horizontal-bias` to horizontal.
 4. Clamp both coefficients to their configured min/max bounds.
 5. Multiply by `recoil × (1 + growth × n)` and the corresponding axis multiplier. Negate vertical for Minecraft pitch.
-6. If the yaw/pitch vector length exceeds `max-recoil`, scale both components together to that length.
-7. Spread the impulse over `s` ticks with weights `(s-i) / (s(s+1)/2)`, for `i = 0..s-1`. Three ticks have weights `1/2, 1/3, 1/6`.
+6. For valorant, reduce upward pitch to the remaining valorant-max-rise budget for the session. This budget is independent of mouse input.
+7. If the remaining yaw/pitch vector exceeds max-recoil, scale both axes together. Count only this bounded upward amount against the rise budget, then spread the impulse over `s` ticks with weights `(s-i) / (s(s+1)/2)`, for `i = 0..s-1`. Three ticks have weights `1/2, 1/3, 1/6`.
 8. Add into the existing fixed-size tick buffer. Each combined slot is capped to 45 degrees in vector length. Extreme simultaneous bursts intentionally lose excess impulse instead of storing an unbounded debt.
 9. On the main thread, clamp the outgoing pitch delta to the server's current `[-90°, +90°]` range and apply one relative rotation. Never cache an absolute starting view.
 
@@ -69,7 +70,7 @@ Example: default settings with `recoil: 2.5` produce a first shot of yaw `0°`, 
 
 ## Pattern definitions
 
-- `valorant`: vertical coefficient `1`; horizontal `0` for zero-based shots 0..2, then `sin((n-3)π/6)`. Since shot index 3 also gives sin(0), **the first four shots have zero yaw with defaults; sideways motion begins on shot five**. This is an original, deterministic rise-then-sway approximation, not a pattern extracted from VALORANT. Default randomness is zero.
+- `valorant`: base vertical coefficient 1; the session stops additional rise at valorant-max-rise. Yaw uses differences of signed sine target offsets. **The first four shots have zero base yaw; later offsets cross both sides of the burst center.** This is an original approximation, not extracted game data. See [rise cap and horizontal center](recoil-logic.md#built-in-valorant-rise-cap-and-horizontal-center).
 - `vertical`: coefficients `(1, 0)`; no horizontal random noise. Explicit bias/range settings can still create horizontal motion.
 - `random`: independent uniform draws from configured bounds, followed by the same noise/bias/clamp pipeline. Equal bounds are valid and deterministic.
 - `custom`: one normalized point per shot. `loop` restarts at point zero; `hold` keeps the last point; `stop` returns a zero impulse after the last point. Looping does not reset burst growth.

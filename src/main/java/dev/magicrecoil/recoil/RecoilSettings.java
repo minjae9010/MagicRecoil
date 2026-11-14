@@ -12,7 +12,7 @@ public record RecoilSettings(
         double recoil, double vertical, double horizontal, double smoothness, double growth,
         long resetDelayMillis, RecoilPattern pattern, boolean autoReturn,
         double verticalMin, double verticalMax, double horizontalMin, double horizontalMax,
-        double horizontalBias, double maxRecoil, double randomness, int steps,
+        double horizontalBias, double maxRecoil, double valorantMaxRise, double randomness, int steps,
         List<PatternPoint> customPattern, Repeat repeat,
         String requireSuccessOf, List<String> stopOnSpells, List<String> stopOnBuffEnd) {
 
@@ -32,6 +32,7 @@ public record RecoilSettings(
         range("horizontal-max", horizontalMax, -10, 10);
         range("horizontal-bias", horizontalBias, -10, 10);
         range("max-recoil", maxRecoil, 0.01, 45);
+        range("valorant-max-rise", valorantMaxRise, 0, 90);
         range("pattern-randomness", randomness, 0, 1);
         range("recoil-steps", steps, 1, 20);
         if (verticalMin > verticalMax || horizontalMin > horizontalMax) {
@@ -78,7 +79,7 @@ public record RecoilSettings(
                 number(config, "vertical-min", 0), number(config, "vertical-max", 2),
                 number(config, "horizontal-min", -1), number(config, "horizontal-max", 1),
                 number(config, "horizontal-bias", 0), number(config, "max-recoil", 8),
-                number(config, "pattern-randomness", 0), steps, points,
+                number(config, "valorant-max-rise", 15), number(config, "pattern-randomness", 0), steps, points,
                 enumeration(config, "pattern-repeat", "loop", Repeat.class),
                 string(config, "require-success-of", "").toLowerCase(Locale.ROOT),
                 names(config, "stop-on-spells"), names(config, "stop-on-buff-end"));

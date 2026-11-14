@@ -32,6 +32,8 @@
 
 로컬 Paper 서버의 실제 Minecraft 1.21.11 화면을 MCP로 캡처했습니다. 3틱 간격으로 18발을 발사하며 `auto-return: false`, 마우스 보정 없음 설정입니다. 석궁은 화면 표시용이고 발사는 MagicSpells 주문으로 실행합니다. 캡처 속도는 약 **5 FPS**이므로 반동 누적과 최종 시점을 확인하는 용도이며, 실시간 부드러움 평가는 별도로 해야 합니다. [촬영 상세](docs/ko/testing.md#반동-시연-녹화)와 [재현용 구성](tests/runtime/README.md#visual-burst-fixture)을 참고하세요.
 
+> 이 GIF는 **0.1.0-alpha.1의 이전 패턴**을 촬영한 기록입니다. 현재 내장 valorant는 좌우 중심 이동과 누적 상승 상한을 사용하므로 결과가 다릅니다.
+
 ## 지원 환경
 
 | 구성 요소 | 대상 |
@@ -101,7 +103,7 @@ pitch = -수직 계수 × vertical × 강도    # 음수: 위쪽
 | 원하는 동작 | 설정 규칙 |
 | --- | --- |
 | 위쪽으로만 반동 | `pattern: vertical`. 기본 bias·범위에서는 `horizontal`을 올려도 수평 0 |
-| 연사 초반 상승 후 좌우 흔들림 | `pattern: valorant`. 기본값은 첫 **4발 수평 0**, 5발째부터 흔들림 |
+| 연사 초반 상승 후 좌우 흔들림 | `pattern: valorant`. 기본 첫 **4발 수평 0**; 이후 중앙의 좌우로 이동하며 누적 상승은 `valorant-max-rise`에서 제한 |
 | 첫 발부터 무작위 좌우 반동 | `pattern: random`과 수평 범위·배율 지정 |
 | 직접 정한 순서대로 반동 | `pattern: custom`과 `custom-pattern`의 수직·수평 계수 지정 |
 
@@ -179,7 +181,7 @@ JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, 
 ./gradlew clean build
 ```
 
-설치할 파일은 `build/libs/MagicRecoil-0.1.0-alpha.1.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
+설치할 파일은 `build/libs/MagicRecoil-0.1.0-alpha.3.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
 
 ## 도입 전에 확인할 한계
 

@@ -12,6 +12,7 @@ First check whether the problem also occurs with a minimal standalone recoil spe
 - [No yaw on single shots or short bursts](#no-yaw-on-single-shots-or-short-bursts)
 - [No recoil at all](#no-recoil-at-all)
 - [Recoil fails only when connected to a gun](#recoil-fails-only-when-connected-to-a-gun)
+- [Offsets stay on one side or the view keeps rising](#offsets-stay-on-one-side-or-the-view-keeps-rising)
 - [Unexpected strength](#unexpected-strength)
 - [Slow or uncancelled recoil](#slow-or-uncancelled-recoil)
 - [Unexpected trajectory or spread](#unexpected-trajectory-or-spread)
@@ -81,6 +82,12 @@ spells:
 ```
 
 The recoil spell needs `require-success-of: MyGun_Beam`. Firing a beam while retaining a PP reference rejects all recoil. Calls must be consecutive in the same tick, and a receipt can only be consumed once. See [Casting modes](integration.md#casting-mode-and-success-limitations) for direct/delayed calls that may not provide the required successful event.
+
+## Offsets stay on one side or the view keeps rising
+
+Use built-in valorant from 0.1.0-alpha.3 or later. The old code added a sine every shot and produced a one-sided cumulative offset. Current code sends target-position differences around center. Bias, asymmetric bounds, noise, or clipping can deliberately alter symmetry.
+
+Valorant-max-rise is an angle budget, not a bullet count. Gaps at least reset-delay or repeated session resets start a fresh rise each time. Vertical pattern ignores this cap. See [current calculations](recoil-logic.md#built-in-valorant-rise-cap-and-horizontal-center).
 
 ## Unexpected strength
 

@@ -32,6 +32,8 @@ Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, o
 
 Actual Minecraft 1.21.11 frames captured through MCP on a local Paper server: 18 shots, three ticks apart, `auto-return: false`, and no mouse compensation. The crossbow is a visual prop; MagicSpells triggers the shots. The capture runs at approximately **5 FPS**, so use it to see recoil accumulation and the final aim, not to judge live smoothness. See the [recording details](docs/en/testing.md#recorded-recoil-demo) and [reproducible test fixture](tests/runtime/README.md#visual-burst-fixture).
 
+> This GIF records the **legacy 0.1.0-alpha.1 pattern**. Current valorant uses signed offsets around center and a cumulative rise cap, so its results differ.
+
 ## Requirements
 
 | Component | Supported target |
@@ -101,7 +103,7 @@ pitch = -verticalCoefficient × vertical × strength    # negative: up
 | Intended behavior | Configuration rule |
 | --- | --- |
 | Upward recoil only | `pattern: vertical`; default bias/bounds give zero yaw regardless of horizontal scaling |
-| Initial rise followed by sideways sway | `pattern: valorant`; with defaults, the first **four shots have zero yaw**, and sway begins on shot five |
+| Initial rise followed by sideways sway | `pattern: valorant`; first **four shots have zero base yaw**, then offsets cross both sides of center; upward recoil stops at `valorant-max-rise` |
 | Random sideways motion from the first shot | `pattern: random`, with horizontal bounds and scaling |
 | A chosen sequence | `pattern: custom`, with vertical/horizontal coefficients in `custom-pattern` |
 
@@ -177,7 +179,7 @@ Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet acces
 .\gradlew.bat clean build
 ```
 
-Output: `build/libs/MagicRecoil-0.1.0-alpha.1.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
+Output: `build/libs/MagicRecoil-0.1.0-alpha.3.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
 
 `./gradlew test` runs automated tests; the HTML report is `build/reports/tests/test/index.html`. GitHub Actions builds and tests on Linux and Windows and uploads the plugin and source JARs. See [Development](docs/en/development.md).
 

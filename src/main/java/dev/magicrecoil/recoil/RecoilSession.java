@@ -12,6 +12,7 @@ public final class RecoilSession {
     private boolean returning;
     private double deliveredYaw;
     private double deliveredPitch;
+    private double plannedRise;
 
     public RecoilSession(String weapon, RecoilSettings settings) {
         this.weapon = weapon;
@@ -24,8 +25,16 @@ public final class RecoilSession {
             shots = 0;
             returning = false;
             deliveredYaw = deliveredPitch = 0;
+            plannedRise = 0;
         }
-        buffer.add(settings.pattern().sample(settings, shots, random), settings.steps());
+        RotationDelta delta = settings.pattern().sampleUnbounded(settings, shots, random);
+        if (settings.pattern() == RecoilPattern.VALORANT && delta.pitch() < 0) {
+            double rise = Math.min(-delta.pitch(), Math.max(0, settings.valorantMaxRise() - plannedRise));
+            delta = new RotationDelta(delta.yaw(), -rise);
+        }
+        delta = delta.limit(settings.maxRecoil());
+        if (settings.pattern() == RecoilPattern.VALORANT) plannedRise += Math.max(0, -delta.pitch());
+        buffer.add(delta, settings.steps());
         shots = Math.min(shots + 1, 1_000_000);
         lastShotNanos = now;
     }

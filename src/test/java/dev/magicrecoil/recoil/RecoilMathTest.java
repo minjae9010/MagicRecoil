@@ -12,7 +12,8 @@ class RecoilMathTest {
         var s = settings("recoil: 2.5");
         assertEquals(new RotationDelta(0, -2.5), s.pattern().sample(s, 0, random));
         assertEquals(-2.7, s.pattern().sample(s, 1, random).pitch(), 1e-9);
-        assertEquals(8, Math.hypot(s.pattern().sample(s, 999999, random).yaw(), s.pattern().sample(s, 999999, random).pitch()), 1e-6);
+        var peak = s.pattern().sample(s, 999990, random);
+        assertEquals(8, Math.hypot(peak.yaw(), peak.pitch()), 1e-6);
     }
 
     @Test void valorantSwaysBothWaysAndVerticalStaysVertical() throws Exception {
@@ -21,6 +22,100 @@ class RecoilMathTest {
         assertTrue(s.pattern().sample(s, 12, random).yaw() < 0);
         var vertical = settings("pattern: vertical\npattern-randomness: 1");
         for (int i = 0; i < 50; i++) assertEquals(0, vertical.pattern().sample(vertical, i, random).yaw());
+    }
+
+    @Test void valorantRiseTapersThenStaysHorizontalBeyondOneMagazine() throws Exception {
+        var s = settings("recoil: 1.5\ngrowth: 0\nrecoil-steps: 2\nvalorant-max-rise: 14.4");
+        var session = new RecoilSession("ar", s);
+        double totalPitch = 0;
+        boolean left = false, right = false;
+        for (int shot = 0; shot < 100; shot++) {
+            long now = shot * 100_000_000L;
+            session.shoot(now, random);
+            var first = session.next(now);
+            var second = session.next(now + 50_000_000L);
+            double pitch = first.pitch() + second.pitch();
+            if (shot == 0) assertEquals(-1.5, pitch, 1e-9);
+            if (shot == 2) assertEquals(-1.5, pitch, 1e-9);
+            if (shot < 4) assertEquals(0, first.yaw() + second.yaw(), 1e-9);
+            if (shot >= 10) assertEquals(0, pitch, 1e-9);
+            left |= first.yaw() < 0;
+            right |= first.yaw() > 0;
+            totalPitch += pitch;
+        }
+        assertEquals(-14.4, totalPitch, 1e-9);
+        assertTrue(left && right);
+        // A burst gap restarts the rise rather than retaining the horizontal-only phase.
+        session.shoot(10_300_000_000L, random);
+        assertEquals(1, session.shots());
+        assertEquals(-1.5, session.next(10_300_000_000L).pitch()
+                + session.next(10_350_000_000L).pitch(), 1e-9);
+    }
+
+    @Test void valorantRiseCapWorksWithVerticalNoiseAndPositiveFloor() throws Exception {
+        var s = settings("vertical-min: 1\npattern-randomness: 1\ngrowth: 1\nrecoil-steps: 1");
+        var session = new RecoilSession("ar", s);
+        double pitch = 0;
+        for (int shot = 0; shot < 1000; shot++) {
+            long now = shot * 100_000_000L;
+            session.shoot(now, random);
+            var delta = session.next(now);
+            pitch += delta.pitch();
+            if (shot >= 50) assertEquals(0, delta.pitch(), 0);
+        }
+        assertEquals(-15, pitch, 1e-9);
+    }
+
+    @Test void valorantYawCrossesBothSidesOfBurstCenterWithBalancedExcursions() throws Exception {
+        var s = settings("recoil: 1\nvertical: 0\nhorizontal: 1\ngrowth: 0");
+        double yaw = 0;
+        for (int shot = 0; shot < 100; shot++) {
+            yaw += s.pattern().sample(s, shot, random).yaw();
+            if (shot == 6 || shot == 18) assertEquals(2, yaw, 1e-9);
+            if (shot == 12 || shot == 24) assertEquals(-2, yaw, 1e-9);
+            if (shot >= 9 && (shot - 9) % 6 == 0) assertEquals(0, yaw, 1e-9);
+        }
+    }
+
+    @Test void valorantYawKeepsCenterCrossingsWhenGrowthChangesStrength() throws Exception {
+        var s = settings("recoil: 1\nvertical: 0\nhorizontal: 1\ngrowth: 0.05\nmax-recoil: 45");
+        double yaw = 0;
+        for (int shot = 0; shot < 60; shot++) {
+            yaw += s.pattern().sample(s, shot, random).yaw();
+            if (shot == 6) assertEquals(2.6, yaw, 1e-9);
+            if (shot == 12) assertEquals(-3.2, yaw, 1e-9);
+            if (shot >= 9 && (shot - 9) % 6 == 0) assertEquals(0, yaw, 1e-9);
+        }
+    }
+
+    @Test void valorantRiseLimitIsAnAngleRatherThanAFixedBulletCount() throws Exception {
+        for (double recoil : new double[]{1, 2}) {
+            var s = settings("recoil: " + recoil + "\ngrowth: 0\nrecoil-steps: 1\nvalorant-max-rise: 6");
+            var session = new RecoilSession("ar", s);
+            int risingShots = 0;
+            double pitch = 0;
+            for (int shot = 0; shot < 30; shot++) {
+                long now = shot * 100_000_000L;
+                session.shoot(now, random);
+                var delta = session.next(now);
+                if (delta.pitch() < 0) risingShots++;
+                pitch += delta.pitch();
+            }
+            assertEquals(6 / recoil, risingShots);
+            assertEquals(-6, pitch, 1e-9);
+        }
+    }
+
+    @Test void discardedValorantRiseDoesNotAttenuateHorizontalRecoil() throws Exception {
+        var s = settings("recoil: 2\nvertical: 10\nhorizontal: 0.4\ngrowth: 0\nrecoil-steps: 1\nvalorant-max-rise: 0");
+        var session = new RecoilSession("ar", s);
+        for (int shot = 0; shot <= 4; shot++) {
+            long now = shot * 100_000_000L;
+            session.shoot(now, random);
+            var delta = session.next(now);
+            assertEquals(0, delta.pitch(), 0);
+            if (shot == 4) assertEquals(0.8, delta.yaw(), 1e-9);
+        }
     }
 
     @Test void randomBoundsAndOrderAreRespected() throws Exception {

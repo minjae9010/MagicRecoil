@@ -77,7 +77,7 @@ ms cast as RecoilCamera Demo_Burst
 
 The crossbow is a visual prop. The console starts the MagicSpells burst; the fixture does not bind firing to mouse clicks. At 20 TPS the first-to-last shot interval is 2.55 seconds, followed by the remaining recoil steps. Do not switch slots or teleport during the burst because those actions cancel pending recoil. Reset the view before each new take.
 
-With the optional probe installed, compare `mrprobe snapshot RecoilCamera` and `magicrecoil status` before and after. From yaw/pitch zero with no input, this preset should produce approximately yaw `0.907°`, pitch `-26.19°`, unchanged position, and 54 additional rotation packets. Frame rate and server TPS are separate measurements.
+With the optional probe installed, compare `mrprobe snapshot RecoilCamera` and `magicrecoil status` before and after. For the current built-in pattern, reset yaw/pitch to zero and compare against the configured cumulative rise cap rather than the old recording. The legacy alpha.1 recording produced yaw `0.907°`, pitch `-26.19°`, and 54 packets; those are historical results, not the current baseline. Upward recoil must never exceed the default 15-degree burst cap, and yaw must visit both sides of the initial center when the other settings remain symmetric. Frame rate and server TPS are separate measurements.
 
 For MCP capture, use a separate client with [Minecraft Mod MCP](https://github.com/langyo/minecraft-mod-mcp), match the Minecraft version and process identity, and capture the original game framebuffer. The capture helper is a test tool, not a MagicRecoil dependency. Convert the captured frames to a GIF at normal speed; document the capture method and any trimming in [Testing](../../docs/en/testing.md).
 

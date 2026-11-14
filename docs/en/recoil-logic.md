@@ -10,6 +10,8 @@ Understand why horizontal recoil can be zero, then follow one shot through calcu
 - [How one shot reaches the camera](#how-one-shot-reaches-the-camera)
 - [`horizontal` is a multiplier, not an angle](#horizontal-is-a-multiplier-not-an-angle)
 - [Horizontal behavior by pattern](#horizontal-behavior-by-pattern)
+- [Built-in valorant rise cap and horizontal center](#built-in-valorant-rise-cap-and-horizontal-center)
+- [Actual VALORANT and public sources](#actual-valorant-and-public-sources)
 - [Horizontal motion from the first shot with constant vertical recoil](#horizontal-motion-from-the-first-shot-with-constant-vertical-recoil)
 - [Smoothing, overlapping shots, resets, and recovery](#smoothing-overlapping-shots-resets-and-recovery)
 <!-- toc:end -->
@@ -51,13 +53,27 @@ Positive horizontal turns right; negative turns left. A positive vertical coeffi
 | `pattern` | Behavior before noise, bias, and coefficient clamps |
 | --- | --- |
 | `vertical` | Vertical coefficient 1, horizontal 0. With default bias and bounds, **no horizontal recoil**; increasing `horizontal` or `pattern-randomness` alone does not enable it |
-| `valorant` | Vertical coefficient 1. For zero-based `n`, horizontal is 0 when `n < 3`, otherwise `sin((n-3)π/6)`. **With defaults, the first four shots have zero yaw; sideways motion starts on shot five** |
+| `valorant` | Upward recoil stops at the cumulative angle `valorant-max-rise`. Yaw uses differences of signed target offsets: **center → right → center → left → center**. The first four shots have zero base yaw; this is a project preset rule |
 | `random` | Independent coefficient draws from each axis's min/max interval on every shot. Can produce sideways motion from the first shot; alternating directions or noticeable movement on every shot are not guaranteed |
 | `custom` | One `custom-pattern` point per shot. A point with `horizontal: 0` has zero base horizontal coefficient. `loop` repeats, `hold` keeps the last point, `stop` produces zero on both axes after the list ends |
 
 Explicit `horizontal-bias` or horizontal bounds excluding zero can still make a vertical pattern move sideways. Conversely, setting both horizontal bounds to zero suppresses horizontal motion for any pattern. The first-four-shots statement for valorant assumes default randomness 0, bias 0, and bounds.
 
 With `reset-delay: 400`, a gap of 400 ms or more between every shot repeatedly resets the pattern to its first point. Default valorant never reaches its sideways phase in that case, regardless of the horizontal multiplier. For horizontal motion on single shots, use random, nonzero custom points, or deliberate bias/noise.
+
+## Built-in valorant rise cap and horizontal center
+
+`valorant-max-rise` caps the sum of scheduled upward recoil per burst. Its default is **15 degrees**, with range 0..90. **It is not a fixed bullet-count cutoff.** With growth zero and unit vertical coefficient/scaling, recoil 1 reaches the cap in 15 shots; recoil 1.5 reaches it in 10. A crossing shot receives only the remaining rise. Noise or a positive vertical minimum cannot continue raising the view beyond the cap.
+
+This limits scheduled recoil, not absolute pitch or mouse input. Pulling down does not replenish the rise budget. A reset-delay gap or session reset starts a fresh burst. Other patterns ignore this option.
+
+Yaw sends the **difference between previous and current signed target offsets**, rather than adding a sine to aim every shot. With growth zero and no bias, noise, or clipping, excursions around the burst center are approximately `±2 × recoil × horizontal`. Growth is included in the difference calculation to preserve center crossings. Deliberate bias, asymmetric bounds, or shot/tick clipping can change the symmetry.
+
+## Actual VALORANT and public sources
+
+The addon uses an original approximation. Its initial four-shot rule and rise cap are not universal Riot weapon rules. Riot documents weapon-specific vertical curves and probabilistic yaw switching: [official patch 11.08](https://playvalorant.com/en-us/news/game-updates/valorant-patch-notes-11-08/) and [official patch 6.11](https://playvalorant.com/en-us/news/game-updates/valorant-patch-notes-6-11/).
+
+An unofficial [public data API](https://valorant.gs/data/) provides extracted weapon curves. Its [methodology and limitations](https://valorant.gs/about/) identify a particular build and possible differences from live hotfixes. Interpreting those curves as per-shot camera deltas requires separate validation. The addon does not currently import them.
 
 ## Horizontal motion from the first shot with constant vertical recoil
 

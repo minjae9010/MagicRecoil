@@ -29,7 +29,7 @@
 
 ## 자동 검증
 
-실제 Paper/MagicSpells 의존성을 사용한 `./gradlew clean build runtimeProbeJar`가 성공하고 **44개 자동 테스트**가 통과했습니다.
+실제 Paper/MagicSpells 의존성을 사용한 `./gradlew clean build runtimeProbeJar`가 성공하고 **53개 자동 테스트**가 통과했습니다.
 
 - 숫자·타입·범위 검사 및 배포 예시 YAML 전체 파싱.
 - 첫 발 상승, 연사 증가, 벡터 제한, 좌우 패턴, 무작위 범위, custom의 loop/hold/stop.
@@ -39,6 +39,8 @@
 - 모의 플레이어 100명이 공용 작업 하나를 쓰는지, 무기 교체 때 이전 반동이 제거되는지 확인.
 
 보고서는 `build/reports/tests/test/index.html`입니다. 모의 플레이어 검증은 실제 100명 네트워크 부하 시험이 아닙니다. 별도 진단 플러그인은 배포용 MagicRecoil JAR에 들어가지 않습니다.
+
+현재 valorant 검증에는 누적 좌우 위치, growth가 있을 때의 중앙 통과, 강도에 따라 달라지는 상승 발 수, 잡음·양수 하한과 각도 상한, 한 탄창 이후에도 유지되는 상승 제한과 초기화를 포함합니다.
 
 ## 실제 서버에서 관찰한 결과
 
@@ -71,6 +73,8 @@
 ## 반동 시연 녹화
 
 ![18발 연사 반동 실제 테스트](../media/recoil-demo.gif)
+
+이 절의 GIF와 수치는 **0.1.0-alpha.1 당시의 기록**이며 현재 내장 패턴의 기준값이 아닙니다.
 
 2026-11-14에 [spells-demo.yml](../../tests/runtime/spells-demo.yml)과 위의 Paper/MagicSpells/애드온 버전으로 촬영했습니다. Mineflayer MCP가 `ms cast as RecoilCamera Demo_Burst`를 실행했으며 마우스 입력은 없었습니다. 발사체는 `targeting=none`으로 매 발 현재 시전자 방향을 읽은 뒤 새 반동을 적용합니다. 손에 든 석궁은 표시용이며 이 구성에는 마우스 발사 연결, 탄약, 데미지 처리가 없습니다.
 

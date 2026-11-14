@@ -29,7 +29,7 @@ Separates algorithm checks, running-server observations, and camera feel requiri
 
 ## Automated checks
 
-`./gradlew clean build runtimeProbeJar` succeeds with the real Paper/MagicSpells artifacts. **44 automated tests** pass:
+`./gradlew clean build runtimeProbeJar` succeeds with the real Paper/MagicSpells artifacts. **53 automated tests** pass:
 
 - Strict numeric/type/range validation and all distributed recoil examples.
 - First-shot rise, growth, vector caps, left/right sway, random bounds, and custom loop/hold/stop rules.
@@ -39,6 +39,8 @@ Separates algorithm checks, running-server observations, and camera feel requiri
 - One scheduler shared by 100 mocked players and correct pending-impulse replacement on weapon switch.
 
 The generated HTML report is `build/reports/tests/test/index.html`. Mocked player tests establish scheduler structure, not capacity for 100 real network clients. The optional probe is built separately and is not included in the shipping plugin JAR.
+
+Current valorant checks additionally verify cumulative left/right offsets, center crossings under growth, angle-based rise limits with different shot strengths, positive floors/noise, and reset behavior beyond a full magazine.
 
 ## Running-server observations
 
@@ -71,6 +73,8 @@ Reproduce using [tests/runtime](../../tests/runtime/README.md). The fixture incl
 ## Recorded recoil demo
 
 ![Actual 18-shot recoil test](../media/recoil-demo.gif)
+
+This section records **legacy 0.1.0-alpha.1 behavior**, not the current built-in pattern baseline.
 
 Recorded on 2026-11-14 using [spells-demo.yml](../../tests/runtime/spells-demo.yml), the same Paper/MagicSpells/addon versions listed above, and no mouse input. A Mineflayer MCP controller invoked `ms cast as RecoilCamera Demo_Burst`. Each projectile uses `targeting=none` to read the caster's current aim before the new recoil impulse. The held crossbow is a prop; this test does not implement mouse-triggered firing, ammunition, or damage.
 
