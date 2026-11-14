@@ -7,7 +7,7 @@
 | 문서 | 설명 |
 | --- | --- |
 | [설정](configuration.md) | 모든 옵션, 단위, 범위, 계산 순서, 패턴 규칙 |
-| [연동](integration.md) | MagicSpells 호출 방식, 성공 기록, 파이먼 교체, 재장전 |
+| [연동](integration.md) | MagicSpells 호출 방식, 성공 기록, 범용 총기 연동, 재장전 |
 | [구조](architecture.md) | API와 패킷 비교, 클래스 로딩, 상태 관리, 버전 분리 |
 | [테스트](testing.md) | 검증 결과와 실제 클라이언트 승인 절차 |
 | [개발](development.md) | Gradle 빌드, 소스 구성, CI, 차기 버전 대응 |

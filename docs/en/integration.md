@@ -9,23 +9,25 @@ MagicRecoil does not detect clicks, consume ammunition, spawn projectiles, apply
 Replace only the old recoil spell's class and recoil settings. Do not carry over RotateSpell-specific options such as `rotation-pitch`, `rotation-yaw`, `affect-pitch`, `face`, or target selection: RecoilSpell always affects the **player caster**. Keep any general MagicSpells modifiers and conditions that are still appropriate.
 
 ```yaml
-Weapon_파이먼_반동:
+Weapon_AR_Recoil:
   spell-class: "dev.magicrecoil.spells.RecoilSpell"
   helper-spell: true
   recoil: 2.5
-  require-success-of: Weapon_파이먼_PP
-  stop-on-buff-end: [Weapon_파이먼_Buff]
+  require-success-of: Weapon_AR_Projectile
+  stop-on-buff-end: [Weapon_AR_FiringBuff]
 ```
 
-In `Weapon_파이먼_Left_Ticks`, keep the existing successful-shot branch and the order:
+The `Weapon_AR_*` names are generic English placeholders. Match each definition and every reference to your own weapon configuration; renaming only the recoil block leaves the firing loop pointing at the old name.
+
+In `Weapon_AR_FireLoop`, keep the existing successful-shot branch and the order:
 
 ```yaml
 spells:
-  - Weapon_파이먼_PP
-  - Weapon_파이먼_반동
+  - Weapon_AR_Projectile
+  - Weapon_AR_Recoil
 ```
 
-This is a **fragment**, not a complete replacement for `Weapon_파이먼_Left_Ticks`. The original weapon file was not attached. Therefore its ammo conditions, reload spell name, projectile success semantics, and firing buff lifecycle could not be audited. [paimon-recoil.yml](../../examples/paimon-recoil.yml) is safe to review as a recoil block replacement; it is not a claim of a completed original-file migration.
+This is a **fragment**, not a complete replacement for `Weapon_AR_FireLoop`. The original weapon file was not attached. Therefore its ammo conditions, reload spell name, projectile success semantics, and firing buff lifecycle could not be audited. [weapon-integration.yml](../../examples/weapon-integration.yml) is safe to review as a recoil block replacement; it is not a claim of a completed original-file migration.
 
 ## Why the success guard exists
 

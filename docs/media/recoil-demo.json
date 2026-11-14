@@ -1,0 +1,59 @@
+{
+  "recorded_date": "2026-11-14",
+  "timezone": "Asia/Seoul",
+  "source": "Actual Minecraft ScreenshotRecorder framebuffer through a project-scoped MCP adapter",
+  "minecraft": "1.21.11",
+  "paper_build": 132,
+  "magicspells": "4.0-Beta-18",
+  "magicrecoil": "0.1.0-alpha.1",
+  "fabric": "0.20.1",
+  "capture_mod": "Minecraft Mod MCP 0.4.3",
+  "upstream_capture_mod_sha256": "b2755b6070e1412c33a852004d0f390133b6611e2505537d9b04b9f779b5d5b3",
+  "adapted_capture_mod_sha256": "5bf46d393e9eaa32fa512283d41dcee6e1574a0e25b49af7a76357c67f20bebf",
+  "capture_adapter": "Minecraft 1.21.11 ScreenshotRecorder async API, Yarn build.6",
+  "source_dimensions": [
+    1280,
+    720
+  ],
+  "source_frames": 61,
+  "source_seconds": 12.108,
+  "average_capture_fps": 5.038,
+  "gif_dimensions": [
+    960,
+    604
+  ],
+  "gif_seconds": 7,
+  "gif_frames": 36,
+  "source_trim_seconds": [
+    3.5,
+    10.5
+  ],
+  "processing": "Preserved frame timing; scaled to 960x540; added 64px caption; GIF palette quantization; no motion interpolation",
+  "spell_fixture": "tests/runtime/spells-demo.yml",
+  "spell_fixture_sha256": "adcde5ef9c30ff52a6ff81e35d4182509187585378249dc24111dbdb8b381539",
+  "trigger": "ms cast as RecoilCamera Demo_Burst",
+  "shots": 18,
+  "shot_interval_ticks": 3,
+  "position_before_after": [
+    0.5,
+    -60,
+    -5.5
+  ],
+  "yaw_before_after": [
+    0,
+    0.907024
+  ],
+  "pitch_before_after": [
+    0,
+    -26.189999
+  ],
+  "packet_counter_before_after": [
+    216,
+    270
+  ],
+  "active_sessions_after": 0,
+  "reported_tps": 20.0,
+  "mouse_input": false,
+  "auto_return": false,
+  "gif_sha256": "3f3840c8c4865adab323f0abdcdf709aa08bb55995484582e05e11c0319a3e8c"
+}

@@ -8,6 +8,12 @@
 
 > **실험 버전입니다.** 서버 패킷으로 구현한 FPS 반동 근사치이며 VALORANT와 같은 프레임 단위 카메라 애니메이션을 보장하지 않습니다. 빌드·자동 테스트·로컬 서버 패킷 검증과, 실제 사람이 확인해야 하는 조작감·지연·안티치트·원본 총기 검증은 [테스트 문서](docs/ko/testing.md)에 구분했습니다.
 
+## 반동 테스트 GIF
+
+![Minecraft에서 18발 연사 시 반동이 누적되는 실제 화면](docs/media/recoil-demo.gif)
+
+로컬 Paper 서버의 실제 Minecraft 1.21.11 화면을 MCP로 캡처했습니다. 3틱 간격으로 18발을 발사하며 `auto-return: false`, 마우스 보정 없음 설정입니다. 석궁은 화면 표시용이고 발사는 MagicSpells 주문으로 실행합니다. 캡처 속도는 약 **5 FPS**이므로 반동 누적과 최종 시점을 확인하는 용도이며, 실시간 부드러움 평가는 별도로 해야 합니다. [촬영 상세](docs/ko/testing.md#반동-시연-녹화)와 [재현용 구성](tests/runtime/README.md#visual-burst-fixture)을 참고하세요.
+
 ## 지원 환경
 
 | 구성 요소 | 대상 |
@@ -80,14 +86,14 @@ MyGun_Recoil:
 | 문서 | 내용 |
 | --- | --- |
 | [설정 전체 설명](docs/ko/configuration.md) | 단위, 범위, 적용 순서, 충돌 처리, 패턴 |
-| [연동 가이드](docs/ko/integration.md) | 발사 성공 확인, 재장전, 파이먼 교체, 문제 해결 |
+| [연동 가이드](docs/ko/integration.md) | 발사 성공 확인, 재장전, 범용 총기 연동, 문제 해결 |
 | [구조와 기술 조사](docs/ko/architecture.md) | Paper API·상대 패킷·ProtocolLib·NMS 비교 |
 | [테스트와 한계](docs/ko/testing.md) | 실제 확인한 항목, 재현 절차, 수동 검수 항목 |
 | [개발 가이드](docs/ko/development.md) | 빌드, 코드 구조, CI, 차기 버전 대응 |
 | [총기 예시 YAML](examples/recoil-examples.yml) | 숫자 중심 프리셋과 사용자 패턴 |
-| [파이먼 반동 교체 YAML](examples/paimon-recoil.yml) | 기존 반동 주문 블록만 교체 |
+| [총기 반동 연동 YAML](examples/weapon-integration.yml) | 기존 반동 주문 블록만 교체 |
 
-원본 `spells-[Weapon_3AR] 8파이먼.yml`은 **첨부되지 않았습니다**. 따라서 파이먼 예시는 요청서에 나온 이름만 사용한 교체 조각이며, 원본 전체를 검토·수정한 완성본이 아닙니다. 탄약·발사체·재장전·효과·ON/OFF 로직은 원본에서 유지하고 검증해야 합니다.
+원본 실서버 총기 YAML은 **첨부되지 않았습니다**. 범용 연동 예시는 `Weapon_AR_Recoil`, `Weapon_AR_Projectile` 같은 영어 식별자를 사용하므로 기존 총기에 맞춰 모든 참조를 연결해야 합니다. 원본 전체를 검토·수정한 완성본은 아닙니다. 탄약·발사체·재장전·효과·ON/OFF 로직은 원본에서 유지하고 검증해야 합니다.
 
 ## 리로드와 명령어
 

@@ -1,0 +1,35 @@
+# Generic integration fragment: adapt these English names to your existing gun.
+# 범용 연동 예제: 아래 영어 주문 이름을 기존 총기 구성에 맞춰 연결하세요.
+# Replace only the old recoil block; keep projectile, ammo, damage and reload logic.
+# 기존 반동 블록만 교체하고 발사체·탄약·데미지·재장전 로직은 유지하세요.
+# Use matching names in every reference; do not keep duplicate spell definitions.
+# 모든 참조에 같은 이름을 사용하고 같은 주문을 중복 정의하지 마세요.
+Weapon_AR_Recoil:
+  spell-class: "dev.magicrecoil.spells.RecoilSpell"
+  helper-spell: true
+  recoil: 2.5
+  vertical: 1.0
+  horizontal: 0.4
+  smoothness: 0.8
+  growth: 0.08
+  reset-delay: 400
+  pattern: valorant
+  auto-return: false
+  max-recoil: 8.0
+  require-success-of: Weapon_AR_Projectile
+  stop-on-buff-end:
+    - Weapon_AR_FiringBuff
+  # Add the existing reload-start spell name, if its cast events are available.
+  # 시전 이벤트가 있는 기존 재장전 시작 주문 이름을 연결하세요.
+  # stop-on-spells:
+  #   - Weapon_AR_ReloadStart
+
+# Keep the existing successful-fire branch, ammunition checks and all effects:
+# 기존 발사 성공 분기, 탄약 검사, 효과를 유지하세요.
+# Weapon_AR_FireLoop:
+#   ... existing settings ...
+#   spells:
+#     - Weapon_AR_Projectile
+#     - Weapon_AR_Recoil
+# Both calls must be consecutive in the same tick. See docs/en/integration.md.
+# 두 주문은 같은 틱에 연속 실행해야 합니다. docs/ko/integration.md 참고.

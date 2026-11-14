@@ -12,6 +12,7 @@ Status: **experimental / human acceptance pending**. Compilation, local protocol
 - Official MagicSpells 4.0-Beta-18, source commit `1996743cacaac8c5742ac146e7ff905caf270f8a`.
 - Disposable flat-world server, bound to `127.0.0.1:25579`, offline authentication for the local fixture only.
 - Headless `minecraft-protocol` 1.68.0 client speaking protocol 1.21.11. It applies relative rotation fields, reports normal look packets, and records traffic. It does **not** run the vanilla renderer or physical mouse input.
+- Separate visual recording: Minecraft 1.21.11 renderer with Fabric 0.20.1 and Minecraft Mod MCP 0.4.3 for framebuffer capture. The capture helper is not a recoil mod or a plugin dependency.
 
 ## Automated checks
 
@@ -54,6 +55,29 @@ The particle-projectile check uses `check-plugins: true` and the separate runtim
 
 Reproduce using [tests/runtime](../../tests/runtime/README.md). The fixture includes a dependency-pinned client, spell YAML, and optional `runtimeProbeJar` task. ProtocolLib is only an optional comparison tool, not a MagicRecoil requirement.
 
+## Recorded recoil demo
+
+![Actual 18-shot recoil test](../media/recoil-demo.gif)
+
+Recorded on 2026-11-14 using [spells-demo.yml](../../tests/runtime/spells-demo.yml), the same Paper/MagicSpells/addon versions listed above, and no mouse input. A Mineflayer MCP controller invoked `ms cast as RecoilCamera Demo_Burst`. Each projectile uses `targeting=none` to read the caster's current aim before the new recoil impulse. The held crossbow is a prop; this test does not implement mouse-triggered firing, ammunition, or damage.
+
+| Measurement | Before → after |
+| --- | --- |
+| Shots / cadence | 18 shots / one per three server ticks |
+| Position | `[0.5, -60, -5.5]` → identical |
+| Yaw | `0°` → `0.907024°` |
+| Pitch | `0°` → `-26.189999°` (upward) |
+| Lifetime recoil packet counter | 216 → 270, a difference of 54 |
+| Active recoil sessions after the tail | 0 |
+| Reported server TPS | 20.0 |
+| Auto-return | Disabled; final aim remains raised |
+
+The original 1280×720 PNG frames came from Minecraft's `ScreenshotRecorder`, via a project-specific MCP adapter and [Minecraft Mod MCP](https://github.com/langyo/minecraft-mod-mcp). A local capture-only patch adapts the mod's screenshot entry point to Fabric's 1.21.11 intermediary names and asynchronous screenshot API (Yarn `1.21.11+build.6`). An isolated GLFW library keeps the capture window hidden and prevents desktop input capture. These helpers do not change camera rotation, recoil packets, or MagicRecoil's implementation.
+
+The source capture contains 61 frames over about 12.1 seconds (**approximately 5 FPS**). The README GIF keeps seven seconds at the captured timing, scales the game image to 960×540, and adds a 64-pixel caption strip. It loops; the transition back to the initial target at the loop boundary is the GIF restarting. No generated game frames or motion interpolation are used. This sampling rate does not establish live animation smoothness or human mouse comfort.
+
+See [capture metadata](../media/recoil-demo.json) for hashes and [reproduction steps](../../tests/runtime/README.md#visual-burst-fixture). A normal 1.21.11 client can run the same spell fixture without Fabric or the capture helper.
+
 ## Human acceptance checklist
 
 Use a real vanilla 1.21.11 client with the original weapon YAML. Compare identical server TPS, sensitivity, FOV, firing cadence, recoil strength, and network conditions against the old RotateSpell configuration.
@@ -72,7 +96,7 @@ Use a real vanilla 1.21.11 client with the original weapon YAML. Compare identic
 
 - Perceptual superiority over RotateSpell or a native VALORANT-like renderer.
 - Real mouse comfort, high-latency synchronization, anti-cheat compatibility, or a production concurrency limit.
-- Correctness of the missing original Paimon gun, its ammunition variables, reload conditions, or custom `ms-*.jar` binaries.
+- Correctness of the missing original production gun, its ammunition variables, reload conditions, or custom `ms-*.jar` binaries.
 - Minecraft 26.3, Folia, and alternative MagicSpells releases.
 
 A client mod with frame-based additive recoil is the next step if the vanilla client cannot meet the feel requirement. This alpha should be evaluated, not described as having completed that acceptance test.

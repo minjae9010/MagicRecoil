@@ -38,7 +38,7 @@ class RecoilSettingsTest {
     }
 
     @Test void allDistributedRecoilExamplesParse() throws Exception {
-        for (String file : new String[]{"recoil-examples.yml", "paimon-recoil.yml"}) {
+        for (String file : new String[]{"recoil-examples.yml", "weapon-integration.yml"}) {
             var config = new YamlConfiguration();
             config.loadFromString(Files.readString(Path.of("examples", file)));
             for (String key : config.getKeys(false)) {

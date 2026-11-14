@@ -9,23 +9,25 @@ MagicRecoil은 클릭 감지, 탄약 감소, 발사체 생성, 데미지, 자동
 기존 반동 주문의 클래스와 반동 설정만 교체합니다. RotateSpell 전용 `rotation-pitch`, `rotation-yaw`, `affect-pitch`, `face`, 타깃 선택 설정은 그대로 가져오지 않습니다. RecoilSpell은 항상 **플레이어 시전자**에게 적용됩니다. 기존에 필요했던 일반 MagicSpells 조건과 수정자는 유지합니다.
 
 ```yaml
-Weapon_파이먼_반동:
+Weapon_AR_Recoil:
   spell-class: "dev.magicrecoil.spells.RecoilSpell"
   helper-spell: true
   recoil: 2.5
-  require-success-of: Weapon_파이먼_PP
-  stop-on-buff-end: [Weapon_파이먼_Buff]
+  require-success-of: Weapon_AR_Projectile
+  stop-on-buff-end: [Weapon_AR_FiringBuff]
 ```
 
-`Weapon_파이먼_Left_Ticks`의 기존 성공 분기에서는 다음 순서를 유지합니다.
+`Weapon_AR_*`는 범용 영어 예시 이름입니다. 기존 총기 구성에 맞춰 정의와 모든 참조를 함께 연결하세요. 반동 블록 이름만 바꾸면 발사 루프는 이전 이름을 계속 참조합니다.
+
+`Weapon_AR_FireLoop`의 기존 성공 분기에서는 다음 순서를 유지합니다.
 
 ```yaml
 spells:
-  - Weapon_파이먼_PP
-  - Weapon_파이먼_반동
+  - Weapon_AR_Projectile
+  - Weapon_AR_Recoil
 ```
 
-이것은 전체 주문을 대체하는 YAML이 아닌 **일부분**입니다. 원본 파일이 제공되지 않아 실제 탄약 검사, 재장전 주문 이름, 발사체의 성공 판정, 버프 생명주기를 분석하지 못했습니다. [파이먼 예시](../../examples/paimon-recoil.yml)는 반동 블록 교체용으로 검토해야 합니다.
+이것은 전체 주문을 대체하는 YAML이 아닌 **일부분**입니다. 원본 파일이 제공되지 않아 실제 탄약 검사, 재장전 주문 이름, 발사체의 성공 판정, 버프 생명주기를 분석하지 못했습니다. [범용 총기 예시](../../examples/weapon-integration.yml)는 반동 블록 교체용으로 검토해야 합니다.
 
 ## 발사 성공 확인이 필요한 이유
 

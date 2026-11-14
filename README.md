@@ -8,6 +8,12 @@ MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damag
 
 > **Experimental release.** This is a server-side approximation, not a VALORANT camera animation. A vanilla client receives discrete rotations; there is no frame-rate interpolation contract. Local server/protocol checks and automated tests are documented in [Testing](docs/en/testing.md). Human camera-feel acceptance, real weapon integration, and latency/anti-cheat testing remain necessary.
 
+## Recoil demo
+
+![MagicRecoil: an uncompensated 18-shot burst in Minecraft](docs/media/recoil-demo.gif)
+
+Actual Minecraft 1.21.11 frames captured through MCP on a local Paper server: 18 shots, three ticks apart, `auto-return: false`, and no mouse compensation. The crossbow is a visual prop; MagicSpells triggers the shots. The capture runs at approximately **5 FPS**, so use it to see recoil accumulation and the final aim, not to judge live smoothness. See the [recording details](docs/en/testing.md#recorded-recoil-demo) and [reproducible test fixture](tests/runtime/README.md#visual-burst-fixture).
+
 ## Requirements
 
 | Component | Supported target |
@@ -82,10 +88,10 @@ See the [full configuration reference](docs/en/configuration.md) for units, rang
 | File | Purpose |
 | --- | --- |
 | [recoil-examples.yml](examples/recoil-examples.yml) | Minimal example, seven weapon presets, custom pattern, stop spell |
-| [paimon-recoil.yml](examples/paimon-recoil.yml) | Replacement for `Weapon_파이먼_반동` only |
-| [Integration guide](docs/en/integration.md) | Success gating, reload hooks, Paimon migration, troubleshooting |
+| [weapon-integration.yml](examples/weapon-integration.yml) | Replacement for `Weapon_AR_Recoil` only |
+| [Integration guide](docs/en/integration.md) | Success gating, reload hooks, weapon migration, troubleshooting |
 
-The original `spells-[Weapon_3AR] 8파이먼.yml` was **not supplied**. The Paimon example uses only the names in the request. It is a replacement fragment, not a verified edit of the complete weapon file. Existing projectile, ammunition, damage, reload, effects, and ON/OFF logic must be preserved and tested against the original.
+The original production weapon YAML was **not supplied**. The integration example uses generic English identifiers such as `Weapon_AR_Recoil` and `Weapon_AR_Projectile`; adapt every reference to your existing gun. It is a replacement fragment, not a verified edit of the complete weapon file. Existing projectile, ammunition, damage, reload, effects, and ON/OFF logic must be preserved and tested against the original.
 
 ## Reload and commands
 

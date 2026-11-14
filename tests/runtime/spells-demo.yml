@@ -1,0 +1,94 @@
+# Visual recording fixture for an isolated test server, not a complete weapon.
+# 격리된 테스트 서버의 화면 녹화용 구성입니다. 완성된 총기 설정이 아닙니다.
+# Console: ms cast as RecoilDemo Demo_Burst
+Demo_Projectile:
+  spell-class: .instant.ParticleProjectileSpell
+  helper-spell: true
+  projectile-velocity: 40
+  projectile-gravity: 0
+  projectile-spread: 0
+  start-y-offset: 1.62
+  tick-interval: 1
+  intermediate-effects: 1
+  max-distance: 48
+  hit-players: false
+  hit-non-players: false
+  effects:
+    trail:
+      position: special
+      effect: particles
+      particle-name: electric_spark
+      count: 1
+      speed: 0
+      horiz-spread: 0
+      vert-spread: 0
+    impact:
+      position: target
+      effect: particles
+      particle-name: flame
+      count: 6
+      speed: 0.01
+      horiz-spread: 0.08
+      vert-spread: 0.08
+
+Demo_Recoil:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  helper-spell: true
+  recoil: 1.2
+  vertical: 1.0
+  horizontal: 0.55
+  growth: 0.025
+  recoil-steps: 3
+  reset-delay: 400
+  pattern: valorant
+  pattern-randomness: 0
+  auto-return: false
+  require-success-of: Demo_Projectile
+
+Demo_Shot:
+  spell-class: .MultiSpell
+  helper-spell: true
+  # Read the caster's current aim for each shot, even with stored parent targeting.
+  # 상위 주문에 저장된 타깃이 있어도 매 발 현재 시전자 방향을 사용합니다.
+  spells: ["Demo_Projectile(targeting=none)", Demo_Recoil]
+
+# 18 shots, three ticks apart (2.55 seconds from first to last at 20 TPS).
+# 3틱 간격으로 18발 발사합니다(20 TPS에서 첫 발부터 마지막 발까지 2.55초).
+Demo_Burst:
+  spell-class: .MultiSpell
+  spells:
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
+    - DELAY 3
+    - Demo_Shot
