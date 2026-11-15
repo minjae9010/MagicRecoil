@@ -100,3 +100,51 @@ ADS_PaimonAim:
   always-granted: true
   recoil-spells: [Weapon_파이먼_반동]
   stop-on-spells: [Weapon_Reload_파이먼]
+
+Hold_AutoFire:
+  spell-class: dev.magicrecoil.spells.AutoFireSpell
+  always-granted: true
+  use-item: diamond_hoe
+  fire-spell: Hold_Fire
+  interval-ticks: 2
+  stop-on-spells: [Weapon_Reload_파이먼]
+Hold_Fire:
+  spell-class: .MultiSpell
+  always-granted: true
+  modifiers:
+    - holding diamond_hoe require
+    - variable reload=0 require
+    - variable Paimon>0 require
+  variable-mods-cast: [Paimon -1]
+  spells: [Weapon_파이먼_Beam, Weapon_파이먼_반동]
+Hold_Aim:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  left-click-cast-item: diamond_hoe
+  cooldown: 0.25
+  recoil-spells: [Weapon_파이먼_반동]
+  zoom:
+    enabled: true
+    mode: FOV_EFFECT
+    fov-factor: 0.65
+Repeat_AutoFire:
+  spell-class: dev.magicrecoil.spells.AutoFireSpell
+  always-granted: true
+  use-item: blaze_rod
+  input-mode: REPEATED_CLICK
+  release-timeout-ticks: 6
+  interval-ticks: 2
+  fire-spell: Repeat_Fire
+Repeat_Fire:
+  spell-class: .MultiSpell
+  always-granted: true
+  modifiers: [variable reload=0 require, variable Paimon>0 require]
+  variable-mods-cast: [Paimon -1]
+  spells: [Weapon_파이먼_Beam, Weapon_파이먼_반동]
+Hold_Stop:
+  spell-class: dev.magicrecoil.spells.StopAutoFireSpell
+  always-granted: true
+Hold_Eventless_Stop:
+  spell-class: .MultiSpell
+  always-granted: true
+  spells: ["Hold_Stop (mode=direct)"]

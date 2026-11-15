@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -29,6 +30,13 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
     private final Map<Tracker, Boolean> observed = new WeakHashMap<>();
 
     @Override public void onEnable() { getServer().getPluginManager().registerEvents(this, this); }
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void input(PlayerInteractEvent event) {
+        if (event.getItem() != null && event.getItem().getType() == org.bukkit.Material.BLAZE_ROD) {
+            getLogger().info("INPUT tick=" + Bukkit.getCurrentTick() + " action=" + event.getAction() + " hand=" + event.getHand()
+                    + " item=" + event.useItemInHand() + " block=" + event.useInteractedBlock());
+        }
+    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void cast(SpellCastEvent event) {
@@ -58,8 +66,13 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
             var ammo = com.nisovin.magicspells.MagicSpells.getVariableManager().getVariable("Paimon");
             sender.sendMessage("AIM player=" + player.getName()
                     + " speed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getValue()
+                    + " baseSpeed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue()
+                    + " serverWalkSpeed=" + player.getWalkSpeed() / 2
                     + " multiplier=" + plugin.aimManager().recoilMultiplier(player, "ADS_Recoil")
                     + " states=" + plugin.aimManager().activePlayers()
+                    + " firing=" + plugin.autoFireManager().activePlayers()
+                    + " using=" + (player.hasActiveItem() ? 1 : 0)
+                    + " prepared=" + (dev.magicrecoil.firing.UseItemSupport.marked(player.getInventory().getItemInMainHand()) ? 1 : 0)
                     + " ammo=" + (ammo == null ? -1 : ammo.getValue(player))
                     + " cobblestone=" + java.util.Arrays.stream(player.getInventory().getContents())
                             .filter(item -> item != null && item.getType() == org.bukkit.Material.COBBLESTONE)

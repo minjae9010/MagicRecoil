@@ -201,4 +201,4 @@ GPL-3.0-only; see [LICENSE](LICENSE). MagicRecoil is independent of MagicSpells,
 
 ## Optional aiming
 
-[ADS configuration and input limits](docs/en/aim-and-input.md) covers AimSpell / StopAimSpell, weapon-scoped recoil reduction and transient speed modifiers. Existing Buff firing stays available. Exact left-click HOLD, magnification and automatic spread overrides are excluded; see the evidence and limits in the guide.
+[Aiming and firing configuration](docs/en/aim-and-input.md) covers right-click AutoFire, left-click ADS, weapon-scoped recoil reduction and transient speed modifiers. Native item-use tracking supports sticks, blaze rods and hoes; the optional repeated-click mode estimates release after an explicit timeout. FOV zoom is opt-in and depends on client FOV Effects settings; it is not native spyglass magnification. Existing Buff firing stays available. See the [gun-plugin comparison](docs/en/input-comparison.md) and [Paimon firing example](examples/right-click-paimon.yml). Exact left-click HOLD and automatic spread overrides remain excluded.

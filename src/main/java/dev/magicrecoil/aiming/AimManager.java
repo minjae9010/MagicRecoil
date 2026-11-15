@@ -29,6 +29,7 @@ public final class AimManager implements Listener {
     private static final NamespacedKey SPEED_KEY = new NamespacedKey("magicrecoil", "aim_speed");
     private final JavaPlugin plugin;
     private final Function<Player, AttributeInstance> movementAttribute;
+    private final ZoomAdapter zoom;
     private final Map<UUID, Session> sessions = new HashMap<>();
     private BukkitTask task;
 
@@ -49,10 +50,15 @@ public final class AimManager implements Listener {
         }
     }
 
-    public AimManager(JavaPlugin plugin) { this(plugin, player -> player.getAttribute(Attribute.MOVEMENT_SPEED)); }
+    public AimManager(JavaPlugin plugin) { this(plugin, ZoomAdapter.NONE); }
+    public AimManager(JavaPlugin plugin, ZoomAdapter zoom) { this(plugin, player -> player.getAttribute(Attribute.MOVEMENT_SPEED), zoom); }
     AimManager(JavaPlugin plugin, Function<Player, AttributeInstance> movementAttribute) {
+        this(plugin, movementAttribute, ZoomAdapter.NONE);
+    }
+    AimManager(JavaPlugin plugin, Function<Player, AttributeInstance> movementAttribute, ZoomAdapter zoom) {
         this.plugin = plugin;
         this.movementAttribute = movementAttribute;
+        this.zoom = zoom;
     }
 
     public boolean cast(Player player, String spell, AimSettings settings) {
@@ -107,9 +113,12 @@ public final class AimManager implements Listener {
             speed.addTransientModifier(new AttributeModifier(SPEED_KEY,
                     session.settings.movementSpeedMultiplier() - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
         }
+        if (session.matches(player) && session.settings.zoomEnabled()) zoom.zoom(player, session.settings.fovFactor());
+        else zoom.clear(player);
     }
 
     private void removeSpeed(Player player) {
+        zoom.clear(player);
         var speed = movementAttribute.apply(player);
         if (speed != null && speed.getModifier(SPEED_KEY) != null) speed.removeModifier(SPEED_KEY);
     }

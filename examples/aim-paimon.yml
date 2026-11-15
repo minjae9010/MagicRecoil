@@ -1,13 +1,13 @@
 # Merge these NEW spells into your existing MagicSpells configuration.
 # 기존 MagicSpells 설정에 아래 새 주문을 추가하세요.
-# Opt in: remove right-click-cast-item: 파이먼 from Weapon_파이먼_Buff.
-# 활성화 시 Weapon_파이먼_Buff의 right-click-cast-item: 파이먼 바인딩을 제거하세요.
-# Keep its LEFT-click binding and the complete Left_Ticks -> Beam -> recoil chain.
-# 좌클릭 바인딩과 Left_Ticks -> Beam -> 반동 흐름은 그대로 유지하세요.
+# Opt in: remove the old LEFT-click binding from Weapon_파이먼_Buff.
+# 활성화 시 Weapon_파이먼_Buff의 기존 좌클릭 바인딩을 제거하세요.
+# For hold-to-fire, also merge right-click-paimon.yml and remove the old right-click Buff binding.
+# 우클릭 유지 연사는 right-click-paimon.yml을 병합하고 기존 Buff 우클릭 바인딩도 제거하세요.
 Weapon_파이먼_조준:
   spell-class: "dev.magicrecoil.spells.AimSpell"
   always-granted: true
-  right-click-cast-item: 파이먼
+  left-click-cast-item: 파이먼
   ignore-global-cooldown: false
   cooldown: 0.25
   enabled: true
@@ -22,8 +22,12 @@ Weapon_파이먼_조준:
   stop-on-spells: [Weapon_Reload_파이먼]
   # Optional: end ADS when the firing buff ends / 사격 Buff 종료 시 조준도 해제하려면:
   # stop-on-buff-end: [Weapon_파이먼_Buff]
+  # Optional FOV effect, NOT native spyglass. FOV Effects 0% disables visible zoom.
+  # 선택 FOV 효과이며 실제 망원경이 아닙니다. 클라이언트 FOV 효과 0%에서는 확대되지 않습니다.
   zoom:
     enabled: false
+    mode: FOV_EFFECT
+    fov-factor: 0.65
   modifiers:
     - holdingprecise 파이먼 require
 

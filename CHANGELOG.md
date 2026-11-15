@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-- Add optional AimSpell / StopAimSpell, scoped per-shot recoil reduction and transient movement modifiers with lifecycle cleanup. Preserve existing Buff firing. Document excluded exact HOLD, zoom and automatic spread; add bilingual configuration and real Paper ADS fixtures.
+- Add optional AimSpell / StopAimSpell, scoped per-shot recoil reduction and transient movement modifiers with lifecycle cleanup.
+- Add right-click AutoFireSpell / StopAutoFireSpell: native item-use tracking for sticks, blaze rods and hoes, plus an explicit repeated-click timeout mode. Hard-cast the full existing synchronous firing entry to preserve costs, cooldowns, ammunition, reload checks and guarded recoil. Keep legacy Buff firing available.
+- Bind the new Paimon ADS example to left click and preserve the previous right-click example. Add opt-in abilities-packet FOV effects with current-abilities restoration and documented client-setting limits. Native spyglass, exact left-click HOLD and automatic spread remain excluded.
+- Add bilingual configuration, CrackShot/WeaponMechanics/QualityArmory comparison and real Paper firing/FOV packet fixtures.
 
 - Fix built-in valorant yaw integration so camera offsets cross both sides of the burst center, including with growth. Add a cumulative upward angle limit through `valorant-max-rise` (default 15 degrees), independent of a fixed bullet count. This remains an original approximation, not Riot's weapon data. Build version: 0.1.0-alpha.3.
 - Add task-based bilingual documentation navigation, per-page tables of contents, getting-started/recoil-logic/troubleshooting guides, previous/next links, and a checked GitHub Wiki exporter with Home, sidebar, and footer.

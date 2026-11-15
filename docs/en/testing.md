@@ -16,6 +16,7 @@ Separates algorithm checks, running-server observations, and camera feel requiri
 - [Human acceptance checklist](#human-acceptance-checklist)
 - [Not established by this release](#not-established-by-this-release)
 - [ADS extension verification](#ads-extension-verification)
+- [Right-click firing and FOV verification](#right-click-firing-and-fov-verification)
 <!-- toc:end -->
 
 ## Environment
@@ -125,7 +126,7 @@ A client mod with frame-based additive recoil is the next step if the vanilla cl
 
 ## ADS extension verification
 
-**Final `clean build runtimeProbeJar`: PASS; 86 unit tests, zero failures/skips.**
+**Initial ADS build: 86 unit tests passed. The final firing/FOV extension build below passes 110 tests, zero failures/skips.**
 
 Test date: **2026-11-15 (Asia/Seoul)**. Target: Paper **1.21.11 build 132**, commit **c5eb079**, official MagicSpells **4.0-Beta-18**, Java **21.0.8**, Gradle **9.3.0**.
 
@@ -134,4 +135,19 @@ Test date: **2026-11-15 (Asia/Seoul)**. Target: Paper **1.21.11 build 132**, com
 - Representative Paimon fixture: Buff → PassiveSpell → Beam → success-gated recoil preserves ammunition consumption and reload blocking while ADS scales recoil. This intentionally omits the production damage types, sounds, resource pack and external commands.
 - The fixture stops Paper with ADS active; transient modifier cleanup, clean restart and join are checked by rerunning the fixture against the same disposable server. This is not a JVM crash test.
 
-Run [the committed ADS fixture](../../tests/runtime/README.md#ads-integration-fixture). Its headless clients do not render FOV or measure physical walking speed. Human mouse feel, repeated held right-click behavior, off-hand duplicate-item bindings, interactable blocks, network latency/anti-cheat and the complete production Paimon configuration remain acceptance checks. HOLD, zoom and automatic spread have no implementation to test.
+Run [the committed ADS fixture](../../tests/runtime/README.md#ads-integration-fixture). Its headless clients do not render FOV or measure physical walking speed. Human mouse feel, off-hand duplicate-item bindings, interactable blocks, network latency/anti-cheat and the complete production Paimon configuration remain acceptance checks. Exact left-click HOLD, native spyglass and automatic spread have no implementation to test. See the new firing/FOV checks below for right-click tracking and optional FOV packets.
+
+## Right-click firing and FOV verification
+
+Final Java 21 `clean build runtimeProbeJar`: **110 unit tests passed**, no failures/skips. The same Paper 1.21.11 / official Beta 18 environment above was used with two protocol clients and no ProtocolLib. This is a real server with synthetic input, not a rendered-client acceptance test.
+
+| Check | Observed result |
+| --- | --- |
+| Native right-click | One use packet on a diamond hoe starts repeated full firing calls. Received use release stops them; ammo stays stable afterward. Scoped recoil matches ammo consumed at 0.75 degrees per shot in the fixture |
+| Repeated-click compatibility | An unmodified blaze rod receives four right-click pulses four ticks apart, continues firing, then stops after the configured six-tick gap. No temporary component is added |
+| Reload stop | Cast-event reload and direct/eventless StopAutoFireSpell stop and latch firing; clearing the reload variable alone does not resume it. A new released/repressed input does |
+| Lifecycle | Real slot/F packets, death and `/ms reload` terminate active native firing. Both ADS and firing are active when the harness requests normal server shutdown; rerunning against the same server checks restart and join |
+| Left-click FOV | An arm-animation packet toggles ADS. The outgoing abilities walking-speed field matches the configured factor and current movement attribute; flight/creative flags are preserved. Server walk speed remains 0.1 and the base attribute remains 0.1. Unscoping restores current real abilities |
+| Legacy compatibility | Existing Buff/Passive/Beam and successful-fire recoil checks remain in the same harness; costs, cooldowns, modifiers and two-player isolation continue to pass |
+
+The harness does not render the zoom, physically hold a mouse, simulate packet loss, or validate an anti-cheat. FOV Effects at 0% disables this optional zoom by the vanilla client formula; real visual strength and restoration still need human testing at 0% and 100%, with sprint/flight and the intended plugin/resource-pack combination. Native-use item components also need production inventory and interactable-block acceptance. No JVM crash test or CrackShot runtime test is claimed. The CrackShot result is a separately documented [static official-JAR inspection](input-comparison.md#crackshot-binary-verification).

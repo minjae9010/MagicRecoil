@@ -6,7 +6,10 @@ import com.nisovin.magicspells.events.*;
 import dev.magicrecoil.integration.SuccessGate;
 import dev.magicrecoil.aiming.AimManager;
 import dev.magicrecoil.spells.AimSpell;
+import dev.magicrecoil.spells.AutoFireSpell;
+import dev.magicrecoil.firing.AutoFireManager;
 import dev.magicrecoil.packet.v1_21_11.Paper12111RotationAdapter;
+import dev.magicrecoil.packet.v1_21_11.Paper12111ZoomAdapter;
 import dev.magicrecoil.recoil.RecoilManager;
 import dev.magicrecoil.spells.RecoilSpell;
 import org.bukkit.Bukkit;
@@ -34,6 +37,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     private final SuccessGate successGate = new SuccessGate();
     private RecoilManager manager;
     private AimManager aimManager;
+    private AutoFireManager autoFireManager;
     private final Set<String> stopSpells = new HashSet<>();
     private final Set<String> stopBuffs = new HashSet<>();
 
@@ -61,9 +65,11 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
             return;
         }
         manager = new RecoilManager(this, new Paper12111RotationAdapter());
-        aimManager = new AimManager(this);
+        aimManager = new AimManager(this, new Paper12111ZoomAdapter());
+        autoFireManager = new AutoFireManager(this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(aimManager, this);
+        getServer().getPluginManager().registerEvents(autoFireManager, this);
         refreshWatches();
         getLogger().info("Enabled relative rotation for Paper 1.21.11 / MagicSpells 4.0-Beta-18.");
     }
@@ -72,6 +78,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public void onDisable() {
         if (manager != null) manager.clear();
         if (aimManager != null) aimManager.clear();
+        if (autoFireManager != null) autoFireManager.clear();
         successGate.clear();
         MagicSpells.getClassLoaders().remove(getClassLoader());
         instance = null;
@@ -81,6 +88,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public void loading(MagicSpellsLoadingEvent event) {
         manager.clear();
         aimManager.clear();
+        autoFireManager.clear();
         successGate.watch(Set.of());
         // unload() clears MagicSpells' class loader list on every /ms reload.
         registerSpellLoader();
@@ -113,6 +121,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
             if (source.equalsIgnoreCase(spell.getInternalName())) getLogger().warning(spell.getInternalName() + " requires itself; it will never recoil.");
         }
         successGate.watch(watched);
+        autoFireManager.configure(MagicSpells.getSpells().values().stream().filter(AutoFireSpell.class::isInstance).map(AutoFireSpell.class::cast).toList());
     }
 
     private void checkReference(Spell owner, String name) {
@@ -165,7 +174,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void inventoryDrag(InventoryDragEvent event) { reset(event.getWhoClicked().getUniqueId()); }
     @EventHandler public void disabled(PluginDisableEvent event) {
-        if (event.getPlugin().getName().equals("MagicSpells")) { manager.clear(); aimManager.clear(); successGate.clear(); }
+        if (event.getPlugin().getName().equals("MagicSpells")) { manager.clear(); aimManager.clear(); autoFireManager.clear(); successGate.clear(); }
     }
 
     @Override
@@ -198,4 +207,5 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public RecoilManager manager() { return manager; }
     public SuccessGate successGate() { return successGate; }
     public AimManager aimManager() { return aimManager; }
+    public AutoFireManager autoFireManager() { return autoFireManager; }
 }

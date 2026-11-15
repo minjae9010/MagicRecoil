@@ -15,11 +15,12 @@
 - [`/ms reload` 동작](#ms-reload-동작)
 - [문제 해결](#문제-해결)
 - [Buff 총기에 조준 추가](#buff-총기에-조준-추가)
+- [우클릭 연사 연동](#우클릭-연사-연동)
 <!-- toc:end -->
 
 ## 총기 동작을 유지하고 반동만 교체하기
 
-MagicRecoil은 클릭 감지, 탄약 감소, 발사체 생성, 데미지, 자동 발사 반복, 재장전을 구현하지 않습니다. 기존 MagicSpells 설정에서 **한 발이 성공적으로 발사되는 분기**와 탄약·쿨다운·재장전·ON/OFF 조건을 먼저 찾습니다.
+반동 구성 요소는 탄약 감소, 발사체 생성, 데미지, 재장전을 구현하지 않습니다. 선택 AutoFireSpell은 우클릭 입력과 기존 발사 처리 전체의 호출 주기를 관리하며 탄약·발사체·피해·재장전 로직은 MagicSpells 설정에 남깁니다. 기존 설정에서 **한 발이 성공적으로 발사되는 분기**와 탄약·쿨다운·재장전·ON/OFF 조건을 먼저 찾습니다.
 
 기존 반동 주문의 클래스와 반동 설정만 교체합니다. RotateSpell 전용 `rotation-pitch`, `rotation-yaw`, `affect-pitch`, `face`, 타깃 선택 설정은 그대로 가져오지 않습니다. RecoilSpell은 항상 **플레이어 시전자**에게 적용됩니다. 기존에 필요했던 일반 MagicSpells 조건과 수정자는 유지합니다.
 
@@ -120,4 +121,8 @@ Beta 18은 기존 주문을 정리하고 외부 클래스 로더 목록을 비�
 
 ## Buff 총기에 조준 추가
 
-[조준과 기존 Buff 연동](aim-and-input.md#기존-buff-총기와-반동-연동), [파이먼 병합 예제](../../examples/aim-paimon.yml)를 참고하세요. 우클릭은 하나의 주문에만 배정하고 기존 발사 성공 경로 전체를 보존하세요. 이벤트가 없는 재장전에는 StopAimSpell을 추가하며 PassiveSpell 발사를 Beam 직접 호출로 대체하지 않습니다.
+[조준과 기존 Buff 연동](aim-and-input.md#기존-buff-총기와-반동-연동), [파이먼 병합 예제](../../examples/aim-paimon.yml)를 참고하세요. 새 조작에서는 조준을 좌클릭에 배정하고 연사는 AutoFireSpell의 use-item으로 등록하며 기존 발사 성공 경로 전체를 보존하세요. 이벤트가 없는 재장전에는 StopAimSpell·StopAutoFireSpell을 추가하며 PassiveSpell 발사를 Beam 직접 호출로 대체하지 않습니다.
+
+## 우클릭 연사 연동
+
+선택 AutoFireSpell은 우클릭 입력과 발사 처리 주문의 호출 주기만 관리합니다. 탄약·발사체·데미지·재장전은 기존 MagicSpells 주문에 남깁니다. [전체 입력 설정](aim-and-input.md#우클릭-자동-사격)과 [파이먼 연사 예제](../../examples/right-click-paimon.yml)를 참고하세요. 새 조작에서는 좌클릭을 조준에 배정하고 기존 Buff의 마우스 바인딩을 제거합니다. PassiveSpell의 성공 처리 전체를 일반 동기 발사 진입점으로 분리하여 호출하며 두 연사 루프를 동시에 실행하지 마세요. 이벤트 없는 재장전에는 StopAutoFireSpell을 맨 앞에 추가합니다.

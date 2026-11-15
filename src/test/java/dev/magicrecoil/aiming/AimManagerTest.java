@@ -170,4 +170,14 @@ class AimManagerTest {
             manager.clear(); assertEquals(0, manager.activePlayers()); verify(f.task).cancel();
         }
     }
+    @Test void optionalZoomFollowsItemOwnershipAndIsRestoredOnStop() throws Exception {
+        try (var f = new Fixture()) {
+            var zoom = mock(ZoomAdapter.class);
+            var manager = new AimManager(f.plugin, p -> f.speed, zoom);
+            manager.cast(f.player, "aim", settings("zoom:\n  enabled: true\n  mode: FOV_EFFECT\n  fov-factor: 0.7"));
+            verify(zoom).zoom(f.player, 0.7);
+            manager.stop(f.player.getUniqueId()); verify(zoom, atLeastOnce()).clear(f.player);
+            assertEquals(0, manager.activePlayers()); assertFalse(f.modifiers.containsKey(SPEED));
+        }
+    }
 }

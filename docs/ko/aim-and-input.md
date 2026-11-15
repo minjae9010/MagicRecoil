@@ -2,7 +2,7 @@
 
 [English](../en/aim-and-input.md) · [문서 안내](README.md)
 
-**Paper 1.21.11 / 공식 MagicSpells 4.0-Beta-18**용 `dev.magicrecoil.spells.AimSpell`, `dev.magicrecoil.spells.StopAimSpell`을 추가합니다. 조준은 선택 기능입니다. AimSpell을 사용하지 않으면 기존 발사, 명령어, 반동 설정, 성공 검증은 기존 동작을 유지합니다. 새 런타임 의존성은 없습니다.
+**Paper 1.21.11 / 공식 MagicSpells 4.0-Beta-18**용 `dev.magicrecoil.spells.AimSpell`, `dev.magicrecoil.spells.StopAimSpell`을 추가합니다. 조준은 선택 기능입니다. AimSpell을 사용하지 않으면 기존 발사, 명령어, 반동 설정, 성공 검증은 기존 동작을 유지합니다. 새 런타임 의존성은 없습니다. 현재 권장 조작은 우클릭 연사·좌클릭 조준이며 이전 바인딩도 사용할 수 있습니다.
 
 <!-- toc:start -->
 ## 목차
@@ -11,7 +11,9 @@
 - [바인딩과 전체 설정](#바인딩과-전체-설정)
 - [무기 소유와 속도 복원](#무기-소유와-속도-복원)
 - [기존 Buff 총기와 반동 연동](#기존-buff-총기와-반동-연동)
-- [HOLD·확대·자동 탄퍼짐을 제외한 이유](#hold확대자동-탄퍼짐을-제외한-이유)
+- [우클릭 자동 사격](#우클릭-자동-사격)
+- [선택 FOV 확대](#선택-fov-확대)
+- [좌클릭과 탄퍼짐의 한계](#좌클릭과-탄퍼짐의-한계)
 - [검증](#검증)
 <!-- toc:end -->
 
@@ -19,12 +21,13 @@
 
 | 기능 | 결과 |
 | --- | --- |
-| 우클릭 조준 | MagicSpells의 기본 아이템 바인딩으로 성공한 시전마다 토글 |
+| 좌클릭 조준 | MagicSpells의 기본 아이템 바인딩으로 성공한 시전마다 토글 |
 | 비토글 조준 | `toggle: false`는 ON 상태를 유지하며 반복 호출해도 중첩하지 않음 |
 | 이동속도 감소 | `MOVEMENT_SPEED`에 키가 있는 transient modifier 하나 추가, 해제 시 자기 modifier만 제거 |
 | 반동 감소 | 플레이어와 반동 주문별로 새 발사에 배율 적용, 기존 패턴·growth 보존 |
 | 좌클릭 HOLD 자동 사격 | 제외: 일반 공격 버튼의 해제 순간을 알리는 공통 프로토콜 신호가 없음 |
-| 화면 확대 | 제외: 임의 총기에서 정확한 FOV 배율을 보장하는 방법이 검증되지 않음 |
+| 선택 FOV 확대 | abilities 패킷 방식의 선택 효과, 실제 망원경 확대 아님 |
+| 우클릭 연사 | 기본은 실제 아이템 사용 상태, 호환 옵션은 반복 클릭 타임아웃 |
 | 자동 탄퍼짐 감소 | 제외: 이 애드온에서 범용적인 플레이어별 spread 재정의 방법이 검증되지 않음 |
 
 ## 바인딩과 전체 설정
@@ -35,7 +38,7 @@
 Gun_Aim:
   spell-class: "dev.magicrecoil.spells.AimSpell"
   always-granted: true
-  right-click-cast-item: stick
+  left-click-cast-item: stick
   ignore-global-cooldown: false
   cooldown: 0.25
   recoil-spells: [Gun_Recoil]
@@ -47,7 +50,7 @@ Gun_StopAim:
   helper-spell: true
 ```
 
-입력 바인딩과 spellbook·권한 검사, `hardCast`, 비용, 쿨다운, modifiers는 MagicSpells의 기본 시전 경로를 사용합니다. 애드온은 클릭 리스너를 추가하거나 발사체 주문을 직접 호출하지 않습니다. 주 손의 총기에만 바인딩하세요. Beta 18의 우클릭 아이템 리스너에는 손 구분 필터가 없으므로 같은 바인딩 아이템을 보조 손에 함께 들지 말고, `ignore-global-cooldown: false`를 유지하여 같은 클릭의 중복 이벤트를 억제하세요. 우클릭을 계속 누르면 기본 게임이 상호작용을 반복하여 나중에 다시 토글할 수 있습니다. **시전별 토글이며 마우스 누름·해제 감지가 아닙니다.** 빠른 클릭은 MagicSpells 쿨다운에 막힐 수 있습니다. 실제 사용할 아이템·상호작용 블록·양손 조합을 게임에서 확인하세요.
+입력 바인딩과 spellbook·권한 검사, `hardCast`, 비용, 쿨다운, modifiers는 MagicSpells의 기본 시전 경로를 사용합니다. AimSpell은 별도 클릭 리스너를 추가하지 않습니다. AutoFireSpell은 자체 use-item 입력을 등록하고 기존 발사 처리 주문 전체를 호출하며 발사체·데미지를 직접 구현하지 않습니다. 주 손의 총기에만 바인딩하세요. Beta 18의 아이템 바인딩 리스너에는 손 구분 필터가 없으므로 같은 바인딩 아이템을 보조 손에 함께 들지 말고, `ignore-global-cooldown: false`를 유지하여 같은 클릭의 중복 이벤트를 억제하세요. 이전 우클릭 조준 구성은 상호작용 반복으로 다시 토글할 수 있습니다. 우클릭 연사와 함께 사용할 때는 좌클릭 조준으로 배정하세요. **시전별 토글이며 마우스 누름·해제 감지가 아닙니다.** 빠른 클릭은 MagicSpells 쿨다운에 막힐 수 있습니다. 실제 사용할 아이템·상호작용 블록·양손 조합을 게임에서 확인하세요.
 
 | AimSpell 설정 | 기본값 | 허용값과 동작 |
 | --- | --- | --- |
@@ -62,9 +65,11 @@ Gun_StopAim:
 | `recoil-spells` | 활성화 시 필수 | 이 총기의 RecoilSpell 내부 이름 1–128개. 대소문자 구분 없음 |
 | `stop-on-spells` | `[]` | 주문 이름 최대 128개. 해당 주문의 실패를 포함한 시전 시도 시 조준 종료 |
 | `stop-on-buff-end` | `[]` | Buff 이름 최대 128개. 해당 플레이어의 BuffEndEvent에서 종료 |
-| `zoom.enabled` | `false` | `false`만 지원 |
-| `zoom.level` | 미지원 | zoom이 꺼져 있어도 값을 지정하면 설정 거부 |
-| `trigger` | 미지원 | MagicSpells의 `right-click-cast-item` 사용 |
+| `zoom.enabled` | `false` | Boolean. 선택 FOV 효과 활성화 |
+| `zoom.mode` | 미지정 | 확대 활성화 시 `FOV_EFFECT` 명시 필수 |
+| `zoom.fov-factor` | `0.65` | 유한 숫자 `[0.55, 1]`. 다른 FOV 영향이 없고 지상·FOV 효과 100%일 때 목표 시야 계수 |
+| `zoom.level` | 미지원 | 정확한 광학 배율 계약이 아니므로 fov-factor 사용 |
+| `trigger` | 미지원 | 조준은 MagicSpells의 `left-click-cast-item` 사용 |
 
 Boolean·숫자는 문자열이 아닌 YAML 리터럴입니다. 그 외 MagicSpells 옵션은 MagicSpells가 처리합니다. StopAimSpell에는 애드온 전용 옵션이 없습니다. 일시 중지 상태를 포함한 해당 플레이어의 조준을 해제하고, 반동과 발사 Buff는 변경하지 않습니다. 기존 StopRecoilSpell과 `/magicrecoil reset`은 기존처럼 반동만 정리합니다.
 
@@ -80,21 +85,48 @@ Paper `addTransientModifier`로 `magicrecoil:aim_speed`, 값 `배율 - 1`, 연�
 
 ## 기존 Buff 총기와 반동 연동
 
-기존 `Weapon_파이먼_Buff → Weapon_파이먼_Left_Ticks → Weapon_파이먼_Beam → Weapon_파이먼_반동` 흐름을 유지하세요. `Paimon` 탄약 차감, 재장전 modifiers, 효과, 성공 분기를 보존합니다. **발사 Buff와 조준을 같은 우클릭 아이템에 동시에 바인딩하면 안 됩니다.** 조준을 사용하려면 우클릭을 ADS에 배정하고 좌클릭의 기존 Buff On/Off 발사는 유지하세요. 비활성화하려면 조준 바인딩을 제거하거나 `enabled: false` 후 `/ms reload`를 실행하고, 필요하면 기존 우클릭 Buff 바인딩을 복구합니다.
+기존 `Weapon_파이먼_Buff → Weapon_파이먼_Left_Ticks → Weapon_파이먼_Beam → Weapon_파이먼_반동` 흐름을 유지하세요. `Paimon` 탄약 차감, 재장전 modifiers, 효과, 성공 분기를 보존합니다. 새 조작에서는 기존 발사 Buff의 마우스 바인딩을 제거하고 AutoFireSpell의 `use-item`을 등록하며 조준은 좌클릭에 배정합니다. 기존 Buff 정의는 보존하되 두 발사 루프를 동시에 실행하면 안 됩니다. [우클릭 파이먼 병합 예제](../../examples/right-click-paimon.yml)를 참고하세요. 이전 우클릭 조준 예제는 [aim-paimon-legacy.yml](../../examples/aim-paimon-legacy.yml)에 보존했습니다. 조준을 끄려면 `enabled: false` 후 `/ms reload`, 자동 발사를 끄려면 AutoFireSpell을 제거하거나 비활성화한 뒤 이전 바인딩을 복구합니다.
 
 `recoil-spells`에 나열한 반동 주문에만 배율을 적용합니다. 패턴 샘플링, `vertical`, `horizontal`, `growth`, 난수 순서, 초기화 시간, steps, `require-success-of` 순서는 유지합니다. 한 발의 완성된 회전량 양 축에 배율을 곱한 뒤 기존 버퍼에 넣습니다. 패턴 진행과 누적 상승량 상한 계산은 원래 패턴을 기준으로 하므로 `0.5` 조준을 유지하면 총 상승량도 절반입니다. 연사 도중 토글해도 패턴 단계는 유지합니다. 이미 큐에 들어간 반동은 발사 당시 배율을 유지하며 auto-return은 실제 전달한 회전량을 사용합니다. 공유 RecoilSettings나 BeamSpell 값을 변경하지 않습니다.
 
 실제 재장전 시작 주문을 `stop-on-spells`에 넣으세요. 시전 이벤트가 없는 direct 호출 구성은 기존 StopRecoilSpell과 함께 재장전 목록의 맨 앞에서 StopAimSpell을 호출하세요. 조준 종료 자체는 사격 Buff를 끄지 않습니다. 기존 재장전·탄약 조건이 발사를 계속 차단해야 합니다.
 
-Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Subspell.java)의 기본 PARTIAL 호출은 이벤트·modifiers를 처리하지만 NORMAL 상태, 비용·쿨다운 0으로 시작합니다. DIRECT는 해당 이벤트 없이 `spell.cast(data)`를 호출합니다. 일반 비타겟 하위 호출의 HARD/FULL은 [`Spell.hardCast`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Spell.java)와 정상 사전·사후 처리 경로를 사용합니다. 애드온에는 새 자동 발사 호출기가 없으며 기존 호출 의미도 바꾸지 않습니다. Left_Ticks를 우회하여 Beam만 호출하지 마세요. PassiveSpell은 이벤트 기반 구성으로, 자동으로 모든 비용을 보존하는 재사용 발사 진입점이 되지 않습니다.
+Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Subspell.java)의 기본 PARTIAL 호출은 이벤트·modifiers를 처리하지만 NORMAL 상태, 비용·쿨다운 0으로 시작합니다. DIRECT는 해당 이벤트 없이 `spell.cast(data)`를 호출합니다. 일반 비타겟 하위 호출의 HARD/FULL은 [`Spell.hardCast`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Spell.java)와 정상 사전·사후 처리 경로를 사용합니다. AutoFireSpell은 일반 발사 처리 주문을 hardCast하여 권한·modifiers·비용·쿨다운을 유지합니다. 양수인 최상위 cast-time은 예약 전에 차단하고 DIRECT/PARTIAL로 검사를 우회하지 않습니다. Left_Ticks를 우회하여 Beam만 호출하지 마세요. PassiveSpell은 이벤트 기반 구성으로, 자동으로 모든 비용을 보존하는 재사용 발사 진입점이 되지 않습니다.
 
-## HOLD·확대·자동 탄퍼짐을 제외한 이유
+## 우클릭 자동 사격
 
-Paper [`Input`](https://jd.papermc.io/paper/1.21.11/org/bukkit/Input.html)은 이동·점프·웅크리기·달리기만 제공하며 공격 버튼 상태는 없습니다. 기본 swing·attack 패킷은 동작을, 블록 파괴 start/abort/stop은 특정 블록에 관한 행동을 나타냅니다. `RELEASE_USE_ITEM`은 아이템 사용 해제입니다. 공중이나 엔티티를 향한 좌클릭의 공통 해제 신호는 제공하지 않습니다. PlayerInteractEvent 반복이나 swing 타임아웃으로 마우스 유지를 증명할 수 없으며, ProtocolLib도 클라이언트가 보내지 않은 정보를 얻을 수는 없습니다. 따라서 AutoFireSpell, 발사 간격 옵션, 해제 추측 타임아웃 모드를 만들지 않고 기존 Buff On/Off를 유지합니다. 기존 반복 주문은 서버 틱으로 실행되며 20 TPS의 1틱은 약 0.05초이고 0초 발사를 보장하지 않습니다.
+`dev.magicrecoil.spells.AutoFireSpell`의 `use-item`에 MagicSpells magic-item 이름이나 아이템 문자열을 지정합니다. `right-click-cast-item`을 함께 지정하면 안 됩니다. MagicSpells의 해당 바인딩은 기본 아이템 사용을 취소하기 때문입니다. 새 입력 세션마다 AutoFireSpell의 기본 MagicSpells 시전 검사를 거친 뒤, 일반 동기 `fire-spell`을 `interval-ticks` 간격으로 hardCast합니다. 발사체·데미지를 직접 구현하지 않습니다.
 
-대상 Paper API에는 일반적인 플레이어 FOV 배율 설정기가 없습니다. 이동속도 효과는 FOV Effects 등 클라이언트 설정에 따라 시야에 영향을 줄 수 있지만 `zoom.level: 2.0`이나 망원경 확대가 아닙니다. abilities 패킷의 walk-speed 위조는 클라이언트 이동 예측과 다른 속도 업데이트에 영향을 주므로 제외했습니다. 실제 망원경은 해당 아이템의 사용 상태가 필요하고, 장비·사용 메타데이터 위조는 총기의 동작을 바꾸므로 검증된 임의 총기 확대 방식이 아닙니다. Paper [`startUsingItem`](https://jd.papermc.io/paper/1.21.11/org/bukkit/entity/LivingEntity.html#startUsingItem(org.bukkit.inventory.EquipmentSlot))도 실험 API이며 플레이어·아이템별 효과를 보장하지 않습니다. ProtocolLib 의존성이나 FOV 패킷 어댑터를 추가하지 않습니다.
+| 설정 | 기본값 | 허용값·동작 |
+| --- | --- | --- |
+| `enabled` | `true` | YAML Boolean. false 후 리로드하면 바인딩 제거 |
+| `use-item` | 필수 | magic-item 이름 또는 아이템 문자열. MagicSpells cast-item 비교 옵션 적용 |
+| `fire-spell` | 필수 | 일반 동기 발사 처리 주문. PassiveSpell·AutoFireSpell은 대상 지정 거부 |
+| `interval-ticks` | `2` | 정수 `[1, 1200]`. 호출 대상의 실제 쿨다운도 적용 |
+| `input-mode` | `NATIVE_USE` | `NATIVE_USE` 또는 `REPEATED_CLICK` |
+| `release-timeout-ticks` | `6` | REPEATED_CLICK 전용. 정수 `[5, 40]` |
+| `stop-on-spells` | `[]` | 재장전·종료 주문 최대 128개. 시도 시 연사를 중지하고 입력을 놓을 때까지 차단 |
+| `stop-on-buff-end` | `[]` | BuffEnd 참조 최대 128개 |
 
-Beta 18 [`BeamSpell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/spells/instant/BeamSpell.java)은 비공개 `ConfigData`의 spread 값을 시전별로 평가합니다. 총기 제작자가 기존 MagicSpells 동적 설정을 구성할 수는 있지만 이 애드온에서 ADS 소유 범위를 보장하는 범용적인 재정의 경로는 검증하지 못했습니다. 자동 탄퍼짐 감소는 제외하며 공유 spread 필드나 변수를 수정하지 않습니다.
+`NATIVE_USE`는 막대기, 블레이즈 막대, 나무·돌·철·금·다이아몬드·네더라이트 괭이를 지원합니다. 재질·모델·이름·로어·속성은 유지하고 Consumable/UseEffects 컴포넌트만 임시 추가합니다. 사용 애니메이션·입자·소리·추가 감속 없이 실제 주 손 사용 상태를 매 틱 확인하고, Paper PlayerStopUsingItemEvent로 해제 신호를 받으면 연사를 멈춥니다. 반복 클릭을 기다리지 않습니다. 기존의 커스텀 Consumable/UseEffects가 있는 아이템은 덮어쓰지 않고 거부합니다. 슬롯·인벤토리 처리, 사망·드롭·로그아웃·리로드·종료 시 준비 정보를 제거하며 재접속 시에도 복구합니다. 한 번의 기본 사용 길이는 1시간이고 실제 소비는 취소하여 총기를 잃지 않도록 합니다. 다른 플러그인이 아이템을 로드되지 않은 상자 등으로 옮기면 전역 검색·복구는 불가능하므로 애드온 제거 전 해당 표시 아이템을 플레이어에게 돌려 정리하세요.
+
+`REPEATED_CLICK`는 아이템 컴포넌트를 수정하지 않으며 다른 재질에도 사용할 수 있습니다. 등록한 총기의 기본 우클릭 동작을 막고 주 손의 반복 상호작용을 확인합니다. 기본 6틱 동안 다음 이벤트가 없으면 연사를 종료합니다. 20 TPS에서 약 0.30초의 **해제 추정 방식**이며 정확한 버튼 해제 감지가 아닙니다. 검사는 서버 틱마다 한 번 실행합니다. 더 빠르게 검사해도 클라이언트가 입력을 보내는 주기는 줄지 않으며 패킷 공백으로 세션이 끊길 수 있습니다. 이후 새 클릭은 새 세션을 시작할 수 있습니다. 일반 재질 전체를 실수로 총기로 바꾸지 않도록 이름이 고유한 magic-item을 권장합니다.
+
+모든 발사는 공용 동기 작업 하나에서 실행합니다. 아이템·양손 변경, 사망, 로그아웃, 텔레포트, 리로드·종료 시 중단합니다. 재장전 중지 훅은 현재 사용이 해제되거나 반복 입력 타임아웃이 끝날 때까지 차단합니다. 이벤트가 없는 direct 재장전에는 `dev.magicrecoil.spells.StopAutoFireSpell`을 맨 앞에서 호출하고, 필요하면 StopAimSpell·StopRecoilSpell도 함께 사용하세요. 호출 대상이 자체적으로 지연·버스트 하위 주문을 예약하면 입력 종료 후에도 그 작업은 계속될 수 있으므로 발사 처리는 동기 경로로 구성해야 합니다. 이미 발사된 발사체는 기존 동작을 유지합니다.
+
+파이먼의 기존 성공 처리에 있는 modifiers, Paimon 차감, Beam·반동 호출, 소리·입자, 쿨다운을 일반 `.MultiSpell` 발사 처리로 분리하세요. 기존 `buffactive` 검사는 이전 Passive 래퍼에 남기고, 구 방식에서는 해당 래퍼가 공용 발사 처리를 hardCast하도록 연결할 수 있습니다. 기존 Buff 연사와 AutoFire를 동시에 켜면 안 됩니다. interval-ticks를 짧게 해도 대상 주문의 쿨다운·비용·탄약·재장전 검사는 우회하지 않습니다. 0초 발사 간격은 지원하지 않습니다.
+
+## 선택 FOV 확대
+
+클라이언트 설정에 영향을 받는 확대가 필요할 때만 `zoom.enabled: true`, `zoom.mode: FOV_EFFECT`, `zoom.fov-factor`를 지정하세요. Paper 1.21.11 어댑터는 현재 실제 abilities를 복제하고 기본 게임의 FOV 계산에 쓰이는 송신 패킷의 walking-speed 값만 조정합니다. 서버의 walk speed·속성 기본값을 바꾸거나 Slowness·포션 효과를 건드리지 않습니다. 비행·크리에이티브 플래그도 복사합니다. 활성화 중 매 틱 갱신하며 해제 시 다른 플러그인이 바꾼 값을 포함한 현재 실제 abilities로 복원합니다.
+
+클라이언트 FOV 효과 **100%**, 지상 상태의 이동 관련 기본 식은 `(movementAttribute / packetWalkingSpeed + 1) / 2`입니다. 현재 이동 속성과 목표 시야 계수로 양수·유한 패킷 값을 계산합니다. FOV 효과 **0%**에서는 확대가 보이지 않습니다. 비행·달리기·클라이언트 모드와 다른 FOV 영향에 따라 최종 화면이 달라집니다. 실제 망원경 확대·오버레이나 정확한 광학 2배 줌을 보장하지 않습니다. ProtocolLib을 추가하지 않으며 다른 플러그인의 abilities 패킷과 경쟁할 수 있습니다. 실제 렌더링·안티치트 환경은 게임 내 검증이 필요합니다.
+
+## 좌클릭과 탄퍼짐의 한계
+
+일반적인 좌클릭의 정확한 HOLD 연사는 계속 제외합니다. Paper Input에는 공격 버튼 상태가 없고 블록 파괴·아이템 사용 해제는 공통 공격 해제 신호가 아닙니다. 우클릭의 실제 사용 상태에는 활용 가능한 해제 신호가 있고, 일반 우클릭 반복은 별도의 호환 추정 모드입니다. CrackShot의 발사 작업 버퍼와 Slowness 조준을 포함한 [기존 총기 구현 비교](input-comparison.md)를 참고하세요.
+
+BeamSpell의 비공개 ConfigData spread는 총기 작성자가 동적으로 구성할 수 있지만 이 애드온은 범용적인 플레이어별 재정의를 추가하거나 공유 spread 필드를 고치지 않습니다. 자동 탄퍼짐 감소는 제외합니다.
 
 ## 검증
 

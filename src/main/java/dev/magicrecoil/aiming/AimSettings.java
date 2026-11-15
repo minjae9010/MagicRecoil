@@ -5,13 +5,14 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.List;
 import java.util.Locale;
 
-/** Literal, per-weapon ADS settings. Mouse hold and client FOV are deliberately unsupported. */
+/** Literal, per-weapon ADS settings. Zoom is an explicitly opted-in client FOV effect. */
 public record AimSettings(boolean enabled, boolean toggle, boolean cancelOnItemSwap, boolean cancelOnHandSwap,
                           double movementSpeedMultiplier, double recoilMultiplier, List<String> recoilSpells,
-                          List<String> stopOnSpells, List<String> stopOnBuffEnd) {
+                          List<String> stopOnSpells, List<String> stopOnBuffEnd, boolean zoomEnabled, double fovFactor) {
     public AimSettings {
         range("movement-speed-multiplier", movementSpeedMultiplier, 0.01, 1);
         range("recoil-multiplier", recoilMultiplier, 0, 1);
+        range("zoom.fov-factor", fovFactor, 0.55, 1);
         recoilSpells = List.copyOf(recoilSpells);
         stopOnSpells = List.copyOf(stopOnSpells);
         stopOnBuffEnd = List.copyOf(stopOnBuffEnd);
@@ -24,13 +25,15 @@ public record AimSettings(boolean enabled, boolean toggle, boolean cancelOnItemS
         if (!bool(config, "cancel-on-death", true) || !bool(config, "cancel-on-logout", true)) {
             throw new IllegalArgumentException("Death and logout cleanup cannot be disabled");
         }
-        if (bool(config, "zoom.enabled", false) || config.contains("zoom.level")) {
-            throw new IllegalArgumentException("Zoom is unsupported; omit zoom.level and keep zoom.enabled false");
-        }
+        boolean zoom = bool(config, "zoom.enabled", false);
+        if (config.contains("zoom.level")) throw new IllegalArgumentException("zoom.level is not a magnification contract; use zoom.mode: FOV_EFFECT and zoom.fov-factor");
+        Object mode = config.get("zoom.mode", "");
+        if (!(mode instanceof String) || (zoom && !"FOV_EFFECT".equalsIgnoreCase((String) mode))) throw new IllegalArgumentException("Enabled zoom requires zoom.mode: FOV_EFFECT; spyglass zoom is not supported");
         return new AimSettings(bool(config, "enabled", true), bool(config, "toggle", true),
                 bool(config, "cancel-on-item-swap", true), bool(config, "cancel-on-hand-swap", true),
                 number(config, "movement-speed-multiplier", 0.65), number(config, "recoil-multiplier", 0.5),
-                names(config, "recoil-spells"), names(config, "stop-on-spells"), names(config, "stop-on-buff-end"));
+                names(config, "recoil-spells"), names(config, "stop-on-spells"), names(config, "stop-on-buff-end"),
+                zoom, number(config, "zoom.fov-factor", 0.65));
     }
 
     private static List<String> names(ConfigurationSection config, String key) {

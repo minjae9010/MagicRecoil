@@ -114,4 +114,4 @@ This does not know how much the player compensated with their mouse, so it can o
 
 ## Optional AimSpell settings
 
-AimSpell and StopAimSpell have separate [full configuration, defaults and ranges](aim-and-input.md#binding-and-configuration). RecoilSpell requires no new YAML. Use `recoil-spells` on AimSpell to scope reduction to the gun. Unsupported HOLD and zoom options are not silently simulated.
+AimSpell and StopAimSpell have separate [full configuration, defaults and ranges](aim-and-input.md#binding-and-configuration). RecoilSpell requires no new YAML. Use `recoil-spells` on AimSpell to scope reduction to the gun. Exact left-click HOLD and optical zoom.level remain unsupported. Right-click AutoFireSpell has [separate native/repeated input modes](aim-and-input.md#right-click-automatic-fire); optional zoom requires explicit FOV_EFFECT mode and a documented client-dependent fov-factor.

@@ -2,7 +2,7 @@
 
 [한국어](../ko/aim-and-input.md) · [Documentation](README.md)
 
-MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.StopAimSpell` for **Paper 1.21.11 / official MagicSpells 4.0-Beta-18**. ADS is optional; existing firing, commands, recoil settings and success gates retain their behavior when no AimSpell is cast. There is no new runtime dependency.
+MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.StopAimSpell` for **Paper 1.21.11 / official MagicSpells 4.0-Beta-18**. ADS is optional; existing firing, commands, recoil settings and success gates retain their behavior when no AimSpell is cast. There is no new runtime dependency. The current control layout is right-click firing and left-click ADS; legacy bindings remain available.
 
 <!-- toc:start -->
 ## On this page
@@ -11,7 +11,9 @@ MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.S
 - [Binding and configuration](#binding-and-configuration)
 - [Weapon ownership and restoration](#weapon-ownership-and-restoration)
 - [Recoil and existing Buff guns](#recoil-and-existing-buff-guns)
-- [Why HOLD, zoom and automatic spread are excluded](#why-hold-zoom-and-automatic-spread-are-excluded)
+- [Right-click automatic fire](#right-click-automatic-fire)
+- [Optional FOV zoom](#optional-fov-zoom)
+- [Left-click and spread limits](#left-click-and-spread-limits)
 - [Verification](#verification)
 <!-- toc:end -->
 
@@ -19,12 +21,13 @@ MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.S
 
 | Feature | Result |
 | --- | --- |
-| Right-click ADS | One toggle per successful MagicSpells cast, using its native item binding |
+| Left-click ADS | One toggle per successful MagicSpells cast, using its native item binding |
 | Non-toggle ADS | `toggle: false` activates idempotently; StopAimSpell or lifecycle hooks end it |
 | Movement | One transient, keyed `MOVEMENT_SPEED` modifier; only this modifier is removed |
 | Recoil | Per-player, per-recoil-spell scaling of new shots; existing pattern phase and growth retained |
 | Left-click HOLD autofire | Excluded: no general attack-button release signal in the vanilla protocol |
-| Zoom | Excluded: no verified, item-independent precise FOV API |
+| Optional FOV zoom | Abilities-packet FOV effect with explicit opt-in; not native spyglass |
+| Right-click automatic fire | Native item use by default; explicit repeated-click timeout compatibility mode |
 | Automatic spread reduction | Excluded: no generic validated per-cast spread override in this addon |
 
 ## Binding and configuration
@@ -35,7 +38,7 @@ Use the [Paimon merge fragment](../../examples/aim-paimon.yml). MagicSpells must
 Gun_Aim:
   spell-class: "dev.magicrecoil.spells.AimSpell"
   always-granted: true
-  right-click-cast-item: stick
+  left-click-cast-item: stick
   ignore-global-cooldown: false
   cooldown: 0.25
   recoil-spells: [Gun_Recoil]
@@ -47,7 +50,7 @@ Gun_StopAim:
   helper-spell: true
 ```
 
-The binding uses MagicSpells' normal spellbook/permission checks, `hardCast`, cooldown, reagents and modifiers. The addon does not listen for clicks or call a projectile spell directly. Match only the main-hand gun; Beta 18's right-click-item listener does not filter the event hand. Avoid another matching off-hand item and keep `ignore-global-cooldown: false` to suppress duplicate same-click events. Holding right click can cause repeated vanilla interactions and later toggles; this is **cast-to-toggle, not mouse press/release tracking**. Rapid clicks can be suppressed by MagicSpells cooldowns. Test the chosen item, interactable blocks and both hands on your server.
+The binding uses MagicSpells' normal spellbook/permission checks, `hardCast`, cooldown, reagents and modifiers. AimSpell adds no click listener. AutoFireSpell has its own registered use-item input and calls the full existing firing entry; it does not implement projectiles. Match only the main-hand gun; Beta 18's item-binding listener does not filter the event hand. Avoid another matching off-hand item and keep `ignore-global-cooldown: false` to suppress duplicate same-click events. Legacy right-click ADS can repeat when the button is held; use left-click ADS alongside right-click firing. ADS remains **cast-to-toggle, not mouse press/release tracking**. Rapid clicks can be suppressed by MagicSpells cooldowns. Test the chosen item, interactable blocks and both hands on your server.
 
 | AimSpell setting | Default | Values and behavior |
 | --- | --- | --- |
@@ -62,9 +65,11 @@ The binding uses MagicSpells' normal spellbook/permission checks, `hardCast`, co
 | `recoil-spells` | Required when enabled | List of 1–128 RecoilSpell internal names for this gun; case insensitive |
 | `stop-on-spells` | `[]` | Up to 128 spell names; their cast attempts end ADS, including failed attempts |
 | `stop-on-buff-end` | `[]` | Up to 128 buff names; BuffEndEvent for the affected player ends ADS |
-| `zoom.enabled` | `false` | Only `false` is supported |
-| `zoom.level` | Unsupported | Supplying it rejects the configuration, even with zoom disabled |
-| `trigger` | Unsupported | Use MagicSpells' `right-click-cast-item` instead |
+| `zoom.enabled` | `false` | Boolean; enables the optional FOV effect |
+| `zoom.mode` | Unset | `FOV_EFFECT` must be explicit when zoom is enabled |
+| `zoom.fov-factor` | `0.65` | Finite number `[0.55, 1]`, target FOV factor at 100% FOV Effects, grounded and without other FOV effects |
+| `zoom.level` | Unsupported | Use fov-factor instead; this is not an optical magnification guarantee |
+| `trigger` | Unsupported | Use MagicSpells' `left-click-cast-item` for ADS |
 
 All flags are literal YAML booleans and numeric options are literal YAML numbers. Unknown MagicSpells options remain MagicSpells' responsibility. StopAimSpell has no addon-specific options: it ends that player's ADS, including suspended ADS, without changing recoil or firing buffs. Existing StopRecoilSpell and `/magicrecoil reset` retain their recoil-only behavior.
 
@@ -80,21 +85,48 @@ Death, logout, item drop, teleport, world change, MagicSpells reload/disable, Ai
 
 ## Recoil and existing Buff guns
 
-The full existing chain remains `Weapon_파이먼_Buff → Weapon_파이먼_Left_Ticks → Weapon_파이먼_Beam → Weapon_파이먼_반동`. Keep ammunition variable `Paimon`, reload modifiers, sounds, particles and the successful-fire branch. **Do not bind both the firing Buff and ADS to the same right-click item.** Opt in by assigning right click to ADS and retaining left click for the existing Buff On/Off system. To disable ADS, remove its binding or set `enabled: false` and run `/ms reload`; restore the old right-click Buff binding if desired.
+The full existing chain remains `Weapon_파이먼_Buff → Weapon_파이먼_Left_Ticks → Weapon_파이먼_Beam → Weapon_파이먼_반동`. Keep ammunition variable `Paimon`, reload modifiers, sounds, particles and the successful-fire branch. For the new controls, remove the old firing Buff mouse bindings, register AutoFireSpell with `use-item`, and bind ADS to left click. Keep legacy Buff definitions available but do not run both fire loops simultaneously. See [the right-click Paimon merge fragment](../../examples/right-click-paimon.yml). The previous right-click ADS example is preserved in [aim-paimon-legacy.yml](../../examples/aim-paimon-legacy.yml). Disable ADS with `enabled: false` and `/ms reload`; remove/disable AutoFireSpell to restore the old controls.
 
 Only names listed in `recoil-spells` receive reduction. Pattern sampling, `vertical`, `horizontal`, `growth`, random sequence, reset timing, steps and `require-success-of` remain in their original order. Each completed shot impulse is multiplied on both axes before it enters the existing smoothing buffer. Pattern progress and rise-cap accounting use the original unscaled pattern: sustained `0.5` ADS halves the total rise too. Changing ADS mid-burst keeps its phase. Previously queued impulses retain the multiplier used when fired; auto-return accounts for actual delivered rotation. No shared RecoilSettings or BeamSpell values are mutated.
 
 Add the real reload-start spell to `stop-on-spells`. If a configuration uses direct calls without cast events, put StopAimSpell at the beginning of its reload chain beside the existing StopRecoilSpell. Stopping ADS does not stop the firing Buff: its existing reload/ammo gates must continue to do that.
 
-MagicSpells Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Subspell.java) defaults to PARTIAL: it emits cast events/modifiers, but begins with NORMAL state and zero cost/cooldown. DIRECT calls `spell.cast(data)` with no such events. HARD/FULL for ordinary untargeted subcasts uses [`Spell.hardCast`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Spell.java) and the normal pre/post pipeline. This addon introduces no autofire caller and changes none of those semantics. Do not bypass `Left_Ticks` to call only Beam; a PassiveSpell is an event-driven configuration and is not automatically a reusable full-cost firing entry point.
+MagicSpells Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Subspell.java) defaults to PARTIAL: it emits cast events/modifiers, but begins with NORMAL state and zero cost/cooldown. DIRECT calls `spell.cast(data)` with no such events. HARD/FULL for ordinary untargeted subcasts uses [`Spell.hardCast`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/Spell.java) and the normal pre/post pipeline. AutoFireSpell uses `hardCast` for the ordinary full firing entry, retaining its permission, modifier, cost and cooldown checks. Positive top-level cast time is rejected before scheduling. It does not use DIRECT/PARTIAL to bypass those checks. Do not bypass `Left_Ticks` to call only Beam; a PassiveSpell is an event-driven configuration and is not automatically a reusable full-cost firing entry point.
 
-## Why HOLD, zoom and automatic spread are excluded
+## Right-click automatic fire
 
-Paper's [`Input`](https://jd.papermc.io/paper/1.21.11/org/bukkit/Input.html) exposes movement, jump, sneak and sprint, with no attack button state. Vanilla swing/attack packets report actions; block-dig start/abort/stop packets concern a particular block, and `RELEASE_USE_ITEM` concerns item use. They do not supply a universal left-click release, particularly while pointing into air or at entities. A repeated PlayerInteractEvent or swing timeout cannot prove mouse hold. ProtocolLib cannot recover information the client never sent. Therefore there is no AutoFireSpell, interval option, inferred timeout mode or replacement for existing Buff On/Off firing. Existing repeating spell tasks still run at server ticks; 1 tick is about 0.05 seconds at 20 TPS, with no zero-second guarantee.
+`dev.magicrecoil.spells.AutoFireSpell` registers `use-item` (a MagicSpells magic-item name or item string). Do not add `right-click-cast-item`: MagicSpells cancels that native interaction. AutoFireSpell is activated through its normal MagicSpells casting checks once per new input session. An ordinary synchronous `fire-spell` is then hard-cast at `interval-ticks`, without directly implementing bullets or damage.
 
-Paper has no general precise player FOV setter in this target API. Movement-speed effects may influence FOV according to client settings, including FOV Effects, but do not provide `zoom.level: 2.0` or spyglass magnification. Abilities-packet walk-speed spoofing changes client predictions and competes with speed updates; it is excluded. A real spyglass requires its corresponding active item; spoofing equipment/use metadata would change item behavior and is not a verified arbitrary-gun zoom. Paper's [`startUsingItem`](https://jd.papermc.io/paper/1.21.11/org/bukkit/entity/LivingEntity.html#startUsingItem(org.bukkit.inventory.EquipmentSlot)) is experimental and does not guarantee the effect for players/items. No ProtocolLib dependency or FOV packet adapter is added.
+| Setting | Default | Allowed behavior |
+| --- | --- | --- |
+| `enabled` | `true` | Literal boolean; false removes the binding at reload |
+| `use-item` | Required | Named magic item or item string; follows MagicSpells cast-item matching options |
+| `fire-spell` | Required | Ordinary synchronous firing entry; PassiveSpell and AutoFireSpell targets are rejected |
+| `interval-ticks` | `2` | Integer `[1, 1200]`; actual source cooldowns still apply |
+| `input-mode` | `NATIVE_USE` | `NATIVE_USE` or `REPEATED_CLICK` |
+| `release-timeout-ticks` | `6` | Only for REPEATED_CLICK; integer `[5, 40]` |
+| `stop-on-spells` | `[]` | Up to 128 reload/end spell names; attempts stop and latch firing until release |
+| `stop-on-buff-end` | `[]` | Up to 128 BuffEnd references |
 
-Beta 18 [`BeamSpell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Beta-18/core/src/main/java/com/nisovin/magicspells/spells/instant/BeamSpell.java) evaluates private `ConfigData` spread suppliers per cast. Weapon authors can configure dynamic values using existing MagicSpells mechanisms, but a generic addon override with correct per-player ADS ownership has not been validated. Automatic spread reduction is excluded; global spread fields and variables are not rewritten.
+`NATIVE_USE` supports STICK, BLAZE_ROD and wooden/stone/iron/golden/diamond/netherite hoes. It keeps the material and existing model/name/lore/attributes, adds temporary Consumable/UseEffects components with no animation/particles/sound and no extra use slowdown, and checks the real main-hand native use every tick. Paper's PlayerStopUsingItemEvent stops firing upon the received release. It does not wait for repeated clicks. Existing custom Consumable/UseEffects overrides are refused. Preparation is removed on switching, inventory handling, death/drop/logout/reload/shutdown and recovered at join. One native use has a one-hour duration; consumption is cancelled to prevent losing the gun. Items moved by other plugins into unloaded containers cannot be swept globally; return such marked items to a player with the addon enabled for cleanup before removing the addon.
+
+`REPEATED_CLICK` leaves item components unchanged and permits other item materials, while suppressing the registered gun's normal right-click action. It observes repeated main-hand right-click interactions. Missing input for 6 ticks stops firing (about 0.30 seconds at 20 TPS); this is **release estimation**, not exact mouse-release tracking. The scanner runs once per server tick. Scanning faster cannot make the client send input sooner, and packet gaps can stop the estimated session. A subsequent click may start another session. Use a unique named magic item rather than binding an entire common material unintentionally.
+
+All firing runs on one synchronous shared task. Item/hand changes, death, logout, teleport, reload and shutdown stop firing. Reload stop hooks latch the current held input until native release or repeat-timeout. `dev.magicrecoil.spells.StopAutoFireSpell` explicitly stops eventless/direct reload chains. Put it first, alongside StopAimSpell and StopRecoilSpell when appropriate. A delayed/burst subspell can continue its own scheduled work after the input session ends; keep this entry's shot processing synchronous. Already launched projectiles retain their existing behavior.
+
+To preserve a Paimon gun, extract the successful-fire modifiers, Paimon decrement, Beam/recoil calls, sounds, particles and cooldown into an ordinary `.MultiSpell` firing entry. Keep `buffactive` on the legacy Passive wrapper, which may hard-cast that shared entry when the legacy mode is used. Never enable the legacy Buff loop and AutoFire together. Source cooldowns, costs and reload/ammo checks remain effective even when interval-ticks is shorter. No zero-second fire interval is supported.
+
+## Optional FOV zoom
+
+Enable `zoom.enabled: true`, `zoom.mode: FOV_EFFECT` and a `zoom.fov-factor` only if this client-dependent effect is desired. The Paper 1.21.11 adapter copies the current real player abilities and changes only the outgoing walking-speed field used by the vanilla FOV formula. It never sets server walk speed, changes the attribute base, applies Slowness or modifies potion effects. Flight/creative flags are copied. Scoped packets are refreshed each active tick; unscoping restores current real abilities, including changes by other plugins.
+
+At client FOV Effects **100%**, the grounded movement part of the vanilla formula is `(movementAttribute / packetWalkingSpeed + 1) / 2`. The adapter derives a positive finite packet field from the requested factor and current movement attribute. At **0%** this FOV effect is invisible. Flying, sprinting, client mods and other FOV influences change the final view. This is not the native spyglass effect, a spyglass overlay, or guaranteed optical 2x magnification. No ProtocolLib dependency is added. Other plugins sending abilities packets may compete with the effect; client rendering/anti-cheat acceptance still requires game testing.
+
+## Left-click and spread limits
+
+Exact general left-click HOLD is still excluded. Paper Input has no attack-button state, and block-dig or item-use release actions are not universal attack-release signals. Native right-click use has a usable release signal; ordinary right-click repeat is a separately labelled compatibility mode. See [the actual gun-plugin comparison](input-comparison.md), including CrackShot's queued firing and Slowness-based scope.
+
+BeamSpell's private ConfigData spread can be configured dynamically by weapon authors, but the addon adds no generic per-player override and never rewrites shared spread fields. Automatic spread reduction remains excluded.
 
 ## Verification
 

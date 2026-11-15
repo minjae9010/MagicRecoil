@@ -19,7 +19,7 @@ Connect recoil while preserving the existing firing, ammunition, and reload logi
 
 ## Preserve the gun, replace the recoil
 
-MagicRecoil does not detect clicks, consume ammunition, spawn projectiles, apply damage, schedule automatic fire, or implement reloading. Those remain in the existing MagicSpells configuration. First identify the exact branch that successfully fires one shot, including its ammunition, cooldown, reload-state, and ON/OFF checks.
+The recoil component does not consume ammunition, spawn projectiles, apply damage or implement reloading. Optional AutoFireSpell handles right-click input and schedules the full existing firing entry; the gun's ammunition, projectiles, damage and reload logic remain in MagicSpells configuration. First identify the exact branch that successfully fires one shot, including its ammunition, cooldown, reload-state, and ON/OFF checks.
 
 Replace only the old recoil spell's class and recoil settings. Do not carry over RotateSpell-specific options such as `rotation-pitch`, `rotation-yaw`, `affect-pitch`, `face`, or target selection: RecoilSpell always affects the **player caster**. Keep any general MagicSpells modifiers and conditions that are still appropriate.
 
@@ -120,4 +120,4 @@ This supports numeric changes and newly added recoil spells with `/ms reload`. I
 
 ## Adding ADS to a Buff gun
 
-Follow [ADS ownership and Buff integration](aim-and-input.md#recoil-and-existing-buff-guns) and the [Paimon merge example](../../examples/aim-paimon.yml). Assign right click to exactly one spell, retain the existing full successful-fire path, and add StopAimSpell to eventless reload chains. Do not replace PassiveSpell firing with a direct Beam call.
+Follow [ADS ownership and Buff integration](aim-and-input.md#recoil-and-existing-buff-guns) and the [Paimon merge example](../../examples/aim-paimon.yml). For the new layout, bind ADS to left click and register AutoFireSpell through use-item. Retain the complete successful-fire path and add StopAimSpell / StopAutoFireSpell to eventless reload chains. See the [right-click firing fragment](../../examples/right-click-paimon.yml). Extract PassiveSpell shot processing into an ordinary synchronous firing entry; do not replace it with a direct Beam call or run both firing loops together.

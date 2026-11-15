@@ -16,6 +16,7 @@
 - [연동 옵션](#연동-옵션)
 - [선택적 자동 복귀](#선택적-자동-복귀)
 - [선택 기능 AimSpell 설정](#선택-기능-aimspell-설정)
+- [자동 사격과 선택 확대 설정](#자동-사격과-선택-확대-설정)
 <!-- toc:end -->
 
 ## 기본 옵션
@@ -114,4 +115,8 @@ Recoil_Custom:
 
 ## 선택 기능 AimSpell 설정
 
-AimSpell과 StopAimSpell의 [전체 설정·기본값·허용 범위](aim-and-input.md#바인딩과-전체-설정)를 참고하세요. 기존 RecoilSpell에는 새 YAML이 필요 없습니다. AimSpell의 `recoil-spells`로 해당 총기에만 반동 감소를 적용하며 미지원 HOLD·확대 기능을 흉내 내지 않습니다.
+AimSpell과 StopAimSpell의 [전체 설정·기본값·허용 범위](aim-and-input.md#바인딩과-전체-설정)를 참고하세요. 기존 RecoilSpell에는 새 YAML이 필요 없습니다. AimSpell의 `recoil-spells`로 해당 총기에만 반동 감소를 적용합니다. 정확한 좌클릭 HOLD와 광학 배율은 제외하고 선택 FOV 효과와 우클릭 입력 모드는 별도로 설정합니다.
+
+## 자동 사격과 선택 확대 설정
+
+AutoFireSpell / StopAutoFireSpell의 전체 설정은 [우클릭 자동 사격](aim-and-input.md#우클릭-자동-사격)을 참고하세요. 기본 NATIVE_USE와 해제를 추정하는 REPEATED_CLICK을 구분합니다. AimSpell 확대는 기본 꺼짐이며 명시한 FOV_EFFECT 모드에서만 활성화됩니다. 정확한 좌클릭 HOLD와 광학 배율 zoom.level은 지원하지 않습니다.

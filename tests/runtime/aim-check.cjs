@@ -52,6 +52,7 @@ async function connect(name) {
   const client = mc.createClient({ host: '127.0.0.1', port, username: name, auth: 'offline', version: '1.21.11' });
   clients.push(client);
   client.on('error', error => console.error(name, error.message));
+  client.on('abilities', packet => { client.lastAbilities = packet; });
   client.on('position', p => {
     client.write('teleport_confirm', { teleportId: p.teleportId });
     client.write('position_look', { x: p.x, y: p.y, z: p.z, yaw: p.yaw, pitch: p.pitch,
@@ -70,6 +71,7 @@ function pass(name) { console.log('PASS ' + name); }
     await until(line => line.includes('Done ('), 90000);
     await command('difficulty peaceful'); // Keep idle protocol clients safe from ambient mobs.
     const a = await connect('ADS_A'); const b = await connect('ADS_B');
+    a.write('held_item_slot', { slotId: 0 }); b.write('held_item_slot', { slotId: 0 }); await delay(200);
     for (const name of ['ADS_A', 'ADS_B']) {
       await command(`item replace entity ${name} weapon.mainhand with stick`);
       await command(`item replace entity ${name} hotbar.1 with blaze_rod`);
@@ -146,8 +148,79 @@ function pass(name) { console.log('PASS ' + name); }
     await cast('Weapon_파이먼_Buff');
     pass('Paimon-shaped Buff -> Passive -> Beam -> guarded recoil: ammo per shot, ADS scaling and reload blocking');
 
-    await command('item replace entity ADS_A weapon.mainhand with stick');
-    await cast('ADS_Aim'); // Leave ADS active for the server's plugin shutdown cleanup.
+    await command('ms variable modify Paimon ADS_A =30');
+    await command('ms variable modify reload ADS_A =0');
+    await delay(300); assert.equal((await snapshot()).prepared, 1);
+    const originalAbilities = { ...a.lastAbilities };
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    const scoped = await snapshot(); near(scoped.speed, 0.065); near(scoped.serverWalkSpeed, 0.1); near(scoped.baseSpeed, 0.1);
+    near(a.lastAbilities.walkingSpeed, scoped.speed / (2 * 0.65 - 1));
+    assert.equal(a.lastAbilities.flags, originalAbilities.flags);
+    const beforeHold = await snapshot();
+    a.write('use_item', { hand: 0, sequence: 10, rotation: { x: beforeHold.yaw, y: beforeHold.pitch } }); await delay(500);
+    const duringHold = await snapshot();
+    assert.equal(duringHold.using, 1); assert.equal(duringHold.firing, 1);
+    assert.ok(duringHold.ammo < beforeHold.ammo - 1);
+    near(beforeHold.pitch - duringHold.pitch, (beforeHold.ammo - duringHold.ammo) * 0.75);
+    a.write('block_dig', { status: 5, location: { x: 0, y: 0, z: 0 }, face: 0, sequence: 11 }); await delay(200);
+    const released = await snapshot(); await delay(400);
+    assert.equal(released.using, 0); assert.equal(released.firing, 0); assert.equal((await snapshot()).ammo, released.ammo);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    near((await snapshot()).speed, 0.1); near(a.lastAbilities.walkingSpeed, 0.1);
+    assert.equal(a.lastAbilities.flags, originalAbilities.flags);
+    pass('left-click ADS/FOV packet toggle, actual movement attributes unchanged, scoped fire and abilities restoration');
+    a.write('use_item', { hand: 0, sequence: 12, rotation: { x: 0, y: 0 } }); await delay(300);
+    assert.equal((await snapshot()).firing, 1);
+    await cast('Weapon_Reload_파이먼'); const reloadHold = await snapshot();
+    await command('ms variable modify reload ADS_A =0'); await delay(300);
+    assert.equal((await snapshot()).ammo, reloadHold.ammo); // Latched until release, even after reload clears.
+    a.write('block_dig', { status: 5, location: { x: 0, y: 0, z: 0 }, face: 0, sequence: 13 }); await delay(200);
+    a.write('use_item', { hand: 0, sequence: 14, rotation: { x: 0, y: 0 } }); await delay(300);
+    assert.ok((await snapshot()).ammo < reloadHold.ammo);
+    a.write('held_item_slot', { slotId: 1 }); await delay(200);
+    assert.equal((await snapshot()).firing, 0);
+    a.write('held_item_slot', { slotId: 0 }); await delay(200);
+    assert.equal((await snapshot()).firing, 0);
+    pass('genuine right-button item use: repeated fire, release stop, reload latch, item switch and unchanged ammo/recoil path');
+
+    await command('item replace entity ADS_A hotbar.1 with blaze_rod'); // Death earlier drops the original fixture.
+    a.write('held_item_slot', { slotId: 1 }); await delay(200);
+    await command('ms variable modify Paimon ADS_A =30');
+    const repeatBefore = await snapshot(); assert.equal(repeatBefore.prepared, 0);
+    for (let i = 0; i < 4; i++) {
+      a.write('use_item', { hand: 0, sequence: 30 + i, rotation: { x: 0, y: 0 } }); await delay(200);
+    }
+    assert.ok((await snapshot()).ammo < repeatBefore.ammo);
+    await delay(500); const repeatedRelease = await snapshot(); assert.equal(repeatedRelease.firing, 0);
+    await delay(300); assert.equal((await snapshot()).ammo, repeatedRelease.ammo);
+    pass('optional legacy repeated-click mode: unmodified item, continuous click pulses and explicit six-tick release timeout');
+
+    a.write('held_item_slot', { slotId: 0 }); await delay(200);
+    a.write('use_item', { hand: 0, sequence: 40, rotation: { x: 0, y: 0 } }); await delay(200);
+    assert.equal((await snapshot()).firing, 1);
+    await cast('Hold_Eventless_Stop'); const directStop = await snapshot(); await delay(300);
+    assert.equal((await snapshot()).ammo, directStop.ammo); assert.equal((await snapshot()).firing, 0);
+    a.write('block_dig', { status: 5, location: { x: 0, y: 0, z: 0 }, face: 0, sequence: 41 }); await delay(100);
+    a.write('use_item', { hand: 0, sequence: 42, rotation: { x: 0, y: 0 } }); await delay(200);
+    assert.equal((await snapshot()).firing, 1);
+    await command('ms reload'); await delay(1200); const msReloaded = await snapshot();
+    assert.equal(msReloaded.firing, 0); assert.equal(msReloaded.using, 0);
+    await delay(300); assert.equal((await snapshot()).ammo, msReloaded.ammo);
+    a.write('use_item', { hand: 0, sequence: 43, rotation: { x: 0, y: 0 } }); await delay(200);
+    assert.equal((await snapshot()).firing, 1);
+    a.write('block_dig', { status: 6, location: { x: 0, y: 0, z: 0 }, face: 0, sequence: 44 }); await delay(200);
+    assert.equal((await snapshot()).firing, 0);
+    a.write('block_dig', { status: 6, location: { x: 0, y: 0, z: 0 }, face: 0, sequence: 45 }); await delay(200);
+    a.write('use_item', { hand: 0, sequence: 46, rotation: { x: 0, y: 0 } }); await delay(200);
+    assert.equal((await snapshot()).firing, 1);
+    await command('kill ADS_A'); await delay(800);
+    assert.equal((await snapshot()).firing, 0);
+    pass('AutoFire eventless stop, ms reload, F swap and death terminate active native firing');
+
+    await command('item replace entity ADS_A weapon.mainhand with diamond_hoe');
+    await cast('Hold_Aim');
+    a.write('use_item', { hand: 0, sequence: 47, rotation: { x: 0, y: 0 } }); await delay(200);
+    assert.equal((await snapshot()).firing, 1); // Leave ADS + firing active for normal shutdown cleanup.
     console.log('ALL ADS RUNTIME CHECKS PASSED');
   } catch (error) {
     console.error(error); process.exitCode = 1;

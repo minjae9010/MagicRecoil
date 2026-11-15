@@ -44,4 +44,12 @@ class AimSettingsTest {
         assertEquals(java.util.List.of("weapon_reload_파이먼"), s.stopOnSpells());
         assertTrue(s.enabled()); assertTrue(s.toggle());
     }
+    @Test void fovZoomRequiresAnExplicitModeAndFiniteSafeFactor() throws Exception {
+        var s = settings("zoom:\n  enabled: true\n  mode: FOV_EFFECT\n  fov-factor: 0.65");
+        assertTrue(s.zoomEnabled()); assertEquals(0.65, s.fovFactor());
+        for (String value : new String[]{"0.5", "1.1", ".nan", "'0.7'"}) {
+            assertThrows(IllegalArgumentException.class, () -> settings("zoom:\n  enabled: true\n  mode: FOV_EFFECT\n  fov-factor: " + value));
+        }
+        assertThrows(IllegalArgumentException.class, () -> settings("zoom:\n  enabled: true\n  mode: SPYGLASS"));
+    }
 }

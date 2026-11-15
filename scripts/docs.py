@@ -17,6 +17,7 @@ PAGES = [
     ('configuration', 'Configuration', '설정 전체 표', 'Configuration'),
     ('integration', 'Integration', '기존 총기 연결', 'Gun integration'),
     ('aim-and-input', 'Aiming', '조준과 입력 한계', 'Aiming and input limits'),
+    ('input-comparison', 'Input-Comparison', '기존 총기 구현 비교', 'Existing gun plugin comparison'),
     ('troubleshooting', 'Troubleshooting', '증상별 문제 해결', 'Troubleshooting'),
     ('testing', 'Testing', '검증 결과와 테스트', 'Testing'),
     ('architecture', 'Architecture', '내부 구조와 패킷', 'Architecture'),

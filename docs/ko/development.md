@@ -13,6 +13,7 @@
 - [CI와 배포](#ci와-배포)
 - [문서와 Wiki 관리](#문서와-wiki-관리)
 - [ADS Java 변경 목록](#ads-java-변경-목록)
+- [사격과 FOV Java 변경](#사격과-fov-java-변경)
 <!-- toc:end -->
 
 ## 빌드와 의존성
@@ -88,3 +89,7 @@ git -C .work/wiki push origin HEAD
 ## ADS Java 변경 목록
 
 `src/main/java/dev/magicrecoil/` 아래에 `aiming/AimSettings.java`, `aiming/AimManager.java`, `spells/AimSpell.java`, `spells/StopAimSpell.java`를 추가했습니다. 기존 파일은 `MagicRecoilPlugin.java`, `spells/RecoilSpell.java`, `recoil/RecoilManager.java`, `recoil/RecoilSession.java`를 수정했습니다. 회전 어댑터, 반동 패턴·설정 구현, 성공 검증, 기존 중지 주문은 유지합니다. 별도 런타임 진단 플러그인에는 ADS 상태 조회를, JUnit에는 설정·상태 관리·조준 반동 검사를 추가합니다.
+
+## 사격과 FOV Java 변경
+
+`src/main/java/dev/magicrecoil/`에 `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java`, `packet/v1_21_11/Paper12111ZoomAdapter.java`를 추가했습니다. `MagicRecoilPlugin`, `AimSettings`, `AimManager`가 선택 기능을 등록·정리합니다. 이번 추가 작업에서 회전 어댑터·반동 패턴·성공 검증은 변경하지 않았습니다. [실제 검증 범위](testing.md#우클릭-연사와-fov-검증)를 참고하세요.

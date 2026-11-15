@@ -8,6 +8,7 @@ These fixtures are for an **isolated local Paper 1.21.11 server** only and are n
 - [Protocol checks](#protocol-checks)
 - [Visual burst fixture](#visual-burst-fixture)
 - [ADS integration fixture](#ads-integration-fixture)
+- [Right-click firing and FOV fixture](#right-click-firing-and-fov-fixture)
 <!-- toc:end -->
 
 ## Protocol checks
@@ -96,3 +97,7 @@ This starts a real, disposable Paper process and two synthetic clients; it does 
 Checks cover click toggles, speed and recoil, real hotbar/F actions, suspension, non-toggle activation, missing/charged reagents, cooldowns, modifiers, external speed effects, two-player isolation, reload/BuffEnd/death/logout cleanup, `/ms reload`, and a representative Paimon Buff/Passive/Beam/ammunition/reload chain. `mrprobe aim ADS_A` prints the attribute, scoped recoil multiplier, session count, cobblestone count, ammo and server rotation. The representative gun omits production damage types, resource-pack sounds and external commands; it is not a claim that a complete production pack passed. Existing smoke and visual fixtures are preserved.
 
 한국어: [조준 설정](../../docs/ko/aim-and-input.md)과 [검증 범위](../../docs/ko/testing.md#ads-확장-검증)를 참고하세요.
+
+## Right-click firing and FOV fixture
+
+The same `spells-aim.yml` / `aim-check.cjs` fixture includes native-use diamond-hoe AutoFire, an unmodified blaze-rod repeated-click mode (six-tick release timeout), left-click ADS/FOV packets, reload latching, eventless stop, slot/F/death cleanup and `/ms reload`. Rebuild and install both the addon and probe before running. The probe prints current/base movement speed, server walk speed, ADS state, active firing, native use, prepared-item marker, ammo and rotation. The harness inspects outgoing abilities packets and leaves ADS + firing active for normal shutdown cleanup; run it twice on the same disposable server. Existing saved items, selected slot and reagent values are reset by the fixture. This does not render FOV or test human mouse behavior, native spyglass, a JVM crash or the CrackShot plugin. See [verification](../../docs/en/testing.md#right-click-firing-and-fov-verification) / [한국어](../../docs/ko/testing.md#우클릭-연사와-fov-검증).
