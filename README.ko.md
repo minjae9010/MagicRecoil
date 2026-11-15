@@ -10,9 +10,12 @@
 
 처음 사용하면 **[빠른 시작](docs/ko/getting-started.md)**부터 읽으세요. 수평 반동 문제는 **[증상별 진단](docs/ko/troubleshooting.md)**, 전체 문서 탐색은 **[문서 안내](docs/ko/README.md)** 또는 **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)**에서 시작할 수 있습니다.
 
+현재 릴리스: **[v0.2.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1)** — 기존 총기 아이템과 발사 처리를 유지하는 우클릭 연사·좌클릭 줌을 추가했습니다.
+
 <!-- toc:start -->
 ## 목차
 
+- [우클릭 연사와 좌클릭 줌](#우클릭-연사와-좌클릭-줌)
 - [반동 테스트 GIF](#반동-테스트-gif)
 - [지원 환경](#지원-환경)
 - [설치](#설치)
@@ -26,6 +29,19 @@
 - [라이선스](#라이선스)
 - [선택 기능: 조준](#선택-기능-조준)
 <!-- toc:end -->
+
+## 우클릭 연사와 좌클릭 줌
+
+| 조작 | 동작 |
+| --- | --- |
+| 우클릭 유지 | 앞으로 최대 5개의 발사 기회를 보충하고 기존 전체 발사 처리를 호출 |
+| 우클릭 해제 | 남은 버퍼가 최대 5틱 안에 소진. 20 TPS에서 약 0.25초 |
+| 좌클릭 | Slowness 줌 ON/OFF. 조준 중 이동속도가 줄고 반동 배율은 1.0 유지 |
+| 재장전·무기 교체·사망·로그아웃 | 연결한 훅으로 발사를 중지하고 조준 정리 |
+
+기존 총기 설정에 [right-click-paimon.yml](examples/right-click-paimon.yml)과 [aim-paimon.yml](examples/aim-paimon.yml)을 병합하세요. 현재 magic item, 탄약 변수, 재장전 조건, 발사체·소리·반동 주문을 유지합니다. 기존 사격 Buff의 마우스 바인딩을 제거하여 연사 루프를 하나만 실행하고, 이벤트 없는 direct 재장전에는 StopAutoFireSpell을 맨 앞에서 호출하세요. [전체 설정과 연동 안내](docs/ko/aim-and-input.md)에서 세부 옵션과 이전 조작을 설명합니다.
+
+클라이언트 모드와 ProtocolLib은 필요 없습니다. BUFFERED_CLICK 모드는 총기를 망원경으로 바꾸거나 사용 컴포넌트를 붙이지 않습니다. 클라이언트 FOV 효과가 0%면 화면 확대는 보이지 않으며 시각적인 확대 정도와 전체 운영 총기는 게임 내 확인이 필요합니다. 자동 테스트 115개와 실제 Paper 입력·탄약/반동·포션 복원·재시작 검사를 통과했습니다. [검증 결과](docs/ko/testing.md#crackshot-조작-검증)를 참고하세요.
 
 ## 반동 테스트 GIF
 
@@ -52,7 +68,7 @@
 
 ## 설치
 
-1. [Releases](https://github.com/minjae9010/MagicRecoil/releases)에서 `MagicRecoil-0.1.0-alpha.1.jar`를 받거나 아래 방법으로 빌드합니다.
+1. [Releases](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1)에서 `MagicRecoil-0.2.0-alpha.1.jar`를 받거나 아래 방법으로 빌드합니다.
 2. 서버를 종료하고 MagicSpells와 함께 `plugins/`에 넣습니다. `plugins/MagicSpells/` 안에는 중복 JAR을 넣지 않습니다.
 3. `plugins/MagicSpells/spells-recoil.yml`에 다음 주문을 작성합니다.
 
@@ -182,7 +198,7 @@ JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, 
 ./gradlew clean build
 ```
 
-설치할 파일은 `build/libs/MagicRecoil-0.1.0-alpha.3.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
+설치할 파일은 `build/libs/MagicRecoil-0.2.0-alpha.1.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
 
 ## 도입 전에 확인할 한계
 

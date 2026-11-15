@@ -10,9 +10,12 @@ MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damag
 
 Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, open **[Troubleshooting](docs/en/troubleshooting.md)**; use the **[documentation map](docs/en/README.md)** or **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)** to browse all topics.
 
+Current release: **[v0.2.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1)** — right-click automatic fire and left-click zoom, with the original gun item and firing logic retained.
+
 <!-- toc:start -->
 ## On this page
 
+- [Right-click fire and left-click zoom](#right-click-fire-and-left-click-zoom)
 - [Recoil demo](#recoil-demo)
 - [Requirements](#requirements)
 - [Install](#install)
@@ -26,6 +29,19 @@ Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, o
 - [License](#license)
 - [Optional aiming](#optional-aiming)
 <!-- toc:end -->
+
+## Right-click fire and left-click zoom
+
+| Input | Behavior |
+| --- | --- |
+| Hold right click | Refill up to five upcoming firing opportunities, using the existing complete firing entry |
+| Release right click | Let the remaining buffer drain within five ticks, about 0.25 seconds at 20 TPS |
+| Left click | Toggle Slowness-based zoom; movement slows while scoped and recoil stays at multiplier 1.0 |
+| Reload, swap, death or logout | Stop firing and clear scope through the configured hooks |
+
+Merge [right-click-paimon.yml](examples/right-click-paimon.yml) and [aim-paimon.yml](examples/aim-paimon.yml) into the existing gun configuration. Keep the current magic item, ammunition variables, reload conditions, projectile, sound and recoil spells. Remove the old firing Buff's mouse bindings so only one firing loop runs. Direct/eventless reload chains must call StopAutoFireSpell first. [Full settings and integration](docs/en/aim-and-input.md) explain the options and legacy controls.
+
+No client mod or ProtocolLib is required. The item is not converted to a spyglass or prepared with use components in BUFFERED_CLICK mode. Zoom depends on the client's FOV Effects setting; 0% disables visible magnification. Its rendered strength and the complete production gun still require in-game acceptance. The release passes 115 automated tests and real Paper input, ammo/recoil, potion-restoration and restart checks; see [test evidence](docs/en/testing.md#crackshot-controls-verification).
 
 ## Recoil demo
 
@@ -52,7 +68,7 @@ Other Minecraft versions, Folia, protocol translators, and modified MagicSpells 
 
 ## Install
 
-1. Download `MagicRecoil-0.1.0-alpha.1.jar` from [Releases](https://github.com/minjae9010/MagicRecoil/releases), or build it below.
+1. Download `MagicRecoil-0.2.0-alpha.1.jar` from [Releases](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1), or build it below.
 2. Stop the server. Put the JAR in `plugins/` alongside MagicSpells. Do not place another copy inside `plugins/MagicSpells/`.
 3. Put the following spell in `plugins/MagicSpells/spells-recoil.yml`:
 
@@ -180,7 +196,7 @@ Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet acces
 .\gradlew.bat clean build
 ```
 
-Output: `build/libs/MagicRecoil-0.1.0-alpha.3.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
+Output: `build/libs/MagicRecoil-0.2.0-alpha.1.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
 
 `./gradlew test` runs automated tests; the HTML report is `build/reports/tests/test/index.html`. GitHub Actions builds and tests on Linux and Windows and uploads the plugin and source JARs. See [Development](docs/en/development.md).
 
