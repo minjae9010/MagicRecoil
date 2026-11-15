@@ -1,0 +1,102 @@
+# Isolated Paper 1.21.11 / MagicSpells Beta 18 fixture only.
+ADS_Recoil:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  always-granted: true
+  recoil: 2
+  growth: 0
+  pattern: vertical
+  recoil-steps: 1
+ADS_Aim:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  right-click-cast-item: stick
+  cooldown: 0.25
+  recoil-spells: [ADS_Recoil]
+  stop-on-spells: [ADS_Reload]
+  stop-on-buff-end: [ADS_Buff]
+ADS_Keep:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  cancel-on-item-swap: false
+  cancel-on-hand-swap: false
+  recoil-spells: [ADS_Recoil]
+ADS_On:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  toggle: false
+  recoil-spells: [ADS_Recoil]
+ADS_Disabled:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  enabled: false
+ADS_Cost:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  cooldown: 10
+  cost: [cobblestone 1]
+  recoil-spells: [ADS_Recoil]
+ADS_Denied:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  modifiers: [sneaking require]
+  recoil-spells: [ADS_Recoil]
+ADS_Stop:
+  spell-class: dev.magicrecoil.spells.StopAimSpell
+  always-granted: true
+ADS_Reload:
+  spell-class: .instant.DummySpell
+  always-granted: true
+ADS_Buff:
+  spell-class: .buff.DummySpell
+  always-granted: true
+  duration: 60
+
+# Representative Paimon fire path. External damage types, sounds and production pack are not included.
+variables:
+  Paimon:
+    type: player
+    default: 30
+    min: 0
+    max: 30
+    permanent: false
+  reload:
+    type: player
+    default: 0
+    permanent: false
+Weapon_파이먼_Buff:
+  spell-class: .buff.DummySpell
+  always-granted: true
+  duration: 60
+Weapon_파이먼_Left_Ticks:
+  spell-class: .PassiveSpell
+  always-granted: true
+  triggers: [ticks 2]
+  modifiers:
+    - holding diamond_hoe require
+    - buffactive Weapon_파이먼_Buff require
+    - variable reload=0 require
+    - variable Paimon>0 require
+  variable-mods-cast: [Paimon -1]
+  spells: [Weapon_파이먼_Beam, Weapon_파이먼_반동]
+Weapon_파이먼_Beam:
+  spell-class: .instant.BeamSpell
+  max-distance: 5
+  interval: 1
+Weapon_파이먼_반동:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  recoil: 1.5
+  growth: 0
+  pattern: vertical
+  recoil-steps: 1
+  require-success-of: Weapon_파이먼_Beam
+  stop-on-spells: [Weapon_Reload_파이먼]
+  stop-on-buff-end: [Weapon_파이먼_Buff]
+Weapon_Reload_파이먼:
+  spell-class: .instant.DummySpell
+  always-granted: true
+  variable-mods-cast: [reload =1]
+ADS_PaimonAim:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  recoil-spells: [Weapon_파이먼_반동]
+  stop-on-spells: [Weapon_Reload_파이먼]

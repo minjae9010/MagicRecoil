@@ -14,6 +14,7 @@ Implementation evidence for developers. Operators should start with [Configurati
 - [Recoil state](#recoil-state)
 - [Compatibility boundaries](#compatibility-boundaries)
 - [Primary evidence](#primary-evidence)
+- [ADS state boundary](#ads-state-boundary)
 <!-- toc:end -->
 
 ## Decision
@@ -89,3 +90,7 @@ All Bukkit/NMS operations run on the main server thread. Async recoil calls fail
 ---
 
 [Previous: Testing](testing.md) · [Documentation](README.md) · [Next: Development](development.md)
+
+## ADS state boundary
+
+`aiming/AimSettings` validates immutable ADS options. `aiming/AimManager` owns UUID sessions, original main-hand signatures, one synchronous reconciliation task and the transient speed key. AimSpell uses normal MagicSpells casting, and StopAimSpell explicitly ends ADS. RecoilSpell queries the manager only after the existing success gate; RecoilSession scales completed new-shot impulses without modifying shared settings or queued shots. See [ADS lifecycle and ownership](aim-and-input.md#weapon-ownership-and-restoration).

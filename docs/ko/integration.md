@@ -14,6 +14,7 @@
 - [탄환 방향과 호출 순서](#탄환-방향과-호출-순서)
 - [`/ms reload` 동작](#ms-reload-동작)
 - [문제 해결](#문제-해결)
+- [Buff 총기에 조준 추가](#buff-총기에-조준-추가)
 <!-- toc:end -->
 
 ## 총기 동작을 유지하고 반동만 교체하기
@@ -116,3 +117,7 @@ Beta 18은 기존 주문을 정리하고 외부 클래스 로더 목록을 비�
 ---
 
 [이전: 설정 전체 표](configuration.md) · [문서 안내](README.md) · [다음: 문제 해결](troubleshooting.md)
+
+## Buff 총기에 조준 추가
+
+[조준과 기존 Buff 연동](aim-and-input.md#기존-buff-총기와-반동-연동), [파이먼 병합 예제](../../examples/aim-paimon.yml)를 참고하세요. 우클릭은 하나의 주문에만 배정하고 기존 발사 성공 경로 전체를 보존하세요. 이벤트가 없는 재장전에는 StopAimSpell을 추가하며 PassiveSpell 발사를 Beam 직접 호출로 대체하지 않습니다.

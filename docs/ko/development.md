@@ -12,6 +12,7 @@
 - [차기 Minecraft 버전 대응](#차기-minecraft-버전-대응)
 - [CI와 배포](#ci와-배포)
 - [문서와 Wiki 관리](#문서와-wiki-관리)
+- [ADS Java 변경 목록](#ads-java-변경-목록)
 <!-- toc:end -->
 
 ## 빌드와 의존성
@@ -83,3 +84,7 @@ git -C .work/wiki push origin HEAD
 ---
 
 [이전: 구조](architecture.md) · [문서 안내](README.md)
+
+## ADS Java 변경 목록
+
+`src/main/java/dev/magicrecoil/` 아래에 `aiming/AimSettings.java`, `aiming/AimManager.java`, `spells/AimSpell.java`, `spells/StopAimSpell.java`를 추가했습니다. 기존 파일은 `MagicRecoilPlugin.java`, `spells/RecoilSpell.java`, `recoil/RecoilManager.java`, `recoil/RecoilSession.java`를 수정했습니다. 회전 어댑터, 반동 패턴·설정 구현, 성공 검증, 기존 중지 주문은 유지합니다. 별도 런타임 진단 플러그인에는 ADS 상태 조회를, JUnit에는 설정·상태 관리·조준 반동 검사를 추가합니다.

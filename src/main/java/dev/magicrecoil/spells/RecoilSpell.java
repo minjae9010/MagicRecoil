@@ -30,7 +30,8 @@ public final class RecoilSpell extends InstantSpell {
                 && !plugin.successGate().consume(player.getUniqueId(), settings.requireSuccessOf(), Bukkit.getCurrentTick())) {
             return new CastResult(PostCastAction.ALREADY_HANDLED, data);
         }
-        if (!plugin.manager().shoot(player, getInternalName(), settings)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+        double multiplier = plugin.aimManager() == null ? 1 : plugin.aimManager().recoilMultiplier(player, getInternalName());
+        if (!plugin.manager().shoot(player, getInternalName(), settings, multiplier)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
         playSpellEffects(data);
         return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
     }

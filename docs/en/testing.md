@@ -15,6 +15,7 @@ Separates algorithm checks, running-server observations, and camera feel requiri
 - [Recorded recoil demo](#recorded-recoil-demo)
 - [Human acceptance checklist](#human-acceptance-checklist)
 - [Not established by this release](#not-established-by-this-release)
+- [ADS extension verification](#ads-extension-verification)
 <!-- toc:end -->
 
 ## Environment
@@ -121,3 +122,16 @@ A client mod with frame-based additive recoil is the next step if the vanilla cl
 ---
 
 [Previous: Troubleshooting](troubleshooting.md) · [Documentation](README.md) · [Next: Architecture](architecture.md)
+
+## ADS extension verification
+
+**Final `clean build runtimeProbeJar`: PASS; 86 unit tests, zero failures/skips.**
+
+Test date: **2026-11-15 (Asia/Seoul)**. Target: Paper **1.21.11 build 132**, commit **c5eb079**, official MagicSpells **4.0-Beta-18**, Java **21.0.8**, Gradle **9.3.0**.
+
+- Automated: the existing recoil tests plus ADS configuration validation, repeated toggle, modifier ownership, slot/F cancellation flags, item suspension/resume, idempotent activation, reload attempts and async rejection pass. All four recoil patterns are compared shot-for-shot at half strength across 100 shots each; mixed ADS recovery and zero strength are checked.
+- Real server with two synthetic protocol clients: native main-hand right-click routing; normal 2-degree versus aimed 1-degree recoil; actual hotbar and F packets; independent players; missing reagents, exact cost charging, cooldown and modifier rejection; external speed modifier preservation; BuffEnd, reload, logout, death/respawn and `/ms reload` cleanup and re-registration pass. Baseline speed `0.10000000149` became `0.06500000097`; an external total multiplier gave `0.12000000179`, aimed `0.07800000116`, then restored `0.12000000179`. No ProtocolLib was installed. The rerunnable fixture clears its own reagent items and sets peaceful difficulty so ambient mobs cannot kill idle test clients.
+- Representative Paimon fixture: Buff → PassiveSpell → Beam → success-gated recoil preserves ammunition consumption and reload blocking while ADS scales recoil. This intentionally omits the production damage types, sounds, resource pack and external commands.
+- The fixture stops Paper with ADS active; transient modifier cleanup, clean restart and join are checked by rerunning the fixture against the same disposable server. This is not a JVM crash test.
+
+Run [the committed ADS fixture](../../tests/runtime/README.md#ads-integration-fixture). Its headless clients do not render FOV or measure physical walking speed. Human mouse feel, repeated held right-click behavior, off-hand duplicate-item bindings, interactable blocks, network latency/anti-cheat and the complete production Paimon configuration remain acceptance checks. HOLD, zoom and automatic spread have no implementation to test.

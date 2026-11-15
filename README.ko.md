@@ -24,6 +24,7 @@
 - [Gradle 빌드](#gradle-빌드)
 - [도입 전에 확인할 한계](#도입-전에-확인할-한계)
 - [라이선스](#라이선스)
+- [선택 기능: 조준](#선택-기능-조준)
 <!-- toc:end -->
 
 ## 반동 테스트 GIF
@@ -197,3 +198,7 @@ JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, 
 ## 라이선스
 
 [GPL-3.0-only](LICENSE). MagicSpells, PaperMC, Mojang, Microsoft, Riot Games의 공식 제품이 아닙니다. `valorant`는 위로 상승한 뒤 좌우로 흔들리는 형태를 설명하는 이름이며 해당 게임의 실제 패턴 데이터를 복제하지 않았습니다.
+
+## 선택 기능: 조준
+
+[ADS 설정과 입력 감지의 한계](docs/ko/aim-and-input.md)에서 AimSpell / StopAimSpell, 무기별 반동 감소, transient 속도 modifier를 설명합니다. 기존 Buff 사격을 유지하며 정확한 좌클릭 HOLD, 화면 확대, 자동 탄퍼짐 재정의는 제외했습니다. 검증 근거와 제한 사항은 가이드를 참고하세요.

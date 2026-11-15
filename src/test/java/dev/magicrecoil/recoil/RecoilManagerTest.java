@@ -15,6 +15,18 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class RecoilManagerTest {
+    @Test void invalidAimMultiplierCannotLeaveAnUnscheduledSession() throws Exception {
+        try (var bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(true);
+            var manager = new RecoilManager(mock(JavaPlugin.class), mock(RotationAdapter.class));
+            var player = mock(Player.class); var config = settings("");
+            for (double multiplier : new double[]{-1, 2, Double.NaN}) {
+                assertThrows(IllegalArgumentException.class, () -> manager.shoot(player, "gun", config, multiplier));
+                assertEquals(0, manager.activePlayers());
+            }
+        }
+    }
+
     @Test void playersShareOneTaskAndEachGetsOneRotationPerTick() throws Exception {
         try (var bukkit = mockStatic(Bukkit.class)) {
             bukkit.when(Bukkit::isPrimaryThread).thenReturn(true);

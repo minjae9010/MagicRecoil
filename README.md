@@ -24,6 +24,7 @@ Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, o
 - [Build from source](#build-from-source)
 - [Limits you should evaluate](#limits-you-should-evaluate)
 - [License](#license)
+- [Optional aiming](#optional-aiming)
 <!-- toc:end -->
 
 ## Recoil demo
@@ -197,3 +198,7 @@ If this does not feel materially better than RotateSpell in your tests, treat ac
 ## License
 
 GPL-3.0-only; see [LICENSE](LICENSE). MagicRecoil is independent of MagicSpells, PaperMC, Mojang, Microsoft, and Riot Games. “Valorant” describes the broad rise-then-sway idea, not copied game patterns or an official affiliation.
+
+## Optional aiming
+
+[ADS configuration and input limits](docs/en/aim-and-input.md) covers AimSpell / StopAimSpell, weapon-scoped recoil reduction and transient speed modifiers. Existing Buff firing stays available. Exact left-click HOLD, magnification and automatic spread overrides are excluded; see the evidence and limits in the guide.

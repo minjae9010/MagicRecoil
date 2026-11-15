@@ -12,6 +12,7 @@ For building, code changes, version ports, and documentation maintenance. For in
 - [Porting to a later Minecraft version](#porting-to-a-later-minecraft-version)
 - [CI and releases](#ci-and-releases)
 - [Documentation and Wiki maintenance](#documentation-and-wiki-maintenance)
+- [ADS Java changes](#ads-java-changes)
 <!-- toc:end -->
 
 ## Reproducible entry point
@@ -81,3 +82,7 @@ For an existing checkout, use git -C .work/wiki pull --ff-only instead of clonin
 ---
 
 [Previous: Architecture](architecture.md) · [Documentation](README.md)
+
+## ADS Java changes
+
+New production files: `aiming/AimSettings.java`, `aiming/AimManager.java`, `spells/AimSpell.java`, `spells/StopAimSpell.java`. Modified production files: `MagicRecoilPlugin.java`, `spells/RecoilSpell.java`, `recoil/RecoilManager.java`, `recoil/RecoilSession.java`. These paths are under `src/main/java/dev/magicrecoil/`. The rotation adapter, pattern/settings implementations, success gate and existing stop spell are unchanged. The optional runtime probe adds ADS snapshots; JUnit additions cover settings, manager behavior and aimed recoil.

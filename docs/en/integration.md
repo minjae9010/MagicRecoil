@@ -14,6 +14,7 @@ Connect recoil while preserving the existing firing, ammunition, and reload logi
 - [Aim and shot order](#aim-and-shot-order)
 - [`/ms reload`](#ms-reload)
 - [Troubleshooting](#troubleshooting)
+- [Adding ADS to a Buff gun](#adding-ads-to-a-buff-gun)
 <!-- toc:end -->
 
 ## Preserve the gun, replace the recoil
@@ -116,3 +117,7 @@ This supports numeric changes and newly added recoil spells with `/ms reload`. I
 ---
 
 [Previous: Configuration](configuration.md) · [Documentation](README.md) · [Next: Troubleshooting](troubleshooting.md)
+
+## Adding ADS to a Buff gun
+
+Follow [ADS ownership and Buff integration](aim-and-input.md#recoil-and-existing-buff-guns) and the [Paimon merge example](../../examples/aim-paimon.yml). Assign right click to exactly one spell, retain the existing full successful-fire path, and add StopAimSpell to eventless reload chains. Do not replace PassiveSpell firing with a direct Beam call.

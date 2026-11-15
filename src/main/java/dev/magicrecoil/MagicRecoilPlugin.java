@@ -4,6 +4,8 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.events.*;
 import dev.magicrecoil.integration.SuccessGate;
+import dev.magicrecoil.aiming.AimManager;
+import dev.magicrecoil.spells.AimSpell;
 import dev.magicrecoil.packet.v1_21_11.Paper12111RotationAdapter;
 import dev.magicrecoil.recoil.RecoilManager;
 import dev.magicrecoil.spells.RecoilSpell;
@@ -31,6 +33,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     private static MagicRecoilPlugin instance;
     private final SuccessGate successGate = new SuccessGate();
     private RecoilManager manager;
+    private AimManager aimManager;
     private final Set<String> stopSpells = new HashSet<>();
     private final Set<String> stopBuffs = new HashSet<>();
 
@@ -58,7 +61,9 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
             return;
         }
         manager = new RecoilManager(this, new Paper12111RotationAdapter());
+        aimManager = new AimManager(this);
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(aimManager, this);
         refreshWatches();
         getLogger().info("Enabled relative rotation for Paper 1.21.11 / MagicSpells 4.0-Beta-18.");
     }
@@ -66,6 +71,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         if (manager != null) manager.clear();
+        if (aimManager != null) aimManager.clear();
         successGate.clear();
         MagicSpells.getClassLoaders().remove(getClassLoader());
         instance = null;
@@ -74,6 +80,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void loading(MagicSpellsLoadingEvent event) {
         manager.clear();
+        aimManager.clear();
         successGate.watch(Set.of());
         // unload() clears MagicSpells' class loader list on every /ms reload.
         registerSpellLoader();
@@ -87,6 +94,15 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
         stopBuffs.clear();
         Set<String> watched = new HashSet<>();
         for (Spell spell : MagicSpells.getSpells().values()) {
+            if (spell instanceof AimSpell aim) {
+                aim.settings().recoilSpells().forEach(name -> {
+                    checkReference(spell, name);
+                    Spell target = MagicSpells.getSpellByInternalName(name);
+                    if (target != null && !(target instanceof RecoilSpell)) getLogger().warning(spell.getInternalName() + ": recoil-spells entry is not a RecoilSpell: " + name);
+                });
+                aim.settings().stopOnSpells().forEach(name -> checkReference(spell, name));
+                aim.settings().stopOnBuffEnd().forEach(name -> checkReference(spell, name));
+            }
             if (!(spell instanceof RecoilSpell recoil)) continue;
             String source = recoil.settings().requireSuccessOf();
             if (!source.isEmpty()) { watched.add(source); checkReference(spell, source); }
@@ -149,7 +165,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void inventoryDrag(InventoryDragEvent event) { reset(event.getWhoClicked().getUniqueId()); }
     @EventHandler public void disabled(PluginDisableEvent event) {
-        if (event.getPlugin().getName().equals("MagicSpells")) { manager.clear(); successGate.clear(); }
+        if (event.getPlugin().getName().equals("MagicSpells")) { manager.clear(); aimManager.clear(); successGate.clear(); }
     }
 
     @Override
@@ -181,4 +197,5 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public static MagicRecoilPlugin instance() { return instance; }
     public RecoilManager manager() { return manager; }
     public SuccessGate successGate() { return successGate; }
+    public AimManager aimManager() { return aimManager; }
 }

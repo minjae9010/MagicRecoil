@@ -30,6 +30,7 @@ A working recoil spell does not establish that ammunition or reload integration 
 | Enable horizontal recoil | [Recoil logic](recoil-logic.md) | Zero yaw in vertical, random example, first four valorant shots |
 | Look up an option | [Configuration](configuration.md) | Defaults, units, valid ranges, operation order |
 | Connect an existing gun | [Integration](integration.md) | Beam/PP guard names, shot order, reload cancellation |
+| Add optional ADS | [Aiming and input](aim-and-input.md) | Full settings, Paimon integration, HOLD/FOV limits |
 | Diagnose a failure | [Troubleshooting](troubleshooting.md) | Missing yaw, no recoil, resets, strength and spread |
 | Review evidence and limits | [Testing](testing.md) | Automated, running-server, and human acceptance boundaries |
 | Understand packets and state | [Architecture](architecture.md) | Relative rotation, class loading, per-player state |

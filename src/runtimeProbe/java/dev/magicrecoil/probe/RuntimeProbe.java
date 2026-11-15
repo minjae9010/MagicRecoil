@@ -8,6 +8,7 @@ import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 import com.nisovin.magicspells.util.trackers.Tracker;
 import dev.magicrecoil.MagicRecoilPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -52,6 +53,20 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
         if (!sender.hasPermission("magicrecoil.probe") || args.length != 2) return false;
         var player = Bukkit.getPlayerExact(args[1]);
         if (player == null) return false;
+        if (args[0].equals("aim")) {
+            var plugin = MagicRecoilPlugin.instance();
+            var ammo = com.nisovin.magicspells.MagicSpells.getVariableManager().getVariable("Paimon");
+            sender.sendMessage("AIM player=" + player.getName()
+                    + " speed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getValue()
+                    + " multiplier=" + plugin.aimManager().recoilMultiplier(player, "ADS_Recoil")
+                    + " states=" + plugin.aimManager().activePlayers()
+                    + " ammo=" + (ammo == null ? -1 : ammo.getValue(player))
+                    + " cobblestone=" + java.util.Arrays.stream(player.getInventory().getContents())
+                            .filter(item -> item != null && item.getType() == org.bukkit.Material.COBBLESTONE)
+                            .mapToInt(org.bukkit.inventory.ItemStack::getAmount).sum()
+                    + " yaw=" + player.getYaw() + " pitch=" + player.getPitch());
+            return true;
+        }
         if (args[0].equals("api")) player.setRotation(player.getYaw(), player.getPitch() - 3);
         if (args[0].equals("protocol")) {
             if (!Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {

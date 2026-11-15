@@ -13,6 +13,7 @@
 - [클래스 로딩](#클래스-로딩)
 - [반동 처리 흐름](#반동-처리-흐름)
 - [호환성 경계와 근거](#호환성-경계와-근거)
+- [ADS 상태 경계](#ads-상태-경계)
 <!-- toc:end -->
 
 ## 구현 선택
@@ -75,3 +76,7 @@ plugin.yml에 `depend: [MagicSpells]`를 선언합니다. 모든 플러그인의
 ---
 
 [이전: 테스트](testing.md) · [문서 안내](README.md) · [다음: 개발](development.md)
+
+## ADS 상태 경계
+
+`aiming/AimSettings`는 불변 조준 설정을 검증합니다. `aiming/AimManager`는 UUID 상태, 원래 주 손 아이템 서명, 공용 동기 작업 하나와 transient 속도 키를 관리합니다. AimSpell은 MagicSpells 기본 시전을 사용하고 StopAimSpell은 조준을 명시적으로 해제합니다. RecoilSpell은 기존 성공 검증 후 배율을 조회하며 RecoilSession은 공유 설정이나 기존 큐를 바꾸지 않고 새 발사 회전량에 배율을 적용합니다. [조준 생명주기와 소유](aim-and-input.md#무기-소유와-속도-복원)를 참고하세요.

@@ -15,6 +15,7 @@
 - [패턴 정의](#패턴-정의)
 - [연동 옵션](#연동-옵션)
 - [선택적 자동 복귀](#선택적-자동-복귀)
+- [선택 기능 AimSpell 설정](#선택-기능-aimspell-설정)
 <!-- toc:end -->
 
 ## 기본 옵션
@@ -110,3 +111,7 @@ Recoil_Custom:
 ---
 
 [이전: 반동 로직](recoil-logic.md) · [문서 안내](README.md) · [다음: 총기 연결](integration.md)
+
+## 선택 기능 AimSpell 설정
+
+AimSpell과 StopAimSpell의 [전체 설정·기본값·허용 범위](aim-and-input.md#바인딩과-전체-설정)를 참고하세요. 기존 RecoilSpell에는 새 YAML이 필요 없습니다. AimSpell의 `recoil-spells`로 해당 총기에만 반동 감소를 적용하며 미지원 HOLD·확대 기능을 흉내 내지 않습니다.

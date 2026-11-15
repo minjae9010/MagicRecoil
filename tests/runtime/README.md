@@ -7,6 +7,7 @@ These fixtures are for an **isolated local Paper 1.21.11 server** only and are n
 
 - [Protocol checks](#protocol-checks)
 - [Visual burst fixture](#visual-burst-fixture)
+- [ADS integration fixture](#ads-integration-fixture)
 <!-- toc:end -->
 
 ## Protocol checks
@@ -82,3 +83,16 @@ With the optional probe installed, compare `mrprobe snapshot RecoilCamera` and `
 For MCP capture, use a separate client with [Minecraft Mod MCP](https://github.com/langyo/minecraft-mod-mcp), match the Minecraft version and process identity, and capture the original game framebuffer. The capture helper is a test tool, not a MagicRecoil dependency. Convert the captured frames to a GIF at normal speed; document the capture method and any trimming in [Testing](../../docs/en/testing.md).
 
 한국어 안내: [화면 녹화 및 검증 문서](../../docs/ko/testing.md)를 참고하세요. 이 구성은 반동 시연용이며 기존 총기의 탄약·재장전·입력 처리를 대체하지 않습니다.
+
+## ADS integration fixture
+
+This starts a real, disposable Paper process and two synthetic clients; it does not test a human mouse or renderer. Use **Java 21**, Paper **1.21.11 build 132**, the official **MagicSpells 4.0-Beta-18**, the freshly built addon and optional probe (`./gradlew build runtimeProbeJar`). ProtocolLib is not needed.
+
+1. Prepare a separate server directory with `paper.jar` and its normal EULA acceptance. Never use a production world. In `server.properties` set `server-ip=127.0.0.1`, an unused port (the recorded run used `25581`), `online-mode=false`, `enforce-secure-profile=false`, `gamemode=survival`, `allow-flight=true`, `spawn-protection=0`, `view-distance=2` and `simulation-distance=2`. Use normal world-generation settings or a valid flat preset.
+2. Install exactly one addon JAR, MagicSpells JAR and probe JAR in `plugins/`. Copy `spells-aim.yml` to `plugins/MagicSpells/`. Do not install other test gun bindings. Set `default-all-perms-false: false` in MagicSpells `general.yml`. Start with unprivileged `ADS_A` / `ADS_B`; do not grant no-cost/no-cooldown permissions. Stop the server before running the harness.
+3. In `tests/runtime/`, run `npm ci`, set `JAVA_HOME` to your JDK 21 directory, then run `node aim-check.cjs <absolute-isolated-server-directory>`. The harness launches Paper with `windowsHide: true`, performs assertions through the real console and actual protocol packets, and stops it. Full server output is in the test server's ignored `ads-test.log`.
+4. Run it again against the same disposable server to check restart/join restoration. Confirm `ALL ADS RUNTIME CHECKS PASSED` and inspect server logs. The initial recorded flat-world generation emitted `No key layers in MapLike[{}]`; that world-preset diagnostic was separate from the plugin checks.
+
+Checks cover click toggles, speed and recoil, real hotbar/F actions, suspension, non-toggle activation, missing/charged reagents, cooldowns, modifiers, external speed effects, two-player isolation, reload/BuffEnd/death/logout cleanup, `/ms reload`, and a representative Paimon Buff/Passive/Beam/ammunition/reload chain. `mrprobe aim ADS_A` prints the attribute, scoped recoil multiplier, session count, cobblestone count, ammo and server rotation. The representative gun omits production damage types, resource-pack sounds and external commands; it is not a claim that a complete production pack passed. Existing smoke and visual fixtures are preserved.
+
+한국어: [조준 설정](../../docs/ko/aim-and-input.md)과 [검증 범위](../../docs/ko/testing.md#ads-확장-검증)를 참고하세요.
