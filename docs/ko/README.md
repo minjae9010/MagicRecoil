@@ -30,6 +30,8 @@
 | 수평 반동 켜기 | [반동 로직](recoil-logic.md) | vertical의 수평 0, random 예시, valorant 첫 4발 |
 | 각 옵션의 범위 확인 | [설정 전체 표](configuration.md) | 기본값, 단위, 유효성 검사, 적용 순서 |
 | 기존 총기에 적용 | [연동 가이드](integration.md) | Beam/PP 성공 이름, 호출 순서, 재장전 중지 |
+| 선택 조준·우클릭 연사 추가 | [조준과 입력](aim-and-input.md) | 전체 설정, 파이먼 연동, 사용 상태·반복 입력과 FOV 한계 |
+| 기존 총기 조작 비교 | [총기 플러그인 비교](input-comparison.md) | CrackShot 발사 큐, 반복 입력 타임아웃과 조준 구현 |
 | 안 되는 원인 찾기 | [증상별 문제 해결](troubleshooting.md) | 수평 0, 전체 무반동, 초기화, 강도·탄퍼짐 |
 | 확인된 결과와 한계 파악 | [검증과 테스트](testing.md) | 자동/서버/실제 사용자 검증의 구분 |
 | 패킷·스케줄러 이해 | [구조](architecture.md) | 상대 회전, 클래스 로딩, 플레이어별 상태 |

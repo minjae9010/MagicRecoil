@@ -15,6 +15,7 @@ A lookup reference for tuning a working spell. Start with [Getting started](gett
 - [Pattern definitions](#pattern-definitions)
 - [Integration options](#integration-options)
 - [Optional recovery](#optional-recovery)
+- [Optional AimSpell settings](#optional-aimspell-settings)
 <!-- toc:end -->
 
 ## Basic options
@@ -110,3 +111,9 @@ This does not know how much the player compensated with their mouse, so it can o
 ---
 
 [Previous: Recoil logic](recoil-logic.md) · [Documentation](README.md) · [Next: Integration](integration.md)
+
+## Optional AimSpell settings
+
+AimSpell and StopAimSpell have separate [full configuration, defaults and ranges](aim-and-input.md#binding-and-configuration). RecoilSpell requires no new YAML. Use `recoil-spells` on AimSpell to scope reduction to the gun. Exact left-click HOLD and optical zoom.level remain unsupported. Right-click AutoFireSpell has [buffered, native and timeout input modes](aim-and-input.md#right-click-automatic-fire); zoom requires explicit SLOWNESS or FOV_EFFECT mode and its mode-specific settings.
+
+The primary Paimon example now selects BUFFERED_CLICK and SLOWNESS scope, with recoil-multiplier and movement-speed-multiplier both 1.0. Slowness supplies its own movement reduction. FOV_EFFECT remains an alternative.

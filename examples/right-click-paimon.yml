@@ -1,0 +1,76 @@
+# Merge fragment for the existing magic-item 파이먼 (diamond_hoe); no client mod.
+# 기존 magic-item 파이먼(다이아몬드 괭이)에 병합하며 클라이언트 모드는 필요 없습니다.
+# Remove both old mouse bindings from Weapon_파이먼_Buff when enabling AutoFire.
+# AutoFire 사용 시 Weapon_파이먼_Buff의 기존 좌/우클릭 바인딩을 모두 제거하세요.
+# Keep the old Buff and Passive definitions for legacy operation, but do not run both firing loops together.
+# 기존 Buff/Passive 정의는 보존하되 두 발사 루프를 동시에 켜지 마세요.
+Weapon_파이먼_우클릭연사:
+  spell-class: "dev.magicrecoil.spells.AutoFireSpell"
+  always-granted: true
+  enabled: true
+  use-item: 파이먼
+  input-mode: BUFFERED_CLICK
+  fire-spell: Weapon_파이먼_발사처리
+  interval-ticks: 2
+  stop-on-spells: [Weapon_Reload_파이먼]
+
+Weapon_파이먼_연사해제:
+  spell-class: "dev.magicrecoil.spells.StopAutoFireSpell"
+  helper-spell: true
+  always-granted: true
+# Put the stop helper first in an eventless/direct reload chain.
+# 이벤트가 없는 direct 재장전 경로에는 위 연사해제를 맨 앞에서 호출하세요.
+
+# Extract the complete existing successful-fire logic here. Do not call only Beam.
+# 기존 발사 성공 처리 전체를 옮기세요. Beam만 직접 호출하면 안 됩니다.
+# Keep every existing ammo/reload modifier, variable update, effect and cooldown.
+# 기존 탄약·재장전 modifier, 변수 변경, 효과, 쿨다운을 모두 보존하세요.
+# The old buffactive check belongs on the legacy Passive wrapper, not this shared firing entry.
+# 기존 buffactive 검사는 재사용 발사 처리 대신 기존 Passive 래퍼에 남겨 두세요.
+Weapon_파이먼_발사처리:
+  spell-class: ".MultiSpell"
+  always-granted: true
+  helper-spell: true
+  cast-time: 0
+  cooldown: 0.07
+  modifiers:
+    - holdingprecise 파이먼 require
+    - variable reload=0 require
+    - variable Paimon>0 require
+  variable-mods-cast: [Paimon -1]
+  spells: [Weapon_파이먼_Beam, Weapon_파이먼_반동]
+  effects:
+    smoke:
+      position: caster
+      effect: particles
+      particle-name: smoke
+      horiz-spread: 0.001
+      vert-spread: 0.001
+      y-offset: 1.8
+      forward-offset: 2
+      speed: 0.2
+      count: 4
+    fire-sound:
+      position: caster
+      effect: sound
+      sound: m56
+      pitch: 1
+      volume: 1.5
+      category: players
+
+# BUFFERED_CLICK preserves the item and refills up to five future firing ticks per input.
+# BUFFERED_CLICK는 아이템을 수정하지 않고 입력마다 최대 5틱의 발사 예약을 보충합니다.
+# Releasing can leave up to five ticks of queued work; reload/swap cancels immediately.
+# 버튼 해제 뒤 최대 5틱의 예약이 남을 수 있으며 재장전·교체 시에는 즉시 중지합니다.
+# Alternative timeout input: no component preparation and no fixed material whitelist.
+# 기존 플러그인식 대안: 컴포넌트 추가 없이 일반 아이템에 사용할 수 있습니다.
+# This ESTIMATES release after six ticks without another event; it is not exact mouse release.
+# 마지막 이벤트 후 6틱 동안 입력이 없으면 해제로 추정합니다. 정확한 버튼 해제 신호는 아닙니다.
+# In the same AutoFire spell, replace input-mode with these TWO lines:
+# 같은 AutoFire 주문의 input-mode를 아래 두 줄로 교체하세요:
+# input-mode: REPEATED_CLICK
+# release-timeout-ticks: 6
+
+# For left-click ADS/optional FOV zoom, merge aim-paimon.yml. The former right-click ADS example
+# is preserved in aim-paimon-legacy.yml for operators retaining the old controls.
+# 좌클릭 조준/선택 FOV 줌은 aim-paimon.yml, 이전 우클릭 조준 예제는 aim-paimon-legacy.yml입니다.

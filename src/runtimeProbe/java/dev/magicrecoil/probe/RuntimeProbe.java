@@ -8,12 +8,14 @@ import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 import com.nisovin.magicspells.util.trackers.Tracker;
 import dev.magicrecoil.MagicRecoilPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -28,6 +30,13 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
     private final Map<Tracker, Boolean> observed = new WeakHashMap<>();
 
     @Override public void onEnable() { getServer().getPluginManager().registerEvents(this, this); }
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void input(PlayerInteractEvent event) {
+        if (event.getItem() != null && event.getItem().getType() == org.bukkit.Material.BLAZE_ROD) {
+            getLogger().info("INPUT tick=" + Bukkit.getCurrentTick() + " action=" + event.getAction() + " hand=" + event.getHand()
+                    + " item=" + event.useItemInHand() + " block=" + event.useInteractedBlock());
+        }
+    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void cast(SpellCastEvent event) {
@@ -52,6 +61,29 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
         if (!sender.hasPermission("magicrecoil.probe") || args.length != 2) return false;
         var player = Bukkit.getPlayerExact(args[1]);
         if (player == null) return false;
+        if (args[0].equals("aim")) {
+            var plugin = MagicRecoilPlugin.instance();
+            var ammo = com.nisovin.magicspells.MagicSpells.getVariableManager().getVariable("Paimon");
+            var slow = player.getPotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS);
+            sender.sendMessage("AIM player=" + player.getName()
+                    + " speed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getValue()
+                    + " baseSpeed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue()
+                    + " serverWalkSpeed=" + player.getWalkSpeed() / 2
+                    + " multiplier=" + plugin.aimManager().recoilMultiplier(player, "ADS_Recoil")
+                    + " states=" + plugin.aimManager().activePlayers()
+                    + " firing=" + plugin.autoFireManager().activePlayers()
+                    + " using=" + (player.hasActiveItem() ? 1 : 0)
+                    + " prepared=" + (dev.magicrecoil.firing.UseItemSupport.marked(player.getInventory().getItemInMainHand()) ? 1 : 0)
+                    + " itemHash=" + player.getInventory().getItemInMainHand().hashCode()
+                    + " slowness=" + (slow == null ? -1 : slow.getAmplifier())
+                    + " slownessTicks=" + (slow == null ? 0 : slow.getDuration())
+                    + " ammo=" + (ammo == null ? -1 : ammo.getValue(player))
+                    + " cobblestone=" + java.util.Arrays.stream(player.getInventory().getContents())
+                            .filter(item -> item != null && item.getType() == org.bukkit.Material.COBBLESTONE)
+                            .mapToInt(org.bukkit.inventory.ItemStack::getAmount).sum()
+                    + " yaw=" + player.getYaw() + " pitch=" + player.getPitch());
+            return true;
+        }
         if (args[0].equals("api")) player.setRotation(player.getYaw(), player.getPitch() - 3);
         if (args[0].equals("protocol")) {
             if (!Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {

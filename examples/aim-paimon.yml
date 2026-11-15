@@ -1,0 +1,46 @@
+# Merge these NEW spells into your existing MagicSpells configuration.
+# 기존 MagicSpells 설정에 아래 새 주문을 추가하세요.
+# Opt in: remove the old LEFT-click binding from Weapon_파이먼_Buff.
+# 활성화 시 Weapon_파이먼_Buff의 기존 좌클릭 바인딩을 제거하세요.
+# For hold-to-fire, also merge right-click-paimon.yml and remove the old right-click Buff binding.
+# 우클릭 유지 연사는 right-click-paimon.yml을 병합하고 기존 Buff 우클릭 바인딩도 제거하세요.
+Weapon_파이먼_조준:
+  spell-class: "dev.magicrecoil.spells.AimSpell"
+  always-granted: true
+  left-click-cast-item: 파이먼
+  ignore-global-cooldown: false
+  cooldown: 0.25
+  enabled: true
+  toggle: true
+  cancel-on-item-swap: true
+  cancel-on-hand-swap: true
+  cancel-on-death: true
+  cancel-on-logout: true
+  movement-speed-multiplier: 1.0
+  recoil-multiplier: 1.0
+  recoil-spells: [Weapon_파이먼_반동]
+  stop-on-spells: [Weapon_Reload_파이먼]
+  # Optional: end ADS when the firing buff ends / 사격 Buff 종료 시 조준도 해제하려면:
+  # stop-on-buff-end: [Weapon_파이먼_Buff]
+  # CrackShot-style scope: Slowness III slows movement and narrows FOV; recoil stays unchanged.
+  # CrackShot식 조준: Slowness III로 이동속도와 시야를 줄이며 반동은 그대로 유지합니다.
+  # FOV Effects 0% disables visible zoom. This is not native spyglass magnification.
+  # FOV 효과 0%에서는 화면이 확대되지 않습니다. 실제 망원경 배율은 아닙니다.
+  zoom:
+    enabled: true
+    mode: SLOWNESS
+    slowness-amplifier: 2
+  modifiers:
+    - holdingprecise 파이먼 require
+
+Weapon_파이먼_조준해제:
+  spell-class: "dev.magicrecoil.spells.StopAimSpell"
+  always-granted: true
+  helper-spell: true
+
+# If reload uses mode=direct (no SpellCastEvent), put Weapon_파이먼_조준해제
+# at the BEGINNING of the existing reload spells list, beside StopRecoilSpell.
+# 재장전을 mode=direct로 호출한다면 기존 재장전 spells 목록 맨 앞에
+# Weapon_파이먼_조준해제를 StopRecoilSpell과 함께 추가하세요.
+# Do not change the existing ammo variables, modifiers, Beam, recoil or effects.
+# 기존 탄약 변수, modifiers, Beam, 반동, 효과 설정은 변경하지 마세요.

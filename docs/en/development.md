@@ -12,6 +12,8 @@ For building, code changes, version ports, and documentation maintenance. For in
 - [Porting to a later Minecraft version](#porting-to-a-later-minecraft-version)
 - [CI and releases](#ci-and-releases)
 - [Documentation and Wiki maintenance](#documentation-and-wiki-maintenance)
+- [ADS Java changes](#ads-java-changes)
+- [Firing and FOV Java changes](#firing-and-fov-java-changes)
 <!-- toc:end -->
 
 ## Reproducible entry point
@@ -81,3 +83,13 @@ For an existing checkout, use git -C .work/wiki pull --ff-only instead of clonin
 ---
 
 [Previous: Architecture](architecture.md) · [Documentation](README.md)
+
+## ADS Java changes
+
+New production files: `aiming/AimSettings.java`, `aiming/AimManager.java`, `spells/AimSpell.java`, `spells/StopAimSpell.java`. Modified production files: `MagicRecoilPlugin.java`, `spells/RecoilSpell.java`, `recoil/RecoilManager.java`, `recoil/RecoilSession.java`. These paths are under `src/main/java/dev/magicrecoil/`. The rotation adapter, pattern/settings implementations, success gate and existing stop spell are unchanged. The optional runtime probe adds ADS snapshots; JUnit additions cover settings, manager behavior and aimed recoil.
+
+## Firing and FOV Java changes
+
+New production files under `src/main/java/dev/magicrecoil/`: `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java` and `packet/v1_21_11/Paper12111ZoomAdapter.java`. `MagicRecoilPlugin`, `AimSettings` and `AimManager` register and reconcile these optional features. The rotation adapter, recoil patterns and success gate are unchanged by this follow-up. Tests cover intervals, timeout, reload latch, normal hard-cast invocation, cast-time rejection, FOV math and restoration. See [runtime evidence](testing.md#right-click-firing-and-fov-verification).
+
+The CrackShot-control follow-up adds `aiming/SlownessZoom.java` and updates AutoFireSettings/Manager, AimSettings/Manager, Paimon examples and runtime fixtures. Existing recoil/projectile/ammunition implementations remain unchanged. Queue tests cover duplicate events, refills, the five-tick drain, item changes and reload latching.

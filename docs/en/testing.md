@@ -15,6 +15,9 @@ Separates algorithm checks, running-server observations, and camera feel requiri
 - [Recorded recoil demo](#recorded-recoil-demo)
 - [Human acceptance checklist](#human-acceptance-checklist)
 - [Not established by this release](#not-established-by-this-release)
+- [ADS extension verification](#ads-extension-verification)
+- [Right-click firing and FOV verification](#right-click-firing-and-fov-verification)
+- [CrackShot controls verification](#crackshot-controls-verification)
 <!-- toc:end -->
 
 ## Environment
@@ -121,3 +124,37 @@ A client mod with frame-based additive recoil is the next step if the vanilla cl
 ---
 
 [Previous: Troubleshooting](troubleshooting.md) · [Documentation](README.md) · [Next: Architecture](architecture.md)
+
+## ADS extension verification
+
+**Initial ADS build: 86 unit tests passed. The final firing/FOV extension build below passes 115 tests, zero failures/skips.**
+
+Test date: **2026-11-15 (Asia/Seoul)**. Target: Paper **1.21.11 build 132**, commit **c5eb079**, official MagicSpells **4.0-Beta-18**, Java **21.0.8**, Gradle **9.3.0**.
+
+- Automated: the existing recoil tests plus ADS configuration validation, repeated toggle, modifier ownership, slot/F cancellation flags, item suspension/resume, idempotent activation, reload attempts and async rejection pass. All four recoil patterns are compared shot-for-shot at half strength across 100 shots each; mixed ADS recovery and zero strength are checked.
+- Real server with two synthetic protocol clients: native main-hand right-click routing; normal 2-degree versus aimed 1-degree recoil; actual hotbar and F packets; independent players; missing reagents, exact cost charging, cooldown and modifier rejection; external speed modifier preservation; BuffEnd, reload, logout, death/respawn and `/ms reload` cleanup and re-registration pass. Baseline speed `0.10000000149` became `0.06500000097`; an external total multiplier gave `0.12000000179`, aimed `0.07800000116`, then restored `0.12000000179`. No ProtocolLib was installed. The rerunnable fixture clears its own reagent items and sets peaceful difficulty so ambient mobs cannot kill idle test clients.
+- Representative Paimon fixture: Buff → PassiveSpell → Beam → success-gated recoil preserves ammunition consumption and reload blocking while ADS scales recoil. This intentionally omits the production damage types, sounds, resource pack and external commands.
+- The fixture stops Paper with ADS active; transient modifier cleanup, clean restart and join are checked by rerunning the fixture against the same disposable server. This is not a JVM crash test.
+
+Run [the committed ADS fixture](../../tests/runtime/README.md#ads-integration-fixture). Its headless clients do not render FOV or measure physical walking speed. Human mouse feel, off-hand duplicate-item bindings, interactable blocks, network latency/anti-cheat and the complete production Paimon configuration remain acceptance checks. Exact left-click HOLD, native spyglass and automatic spread have no implementation to test. See the new firing/FOV checks below for right-click tracking and optional FOV packets.
+
+## Right-click firing and FOV verification
+
+Final Java 21 `clean build runtimeProbeJar`: **115 unit tests passed**, no failures/skips. The same Paper 1.21.11 / official Beta 18 environment above was used with two protocol clients and no ProtocolLib. This is a real server with synthetic input, not a rendered-client acceptance test.
+
+| Check | Observed result |
+| --- | --- |
+| Native right-click | One use packet on a diamond hoe starts repeated full firing calls. Received use release stops them; ammo stays stable afterward. Scoped recoil matches ammo consumed at 0.75 degrees per shot in the fixture |
+| Repeated-click compatibility | An unmodified blaze rod receives four right-click pulses four ticks apart, continues firing, then stops after the configured six-tick gap. No temporary component is added |
+| Reload stop | Cast-event reload and direct/eventless StopAutoFireSpell stop and latch firing; clearing the reload variable alone does not resume it. A new released/repressed input does |
+| Lifecycle | Real slot/F packets, death and `/ms reload` terminate active native firing. Both ADS and firing are active when the harness requests normal server shutdown; rerunning against the same server checks restart and join |
+| Left-click FOV | An arm-animation packet toggles ADS. The outgoing abilities walking-speed field matches the configured factor and current movement attribute; flight/creative flags are preserved. Server walk speed remains 0.1 and the base attribute remains 0.1. Unscoping restores current real abilities |
+| Legacy compatibility | Existing Buff/Passive/Beam and successful-fire recoil checks remain in the same harness; costs, cooldowns, modifiers and two-player isolation continue to pass |
+
+The harness does not render the zoom, physically hold a mouse, simulate packet loss, or validate an anti-cheat. FOV Effects at 0% disables this optional zoom by the vanilla client formula; real visual strength and restoration still need human testing at 0% and 100%, with sprint/flight and the intended plugin/resource-pack combination. Native-use item components also need production inventory and interactable-block acceptance. No JVM crash test or CrackShot runtime test is claimed. The CrackShot result is a separately documented [static official-JAR inspection](input-comparison.md#crackshot-binary-verification).
+
+## CrackShot controls verification
+
+The final build passes **115 JUnit tests**, including five-tick input buffering, duplicate-event bounds, continuous refills, item-change cleanup, reload latching and Slowness configuration. The real Paper fixture also checks a golden hoe with custom-model-data 12 and custom data. The item's hash remains identical before/after firing and zoom, and it has neither a preparation marker nor native use state. A single click at a two-tick firing interval consumes exactly three rounds; each keeps the existing 1.5-degree recoil even while scoped. Repeated pulses refill the buffer; after the final pulse it drains and ammunition stays fixed.
+
+Left-click toggles Slowness III and back, reducing the movement attribute to 0.055 from 0.1 while server walking abilities remain unchanged. The prior active Slowness is restored with less remaining time. A newer external amplifier-4 Slowness effect remains after scope ends. Slot change, reload and /ms reload remove the scope. The harness requests normal shutdown with potion scope and buffered firing active; rerunning it checks restart and join. Synthetic clients still do not render the FOV; visual strength and real mouse/network acceptance remain separate.

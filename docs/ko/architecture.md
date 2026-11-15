@@ -13,6 +13,8 @@
 - [클래스 로딩](#클래스-로딩)
 - [반동 처리 흐름](#반동-처리-흐름)
 - [호환성 경계와 근거](#호환성-경계와-근거)
+- [ADS 상태 경계](#ads-상태-경계)
+- [사격과 FOV 경계](#사격과-fov-경계)
 <!-- toc:end -->
 
 ## 구현 선택
@@ -75,3 +77,15 @@ plugin.yml에 `depend: [MagicSpells]`를 선언합니다. 모든 플러그인의
 ---
 
 [이전: 테스트](testing.md) · [문서 안내](README.md) · [다음: 개발](development.md)
+
+## ADS 상태 경계
+
+`aiming/AimSettings`는 불변 조준 설정을 검증합니다. `aiming/AimManager`는 UUID 상태, 원래 주 손 아이템 서명, 공용 동기 작업 하나와 transient 속도 키를 관리합니다. AimSpell은 MagicSpells 기본 시전을 사용하고 StopAimSpell은 조준을 명시적으로 해제합니다. RecoilSpell은 기존 성공 검증 후 배율을 조회하며 RecoilSession은 공유 설정이나 기존 큐를 바꾸지 않고 새 발사 회전량에 배율을 적용합니다. [조준 생명주기와 소유](aim-and-input.md#무기-소유와-속도-복원)를 참고하세요.
+
+## 사격과 FOV 경계
+
+`firing/AutoFireSettings`는 입력 모드·전체 발사 진입점·틱 간격을 검증합니다. `AutoFireManager`는 등록 주문, UUID별 입력 차단 상태, 기본 사용·반복 이벤트와 공용 동기 작업 하나를 관리합니다. `UseItemSupport`는 지원 재질의 임시 표시 컴포넌트만 추가·복구합니다. `AutoFireSpell`이 일반 발사 처리 전체를 hardCast하고 `StopAutoFireSpell`이 이벤트 없는 재장전을 지원합니다. 기존 발사체·탄약·재장전은 총기 설정에 남습니다. 최상위 양수 cast-time은 거부하며 이미 별도 예약된 하위 효과는 취소하지 않습니다.
+
+`aiming/ZoomAdapter`는 조준 생명주기와 Paper 1.21.11 패킷 처리를 분리합니다. `Paper12111ZoomAdapter`는 현재 abilities를 복제하여 유한한 송신 walking-speed 값을 계산하고 해제 시 현재 실제 abilities로 돌립니다. 서버 walk speed·포션 효과는 변경하지 않습니다. 실제 렌더링과 FOV 효과 설정은 클라이언트의 영역입니다.
+
+`BUFFERED_CLICK`는 UUID별로 최대 5개의 미래 발사 기회를 보관합니다. 반복 이벤트는 전체 버스트를 더하지 않고 부족한 예약을 보충합니다. 동기 검사기가 예약을 소비하고 간격 제한과 기존 전체 발사 처리를 적용합니다. 중지 훅은 버퍼 소진까지 재개를 차단합니다. `aiming/SlownessZoom`이 짧은 포션 적용과 이전 활성 효과 백업을 관리하고 AimManager의 포션 변경 이벤트를 통해 외부 교체·제거 시 추가 갱신을 억제합니다.

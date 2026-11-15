@@ -16,6 +16,8 @@ PAGES = [
     ('recoil-logic', 'Recoil-Logic', '반동 계산과 수평 규칙', 'Recoil logic'),
     ('configuration', 'Configuration', '설정 전체 표', 'Configuration'),
     ('integration', 'Integration', '기존 총기 연결', 'Gun integration'),
+    ('aim-and-input', 'Aiming', '조준과 입력 한계', 'Aiming and input limits'),
+    ('input-comparison', 'Input-Comparison', '기존 총기 구현 비교', 'Existing gun plugin comparison'),
     ('troubleshooting', 'Troubleshooting', '증상별 문제 해결', 'Troubleshooting'),
     ('testing', 'Testing', '검증 결과와 테스트', 'Testing'),
     ('architecture', 'Architecture', '내부 구조와 패킷', 'Architecture'),
@@ -105,17 +107,23 @@ def export_wiki(output):
         (output / f'{name}.md').write_text(text, encoding='utf-8', newline='\n')
     home = '''# MagicRecoil Wiki
 
-Paper 1.21.11 · Java 21 · MagicSpells 4.0-Beta-18
+v0.2.0-alpha.1 · Paper 1.21.11 · Java 21 · MagicSpells 4.0-Beta-18
 
 기존 총기에 시점 반동을 연결하는 안내입니다. **설치 → 반동 규칙 → 총기 연결 → 실제 테스트** 순서로 읽으세요.
 
 Relative camera recoil for existing MagicSpells guns. Follow **installation → recoil rules → integration → acceptance testing**.
+
+이번 릴리스는 **기존 아이템·탄약·재장전·반동을 유지하는 우클릭 연사와 좌클릭 Slowness 줌**을 추가합니다. 우클릭은 최대 5틱의 발사 버퍼를 보충하며 줌 중 실제 이동속도도 낮아집니다.
+
+This release adds **right-click buffered fire and left-click Slowness zoom**, preserving the gun item and existing firing entry. Release can leave up to five ticks of queued work; scope also slows actual movement.
 
 ## 바로 시작 / Start here
 
 - **처음 설치:** [설치와 첫 발사](KO-Getting-Started)
 - **수평이 안 움직임:** [수평 반동 진단](KO-Troubleshooting#수평-반동이-없음)
 - **반동 숫자 이해:** [계산식과 패턴](KO-Recoil-Logic)
+- **우클릭 연사·좌클릭 줌:** [설정과 파이먼 연결](KO-Aiming#우클릭-자동-사격)
+- **Right-click fire / left-click zoom:** [Controls and setup](EN-Aiming#right-click-automatic-fire)
 - **English:** [Documentation home](EN-Home)
 
 ## 문서 지도 / Documentation map

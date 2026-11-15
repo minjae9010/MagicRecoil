@@ -20,6 +20,11 @@ public final class RecoilSession {
     }
 
     public void shoot(long now, RandomGenerator random) {
+        shoot(now, random, 1);
+    }
+
+    public void shoot(long now, RandomGenerator random, double multiplier) {
+        if (!Double.isFinite(multiplier) || multiplier < 0 || multiplier > 1) throw new IllegalArgumentException("Recoil multiplier must be in [0, 1]");
         if (shots > 0 && expired(now)) {
             buffer.clear();
             shots = 0;
@@ -34,6 +39,8 @@ public final class RecoilSession {
         }
         delta = delta.limit(settings.maxRecoil());
         if (settings.pattern() == RecoilPattern.VALORANT) plannedRise += Math.max(0, -delta.pitch());
+        // Scale the completed shot, preserving the unmodified pattern phase, growth and burst cap accounting.
+        if (multiplier != 1) delta = new RotationDelta(delta.yaw() * multiplier, delta.pitch() * multiplier);
         buffer.add(delta, settings.steps());
         shots = Math.min(shots + 1, 1_000_000);
         lastShotNanos = now;

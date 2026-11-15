@@ -14,6 +14,8 @@ Implementation evidence for developers. Operators should start with [Configurati
 - [Recoil state](#recoil-state)
 - [Compatibility boundaries](#compatibility-boundaries)
 - [Primary evidence](#primary-evidence)
+- [ADS state boundary](#ads-state-boundary)
+- [Firing and FOV boundaries](#firing-and-fov-boundaries)
 <!-- toc:end -->
 
 ## Decision
@@ -89,3 +91,15 @@ All Bukkit/NMS operations run on the main server thread. Async recoil calls fail
 ---
 
 [Previous: Testing](testing.md) · [Documentation](README.md) · [Next: Development](development.md)
+
+## ADS state boundary
+
+`aiming/AimSettings` validates immutable ADS options. `aiming/AimManager` owns UUID sessions, original main-hand signatures, one synchronous reconciliation task and the transient speed key. AimSpell uses normal MagicSpells casting, and StopAimSpell explicitly ends ADS. RecoilSpell queries the manager only after the existing success gate; RecoilSession scales completed new-shot impulses without modifying shared settings or queued shots. See [ADS lifecycle and ownership](aim-and-input.md#weapon-ownership-and-restoration).
+
+## Firing and FOV boundaries
+
+`firing/AutoFireSettings` validates the input mode, whole firing entry and tick intervals. `AutoFireManager` owns registered definitions, per-player input latches, native-use/repeat pulses and one synchronous task. `UseItemSupport` prepares only supported idle-use materials and restores its marked temporary components. `AutoFireSpell` hard-casts an ordinary firing entry; `StopAutoFireSpell` supports eventless reload chains. The existing projectile/ammo/reload code stays in the gun configuration. A top-level positive cast time is rejected; independently scheduled nested effects are not cancelled.
+
+`aiming/ZoomAdapter` separates ADS lifecycle from the Paper 1.21.11 abilities packet implementation. `Paper12111ZoomAdapter` copies current abilities, derives a finite outgoing walking-speed field and restores current real abilities on clear. It never changes server walk speed or potion effects. Client rendering and FOV Effects remain outside the server contract.
+
+`BUFFERED_CLICK` maintains a bounded per-player queue of at most five upcoming opportunities. Repeated events refill rather than append complete bursts. The synchronous scanner consumes due work, applies interval limits and calls the same complete firing entry. Stop hooks latch input until its queue drains. `aiming/SlownessZoom` owns short potion leases and prior active-effect backups; AimManager delegates potion-change events so external replacements/removals suppress further scope refresh.
