@@ -17,6 +17,7 @@ Separates algorithm checks, running-server observations, and camera feel requiri
 - [Not established by this release](#not-established-by-this-release)
 - [ADS extension verification](#ads-extension-verification)
 - [Right-click firing and FOV verification](#right-click-firing-and-fov-verification)
+- [CrackShot controls verification](#crackshot-controls-verification)
 <!-- toc:end -->
 
 ## Environment
@@ -126,7 +127,7 @@ A client mod with frame-based additive recoil is the next step if the vanilla cl
 
 ## ADS extension verification
 
-**Initial ADS build: 86 unit tests passed. The final firing/FOV extension build below passes 110 tests, zero failures/skips.**
+**Initial ADS build: 86 unit tests passed. The final firing/FOV extension build below passes 115 tests, zero failures/skips.**
 
 Test date: **2026-11-15 (Asia/Seoul)**. Target: Paper **1.21.11 build 132**, commit **c5eb079**, official MagicSpells **4.0-Beta-18**, Java **21.0.8**, Gradle **9.3.0**.
 
@@ -139,7 +140,7 @@ Run [the committed ADS fixture](../../tests/runtime/README.md#ads-integration-fi
 
 ## Right-click firing and FOV verification
 
-Final Java 21 `clean build runtimeProbeJar`: **110 unit tests passed**, no failures/skips. The same Paper 1.21.11 / official Beta 18 environment above was used with two protocol clients and no ProtocolLib. This is a real server with synthetic input, not a rendered-client acceptance test.
+Final Java 21 `clean build runtimeProbeJar`: **115 unit tests passed**, no failures/skips. The same Paper 1.21.11 / official Beta 18 environment above was used with two protocol clients and no ProtocolLib. This is a real server with synthetic input, not a rendered-client acceptance test.
 
 | Check | Observed result |
 | --- | --- |
@@ -151,3 +152,9 @@ Final Java 21 `clean build runtimeProbeJar`: **110 unit tests passed**, no failu
 | Legacy compatibility | Existing Buff/Passive/Beam and successful-fire recoil checks remain in the same harness; costs, cooldowns, modifiers and two-player isolation continue to pass |
 
 The harness does not render the zoom, physically hold a mouse, simulate packet loss, or validate an anti-cheat. FOV Effects at 0% disables this optional zoom by the vanilla client formula; real visual strength and restoration still need human testing at 0% and 100%, with sprint/flight and the intended plugin/resource-pack combination. Native-use item components also need production inventory and interactable-block acceptance. No JVM crash test or CrackShot runtime test is claimed. The CrackShot result is a separately documented [static official-JAR inspection](input-comparison.md#crackshot-binary-verification).
+
+## CrackShot controls verification
+
+The final build passes **115 JUnit tests**, including five-tick input buffering, duplicate-event bounds, continuous refills, item-change cleanup, reload latching and Slowness configuration. The real Paper fixture also checks a golden hoe with custom-model-data 12 and custom data. The item's hash remains identical before/after firing and zoom, and it has neither a preparation marker nor native use state. A single click at a two-tick firing interval consumes exactly three rounds; each keeps the existing 1.5-degree recoil even while scoped. Repeated pulses refill the buffer; after the final pulse it drains and ammunition stays fixed.
+
+Left-click toggles Slowness III and back, reducing the movement attribute to 0.055 from 0.1 while server walking abilities remain unchanged. The prior active Slowness is restored with less remaining time. A newer external amplifier-4 Slowness effect remains after scope ends. Slot change, reload and /ms reload remove the scope. The harness requests normal shutdown with potion scope and buffered firing active; rerunning it checks restart and join. Synthetic clients still do not render the FOV; visual strength and real mouse/network acceptance remain separate.

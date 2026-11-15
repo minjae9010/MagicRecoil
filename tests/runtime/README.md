@@ -9,6 +9,7 @@ These fixtures are for an **isolated local Paper 1.21.11 server** only and are n
 - [Visual burst fixture](#visual-burst-fixture)
 - [ADS integration fixture](#ads-integration-fixture)
 - [Right-click firing and FOV fixture](#right-click-firing-and-fov-fixture)
+- [CrackShot controls fixture](#crackshot-controls-fixture)
 <!-- toc:end -->
 
 ## Protocol checks
@@ -101,3 +102,7 @@ Checks cover click toggles, speed and recoil, real hotbar/F actions, suspension,
 ## Right-click firing and FOV fixture
 
 The same `spells-aim.yml` / `aim-check.cjs` fixture includes native-use diamond-hoe AutoFire, an unmodified blaze-rod repeated-click mode (six-tick release timeout), left-click ADS/FOV packets, reload latching, eventless stop, slot/F/death cleanup and `/ms reload`. Rebuild and install both the addon and probe before running. The probe prints current/base movement speed, server walk speed, ADS state, active firing, native use, prepared-item marker, ammo and rotation. The harness inspects outgoing abilities packets and leaves ADS + firing active for normal shutdown cleanup; run it twice on the same disposable server. Existing saved items, selected slot and reagent values are reset by the fixture. This does not render FOV or test human mouse behavior, native spyglass, a JVM crash or the CrackShot plugin. See [verification](../../docs/en/testing.md#right-click-firing-and-fov-verification) / [한국어](../../docs/ko/testing.md#우클릭-연사와-fov-검증).
+
+## CrackShot controls fixture
+
+The same fixture now includes BUFFERED_CLICK on a golden hoe with custom model/data and left-click SLOWNESS scope. It asserts a three-round five-tick buffer at interval 2, full 1.5-degree recoil while scoped, repeated refills/draining, unchanged item hash, no component preparation/native-use state, potion ON/OFF, previous-duration restoration, newer external-effect preservation and slot/reload cleanup. The primary Paimon examples use this layout; NATIVE_USE and REPEATED_CLICK remain explicit alternatives. See [evidence](../../docs/en/testing.md#crackshot-controls-verification) / [한국어](../../docs/ko/testing.md#crackshot-조작-검증).

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add optional AimSpell / StopAimSpell, scoped per-shot recoil reduction and transient movement modifiers with lifecycle cleanup.
+- Make input-refilled five-tick BUFFERED_CLICK firing the primary item-preserving mode. Add left-click SLOWNESS scope with timed restoration and external-effect ownership; the primary example keeps recoil at 1.0.
 - Add right-click AutoFireSpell / StopAutoFireSpell: native item-use tracking for sticks, blaze rods and hoes, plus an explicit repeated-click timeout mode. Hard-cast the full existing synchronous firing entry to preserve costs, cooldowns, ammunition, reload checks and guarded recoil. Keep legacy Buff firing available.
 - Bind the new Paimon ADS example to left click and preserve the previous right-click example. Add opt-in abilities-packet FOV effects with current-abilities restoration and documented client-setting limits. Native spyglass, exact left-click HOLD and automatic spread remain excluded.
 - Add bilingual configuration, CrackShot/WeaponMechanics/QualityArmory comparison and real Paper firing/FOV packet fixtures.

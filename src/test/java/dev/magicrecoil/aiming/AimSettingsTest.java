@@ -52,4 +52,16 @@ class AimSettingsTest {
         }
         assertThrows(IllegalArgumentException.class, () -> settings("zoom:\n  enabled: true\n  mode: SPYGLASS"));
     }
+    @Test void crackshotScopeValidatesItsPotionAmplifierAndPreservesRecoilInTheExample() throws Exception {
+        var s = settings("zoom:\n  enabled: true\n  mode: SLOWNESS\n  slowness-amplifier: 2");
+        assertEquals(AimSettings.ZoomMode.SLOWNESS, s.zoomMode()); assertEquals(2, s.slownessAmplifier());
+        assertEquals(1, s.recoilMultiplier()); assertEquals(1, s.movementSpeedMultiplier());
+        for (String value : new String[]{"-1", "6", "1.5", ".nan", "'2'"}) {
+            assertThrows(IllegalArgumentException.class, () -> settings("zoom:\n  enabled: true\n  mode: SLOWNESS\n  slowness-amplifier: " + value));
+        }
+        var c = new YamlConfiguration(); c.load(java.nio.file.Path.of("examples/aim-paimon.yml").toFile());
+        s = AimSettings.from(c.getConfigurationSection("Weapon_파이먼_조준"));
+        assertEquals(1, s.recoilMultiplier()); assertEquals(1, s.movementSpeedMultiplier());
+        assertTrue(s.zoomEnabled()); assertEquals(AimSettings.ZoomMode.SLOWNESS, s.zoomMode());
+    }
 }

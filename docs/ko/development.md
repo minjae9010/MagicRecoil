@@ -93,3 +93,5 @@ git -C .work/wiki push origin HEAD
 ## 사격과 FOV Java 변경
 
 `src/main/java/dev/magicrecoil/`에 `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java`, `packet/v1_21_11/Paper12111ZoomAdapter.java`를 추가했습니다. `MagicRecoilPlugin`, `AimSettings`, `AimManager`가 선택 기능을 등록·정리합니다. 이번 추가 작업에서 회전 어댑터·반동 패턴·성공 검증은 변경하지 않았습니다. [실제 검증 범위](testing.md#우클릭-연사와-fov-검증)를 참고하세요.
+
+CrackShot 조작 추가 작업에서 `aiming/SlownessZoom.java`를 추가하고 AutoFireSettings/Manager, AimSettings/Manager, 파이먼 예제와 실제 서버 구성을 수정했습니다. 기존 반동·발사체·탄약 구현은 변경하지 않았습니다. 큐 테스트는 중복 이벤트·보충·5틱 소진·아이템 변경·재장전 차단을 확인합니다.

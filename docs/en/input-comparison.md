@@ -32,8 +32,11 @@ WeaponMechanics' [OutAbilitiesListener](https://github.com/WeaponMechanics/Weapo
 
 ## MagicRecoil's choices
 
-- `NATIVE_USE`: prepare supported sticks/rods/hoes for native item use and stop on the real Paper use-release event. Retains the gun's material, model and other metadata. This is the default, without a missing-event timeout.
+- `BUFFERED_CLICK` (primary): refill at most five upcoming firing opportunities from repeated right-click input, preserving all existing item components. Normal interval, ammo, reload and hard-cast checks remain. Missing input drains the buffer within five ticks; this is not exact release.
+- `NATIVE_USE` (optional): prepare supported sticks/rods/hoes for native item use and stop on the real Paper use-release event. Retains the gun's material, model and other metadata, without a missing-event timeout.
 - `REPEATED_CLICK`: compatibility mode using repeated right-click events, one server-tick scanner and an explicit `release-timeout-ticks` (default 6, about 300 ms at 20 TPS). It leaves item components untouched and is labelled as release estimation.
 - Left-click AimSpell toggles ADS. Optional `zoom.mode: FOV_EFFECT` sends a copied abilities packet and restores the current real abilities when ADS ends. The client FOV Effects setting controls its visible strength; 0% disables the visual change. It is not a native spyglass or an exact optical zoom guarantee.
 
 No upstream gun-plugin code is embedded or added as a dependency. The implementations remain synchronous Paper/MagicSpells addon code. See [runtime evidence](testing.md#right-click-firing-and-fov-verification).
+
+The primary left-click scope now also supports CrackShot-style Slowness through `zoom.mode: SLOWNESS`. It preserves the original gun item and recoil multiplier, backs up the active potion with remaining-time restoration, and gives newer external potion changes priority. See [scope configuration](aim-and-input.md#crackshot-style-slowness-zoom).

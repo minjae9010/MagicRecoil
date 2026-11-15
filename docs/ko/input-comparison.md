@@ -32,8 +32,11 @@ WeaponMechanics의 [OutAbilitiesListener](https://github.com/WeaponMechanics/Wea
 
 ## MagicRecoil 적용 방식
 
-- `NATIVE_USE`: 지원하는 막대기·블레이즈 막대·괭이에 사용 컴포넌트를 임시로 붙이고 실제 Paper 사용 해제 이벤트에서 종료합니다. 재질, 모델 등 기존 정보를 유지하며 기본 모드에는 이벤트 타임아웃이 없습니다.
+- `BUFFERED_CLICK` (기본): 반복 우클릭으로 최대 5개의 미래 발사 기회를 보충하고 기존 아이템 컴포넌트를 그대로 유지합니다. 발사 간격·탄약·재장전과 hardCast 검사는 유지됩니다. 입력이 없으면 5틱 안에 소진되며 정확한 해제 감지는 아닙니다.
+- `NATIVE_USE` (선택): 지원하는 막대기·블레이즈 막대·괭이에 사용 컴포넌트를 임시로 붙이고 실제 Paper 사용 해제 이벤트에서 종료합니다. 재질, 모델 등 기존 정보를 유지하며 이 모드에는 이벤트 타임아웃이 없습니다.
 - `REPEATED_CLICK`: 반복 우클릭 이벤트, 매 서버 틱 검사, 명시적인 `release-timeout-ticks`를 사용하는 호환 모드입니다. 기본 6틱은 20 TPS에서 약 300ms이며 아이템 컴포넌트를 바꾸지 않습니다. 해제 추정 모드로 표시합니다.
 - 좌클릭 AimSpell로 조준을 토글합니다. 선택 설정 `zoom.mode: FOV_EFFECT`는 복제한 abilities 패킷을 보내고 종료 시 현재 실제 abilities로 복원합니다. 클라이언트 FOV 효과 설정에 따라 확대 강도가 달라지며 0%에서는 확대되지 않습니다. 실제 망원경이나 정확한 광학 배율 보장이 아닙니다.
 
 기존 총기 플러그인의 소스를 포함하거나 런타임 의존성으로 추가하지 않습니다. Paper·MagicSpells API의 동기 애드온 구조를 유지합니다. [실제 서버 검증](testing.md#우클릭-연사와-fov-검증)을 참고하세요.
+
+기본 좌클릭 조준도 `zoom.mode: SLOWNESS`로 CrackShot식 감속 확대를 지원합니다. 총기 아이템과 반동 배율을 유지하고 기존 활성 포션의 남은 시간을 복원하며 새 외부 포션 변경을 우선합니다. [조준 설정](aim-and-input.md#crackshot식-slowness-확대)을 참고하세요.

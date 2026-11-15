@@ -54,7 +54,7 @@ class AutoFireManagerTest {
             when(item.clone()).thenReturn(item); when(item.isSimilar(item)).thenReturn(true);
             items.when(() -> UseItemSupport.marked(item)).thenReturn(true);
             items.when(() -> UseItemSupport.prepare(item)).thenReturn(true);
-            when(gun.settings()).thenReturn(settings("stop-on-spells: [Reload]"));
+            when(gun.settings()).thenReturn(settings("input-mode: NATIVE_USE\nstop-on-spells: [Reload]"));
             when(gun.resolve()).thenReturn(true); when(gun.matches(item)).thenReturn(true); when(gun.fireSpell()).thenReturn(fire);
             manager = new AutoFireManager(plugin, p -> true);
             when(gun.hardCast(any())).thenAnswer(i -> {
@@ -66,6 +66,13 @@ class AutoFireManagerTest {
             verify(scheduler).runTaskTimer(eq(plugin), capture.capture(), eq(1L), eq(1L)); runner = capture.getValue();
         }
         void step() { runner.run(); tick.incrementAndGet(); }
+        void click() {
+            var event = mock(PlayerInteractEvent.class);
+            when(event.getPlayer()).thenReturn(player); when(event.getHand()).thenReturn(EquipmentSlot.HAND);
+            when(event.getAction()).thenReturn(Action.RIGHT_CLICK_AIR); when(event.getItem()).thenReturn(item);
+            when(event.useItemInHand()).thenReturn(Event.Result.DEFAULT);
+            manager.interact(event);
+        }
         @Override public void close() { items.close(); bukkit.close(); }
     }
     @Test void singleNativeUseStartsOnceAndFiresAtServerTickIntervals() throws Exception {
@@ -128,6 +135,45 @@ class AutoFireManagerTest {
             verify(f.fire, times(3)).hardCast(any()); assertEquals(0, f.manager.activePlayers());
             f.items.verify(() -> UseItemSupport.prepare(f.item), never());
             f.manager.interact(event); f.step(); verify(f.fire, times(4)).hardCast(any());
+        }
+    }
+    @Test void bufferedClickQueuesFiveFutureTicksWithoutChangingTheItemOrBurstingOnDuplicateEvents() throws Exception {
+        try (var f = new Fixture()) {
+            when(f.gun.settings()).thenReturn(settings("interval-ticks: 1"));
+            for (int i = 0; i < 20; i++) f.click();
+            f.step(); verify(f.fire, never()).hardCast(any()); // first opportunity is next tick
+            for (int i = 0; i < 10; i++) f.step();
+            verify(f.fire, times(5)).hardCast(any()); assertEquals(0, f.manager.activePlayers());
+            f.items.verify(() -> UseItemSupport.prepare(f.item), never());
+        }
+    }
+    @Test void bufferedRefillsContinueOneShotPerTickAndStopWithinFiveTicksOfTheLastInput() throws Exception {
+        try (var f = new Fixture()) {
+            when(f.gun.settings()).thenReturn(settings("interval-ticks: 1"));
+            f.click(); f.step();
+            for (int i = 0; i < 4; i++) { f.step(); f.click(); f.click(); }
+            for (int i = 0; i < 8; i++) f.step();
+            verify(f.fire, times(9)).hardCast(any()); assertEquals(0, f.manager.activePlayers());
+        }
+    }
+    @Test void bufferedReloadDiscardsFiringButRepeatedInputCannotBypassTheLatch() throws Exception {
+        try (var f = new Fixture()) {
+            when(f.gun.settings()).thenReturn(settings("interval-ticks: 1\nstop-on-spells: [Reload]"));
+            f.click(); f.step(); f.step(); verify(f.fire).hardCast(any());
+            f.manager.stop(f.id);
+            for (int i = 0; i < 12; i++) { f.click(); f.step(); }
+            verify(f.fire).hardCast(any());
+            for (int i = 0; i < 7; i++) f.step();
+            f.click(); f.step(); f.step(); verify(f.fire, times(2)).hardCast(any());
+        }
+    }
+    @Test void bufferedItemChangeDiscardsPendingOpportunities() throws Exception {
+        try (var f = new Fixture()) {
+            when(f.gun.settings()).thenReturn(settings("interval-ticks: 1"));
+            f.click(); f.step(); f.step();
+            when(f.gun.matches(f.item)).thenReturn(false);
+            for (int i = 0; i < 8; i++) f.step();
+            verify(f.fire).hardCast(any()); assertEquals(0, f.manager.activePlayers());
         }
     }
 }

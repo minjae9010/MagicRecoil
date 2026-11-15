@@ -12,6 +12,7 @@
 - [무기 소유와 속도 복원](#무기-소유와-속도-복원)
 - [기존 Buff 총기와 반동 연동](#기존-buff-총기와-반동-연동)
 - [우클릭 자동 사격](#우클릭-자동-사격)
+- [CrackShot식 Slowness 확대](#crackshot식-slowness-확대)
 - [선택 FOV 확대](#선택-fov-확대)
 - [좌클릭과 탄퍼짐의 한계](#좌클릭과-탄퍼짐의-한계)
 - [검증](#검증)
@@ -26,8 +27,8 @@
 | 이동속도 감소 | `MOVEMENT_SPEED`에 키가 있는 transient modifier 하나 추가, 해제 시 자기 modifier만 제거 |
 | 반동 감소 | 플레이어와 반동 주문별로 새 발사에 배율 적용, 기존 패턴·growth 보존 |
 | 좌클릭 HOLD 자동 사격 | 제외: 일반 공격 버튼의 해제 순간을 알리는 공통 프로토콜 신호가 없음 |
-| 선택 FOV 확대 | abilities 패킷 방식의 선택 효과, 실제 망원경 확대 아님 |
-| 우클릭 연사 | 기본은 실제 아이템 사용 상태, 호환 옵션은 반복 클릭 타임아웃 |
+| 선택 FOV 확대 | CrackShot식 Slowness 조준 또는 선택 abilities 패킷 효과. 실제 망원경 아님 |
+| 우클릭 연사 | 기본은 입력으로 보충하는 5틱 발사 버퍼. 기본 사용·타임아웃도 선택 가능 |
 | 자동 탄퍼짐 감소 | 제외: 이 애드온에서 범용적인 플레이어별 spread 재정의 방법이 검증되지 않음 |
 
 ## 바인딩과 전체 설정
@@ -60,13 +61,14 @@ Gun_StopAim:
 | `cancel-on-hand-swap` | `true` | Boolean. 성공한 F키 교체 시 종료. `false`면 원래 아이템이 돌아올 때까지 효과 중지 |
 | `cancel-on-death` | `true` | `true`만 허용. 사망 정리는 필수 |
 | `cancel-on-logout` | `true` | `true`만 허용. 로그아웃 정리는 필수 |
-| `movement-speed-multiplier` | `0.65` | 유한 YAML 숫자 `[0.01, 1]`. `1`은 속도 modifier를 추가하지 않음 |
-| `recoil-multiplier` | `0.5` | 유한 YAML 숫자 `[0, 1]`. `0`은 새 발사의 회전을 전달하지 않음 |
+| `movement-speed-multiplier` | `0.65`, SLOWNESS 모드는 `1` | 유한 YAML 숫자 `[0.01, 1]`. `1`은 속도 modifier를 추가하지 않음 |
+| `recoil-multiplier` | `0.5`, SLOWNESS 모드는 `1` | 유한 YAML 숫자 `[0, 1]`. `0`은 새 발사의 회전을 전달하지 않음 |
 | `recoil-spells` | 활성화 시 필수 | 이 총기의 RecoilSpell 내부 이름 1–128개. 대소문자 구분 없음 |
 | `stop-on-spells` | `[]` | 주문 이름 최대 128개. 해당 주문의 실패를 포함한 시전 시도 시 조준 종료 |
 | `stop-on-buff-end` | `[]` | Buff 이름 최대 128개. 해당 플레이어의 BuffEndEvent에서 종료 |
 | `zoom.enabled` | `false` | Boolean. 선택 FOV 효과 활성화 |
-| `zoom.mode` | 미지정 | 확대 활성화 시 `FOV_EFFECT` 명시 필수 |
+| `zoom.mode` | 미지정 | 확대 활성화 시 `SLOWNESS` 또는 `FOV_EFFECT` 명시 필수 |
+| `zoom.slowness-amplifier` | `2` | SLOWNESS 전용 정수 `[0, 5]`. 2는 Slowness III이며 광학 3배 아님 |
 | `zoom.fov-factor` | `0.65` | 유한 숫자 `[0.55, 1]`. 다른 FOV 영향이 없고 지상·FOV 효과 100%일 때 목표 시야 계수 |
 | `zoom.level` | 미지원 | 정확한 광학 배율 계약이 아니므로 fov-factor 사용 |
 | `trigger` | 미지원 | 조준은 MagicSpells의 `left-click-cast-item` 사용 |
@@ -103,18 +105,26 @@ Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Be
 | `use-item` | 필수 | magic-item 이름 또는 아이템 문자열. MagicSpells cast-item 비교 옵션 적용 |
 | `fire-spell` | 필수 | 일반 동기 발사 처리 주문. PassiveSpell·AutoFireSpell은 대상 지정 거부 |
 | `interval-ticks` | `2` | 정수 `[1, 1200]`. 호출 대상의 실제 쿨다운도 적용 |
-| `input-mode` | `NATIVE_USE` | `NATIVE_USE` 또는 `REPEATED_CLICK` |
+| `input-mode` | `BUFFERED_CLICK` | `BUFFERED_CLICK`, `NATIVE_USE`, `REPEATED_CLICK` |
 | `release-timeout-ticks` | `6` | REPEATED_CLICK 전용. 정수 `[5, 40]` |
 | `stop-on-spells` | `[]` | 재장전·종료 주문 최대 128개. 시도 시 연사를 중지하고 입력을 놓을 때까지 차단 |
 | `stop-on-buff-end` | `[]` | BuffEnd 참조 최대 128개 |
 
-`NATIVE_USE`는 막대기, 블레이즈 막대, 나무·돌·철·금·다이아몬드·네더라이트 괭이를 지원합니다. 재질·모델·이름·로어·속성은 유지하고 Consumable/UseEffects 컴포넌트만 임시 추가합니다. 사용 애니메이션·입자·소리·추가 감속 없이 실제 주 손 사용 상태를 매 틱 확인하고, Paper PlayerStopUsingItemEvent로 해제 신호를 받으면 연사를 멈춥니다. 반복 클릭을 기다리지 않습니다. 기존의 커스텀 Consumable/UseEffects가 있는 아이템은 덮어쓰지 않고 거부합니다. 슬롯·인벤토리 처리, 사망·드롭·로그아웃·리로드·종료 시 준비 정보를 제거하며 재접속 시에도 복구합니다. 한 번의 기본 사용 길이는 1시간이고 실제 소비는 취소하여 총기를 잃지 않도록 합니다. 다른 플러그인이 아이템을 로드되지 않은 상자 등으로 옮기면 전역 검색·복구는 불가능하므로 애드온 제거 전 해당 표시 아이템을 플레이어에게 돌려 정리하세요.
+`BUFFERED_CLICK`가 기본 CrackShot식 모드입니다. 주 손 우클릭마다 앞으로 5틱 안의 부족한 발사 기회를 보충하며 대기는 최대 5개입니다. 중복 이벤트가 버스트를 쌓거나 한 틱에 여러 번 발사하게 만들지 않습니다. 예약된 기회에도 interval-ticks와 전체 발사 주문의 검사를 적용합니다. 추가 입력이 없으면 5틱 안에 버퍼가 소진되므로 20 TPS에서 약 0.25초의 잔여 처리가 생길 수 있으며 즉각적인 버튼 해제 감지는 아닙니다. 재장전·아이템/양손 변경과 생명주기 훅은 세션을 즉시 중지합니다. 아이템의 재질·모델·로어·속성·커스텀 데이터는 수정하지 않으며 이 모드에는 재질 허용 목록이 없습니다. 기존 메타데이터와 일치하는 고유 magic-item 이름으로 바인딩하세요.
+
+선택 `NATIVE_USE`는 막대기, 블레이즈 막대, 나무·돌·철·금·다이아몬드·네더라이트 괭이를 지원합니다. 재질·모델·이름·로어·속성은 유지하고 Consumable/UseEffects 컴포넌트만 임시 추가합니다. 사용 애니메이션·입자·소리·추가 감속 없이 실제 주 손 사용 상태를 매 틱 확인하고, Paper PlayerStopUsingItemEvent로 해제 신호를 받으면 연사를 멈춥니다. 반복 클릭을 기다리지 않습니다. 기존의 커스텀 Consumable/UseEffects가 있는 아이템은 덮어쓰지 않고 거부합니다. 슬롯·인벤토리 처리, 사망·드롭·로그아웃·리로드·종료 시 준비 정보를 제거하며 재접속 시에도 복구합니다. 한 번의 기본 사용 길이는 1시간이고 실제 소비는 취소하여 총기를 잃지 않도록 합니다. 다른 플러그인이 아이템을 로드되지 않은 상자 등으로 옮기면 전역 검색·복구는 불가능하므로 애드온 제거 전 해당 표시 아이템을 플레이어에게 돌려 정리하세요.
 
 `REPEATED_CLICK`는 아이템 컴포넌트를 수정하지 않으며 다른 재질에도 사용할 수 있습니다. 등록한 총기의 기본 우클릭 동작을 막고 주 손의 반복 상호작용을 확인합니다. 기본 6틱 동안 다음 이벤트가 없으면 연사를 종료합니다. 20 TPS에서 약 0.30초의 **해제 추정 방식**이며 정확한 버튼 해제 감지가 아닙니다. 검사는 서버 틱마다 한 번 실행합니다. 더 빠르게 검사해도 클라이언트가 입력을 보내는 주기는 줄지 않으며 패킷 공백으로 세션이 끊길 수 있습니다. 이후 새 클릭은 새 세션을 시작할 수 있습니다. 일반 재질 전체를 실수로 총기로 바꾸지 않도록 이름이 고유한 magic-item을 권장합니다.
 
-모든 발사는 공용 동기 작업 하나에서 실행합니다. 아이템·양손 변경, 사망, 로그아웃, 텔레포트, 리로드·종료 시 중단합니다. 재장전 중지 훅은 현재 사용이 해제되거나 반복 입력 타임아웃이 끝날 때까지 차단합니다. 이벤트가 없는 direct 재장전에는 `dev.magicrecoil.spells.StopAutoFireSpell`을 맨 앞에서 호출하고, 필요하면 StopAimSpell·StopRecoilSpell도 함께 사용하세요. 호출 대상이 자체적으로 지연·버스트 하위 주문을 예약하면 입력 종료 후에도 그 작업은 계속될 수 있으므로 발사 처리는 동기 경로로 구성해야 합니다. 이미 발사된 발사체는 기존 동작을 유지합니다.
+모든 발사는 공용 동기 작업 하나에서 실행합니다. 아이템·양손 변경, 사망, 로그아웃, 텔레포트, 리로드·종료 시 중단합니다. 재장전 중지 훅은 발사 버퍼가 소진되거나 기본 사용이 해제되거나 반복 입력 타임아웃이 끝날 때까지 차단합니다. 이벤트가 없는 direct 재장전에는 `dev.magicrecoil.spells.StopAutoFireSpell`을 맨 앞에서 호출하고, 필요하면 StopAimSpell·StopRecoilSpell도 함께 사용하세요. 호출 대상이 자체적으로 지연·버스트 하위 주문을 예약하면 입력 종료 후에도 그 작업은 계속될 수 있으므로 발사 처리는 동기 경로로 구성해야 합니다. 이미 발사된 발사체는 기존 동작을 유지합니다.
 
 파이먼의 기존 성공 처리에 있는 modifiers, Paimon 차감, Beam·반동 호출, 소리·입자, 쿨다운을 일반 `.MultiSpell` 발사 처리로 분리하세요. 기존 `buffactive` 검사는 이전 Passive 래퍼에 남기고, 구 방식에서는 해당 래퍼가 공용 발사 처리를 hardCast하도록 연결할 수 있습니다. 기존 Buff 연사와 AutoFire를 동시에 켜면 안 됩니다. interval-ticks를 짧게 해도 대상 주문의 쿨다운·비용·탄약·재장전 검사는 우회하지 않습니다. 0초 발사 간격은 지원하지 않습니다.
+
+## CrackShot식 Slowness 확대
+
+기본 파이먼 예제는 좌클릭 `zoom.mode: SLOWNESS`, `zoom.slowness-amplifier: 2`를 켭니다. `recoil-multiplier: 1.0`, `movement-speed-multiplier: 1.0`으로 기존 반동을 유지하고 별도 ADS 속성 감속은 추가하지 않습니다. Slowness 자체는 CrackShot처럼 실제 이동속도와 클라이언트 시야를 줄입니다. 실제 망원경은 아니며 클라이언트 FOV 효과 설정에 따라 보이는 확대가 달라집니다.
+
+조준 중 10틱 길이의 Slowness를 갱신합니다. 조준 종료 시 현재 적용한 효과를 제거하고, 이전 활성 Slowness는 경과한 틱을 뺀 남은 시간으로 복원하며 무한 지속도 보존합니다. 기존 효과가 더 강하거나 같거나 숨은 효과 체인이 있으면 그대로 둡니다. 외부 플러그인의 교체·제거는 우선하며 해당 조준 세션의 추가 갱신을 중지합니다. 다른 포션 종류는 건드리지 않고 취소된 포션 이벤트도 존중합니다. 슬롯·F·사망·로그아웃·리로드·정상 종료에서 정리하며, 갱신이 끊긴 뒤 애드온 감속이 남더라도 최대 10서버 틱입니다. 강제 종료 후 백업된 이전 효과의 복구까지 보장하는 것은 아닙니다.
 
 ## 선택 FOV 확대
 
@@ -124,7 +134,7 @@ Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells/blob/4.0-Be
 
 ## 좌클릭과 탄퍼짐의 한계
 
-일반적인 좌클릭의 정확한 HOLD 연사는 계속 제외합니다. Paper Input에는 공격 버튼 상태가 없고 블록 파괴·아이템 사용 해제는 공통 공격 해제 신호가 아닙니다. 우클릭의 실제 사용 상태에는 활용 가능한 해제 신호가 있고, 일반 우클릭 반복은 별도의 호환 추정 모드입니다. CrackShot의 발사 작업 버퍼와 Slowness 조준을 포함한 [기존 총기 구현 비교](input-comparison.md)를 참고하세요.
+일반적인 좌클릭의 정확한 HOLD 연사는 계속 제외합니다. Paper Input에는 공격 버튼 상태가 없고 블록 파괴·아이템 사용 해제는 공통 공격 해제 신호가 아닙니다. 우클릭의 실제 사용 상태에는 활용 가능한 해제 신호가 있고, 버퍼와 타임아웃 방식은 별도로 표시한 반복 입력 모드입니다. CrackShot의 발사 작업 버퍼와 Slowness 조준을 포함한 [기존 총기 구현 비교](input-comparison.md)를 참고하세요.
 
 BeamSpell의 비공개 ConfigData spread는 총기 작성자가 동적으로 구성할 수 있지만 이 애드온은 범용적인 플레이어별 재정의를 추가하거나 공유 spread 필드를 고치지 않습니다. 자동 탄퍼짐 감소는 제외합니다.
 

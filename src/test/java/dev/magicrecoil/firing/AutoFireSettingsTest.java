@@ -15,6 +15,7 @@ class AutoFireSettingsTest {
     @Test void defaultsAndSupportedTypes() throws Exception {
         var s = settings(""); assertEquals(2, s.intervalTicks()); assertTrue(s.enabled());
         assertEquals("Paimon", s.useItem()); assertEquals("paimon_fire", s.fireSpell());
+        assertEquals(AutoFireSettings.InputMode.BUFFERED_CLICK, s.inputMode());
         assertTrue(UseItemSupport.supports(Material.DIAMOND_HOE)); assertTrue(UseItemSupport.supports(Material.STICK));
         assertFalse(UseItemSupport.supports(Material.BOW)); assertFalse(UseItemSupport.supports(Material.SPYGLASS));
     }
@@ -30,5 +31,6 @@ class AutoFireSettingsTest {
         var s = settings("input-mode: REPEATED_CLICK\nrelease-timeout-ticks: 6");
         assertEquals(AutoFireSettings.InputMode.REPEATED_CLICK, s.inputMode()); assertEquals(6, s.releaseTimeoutTicks());
         assertThrows(IllegalArgumentException.class, () -> settings("input-mode: REPEATED_CLICK\nrelease-timeout-ticks: 1"));
+        assertThrows(IllegalArgumentException.class, () -> settings("input-mode: BUFFERED_CLICK\nrelease-timeout-ticks: 6"));
     }
 }

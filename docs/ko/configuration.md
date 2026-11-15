@@ -119,4 +119,6 @@ AimSpell과 StopAimSpell의 [전체 설정·기본값·허용 범위](aim-and-in
 
 ## 자동 사격과 선택 확대 설정
 
-AutoFireSpell / StopAutoFireSpell의 전체 설정은 [우클릭 자동 사격](aim-and-input.md#우클릭-자동-사격)을 참고하세요. 기본 NATIVE_USE와 해제를 추정하는 REPEATED_CLICK을 구분합니다. AimSpell 확대는 기본 꺼짐이며 명시한 FOV_EFFECT 모드에서만 활성화됩니다. 정확한 좌클릭 HOLD와 광학 배율 zoom.level은 지원하지 않습니다.
+AutoFireSpell / StopAutoFireSpell의 전체 설정은 [우클릭 자동 사격](aim-and-input.md#우클릭-자동-사격)을 참고하세요. 기본 BUFFERED_CLICK, 선택 NATIVE_USE, 해제를 추정하는 REPEATED_CLICK을 구분합니다. AimSpell 확대는 설정을 생략하면 꺼져 있으며 SLOWNESS·FOV_EFFECT 모드를 명시하여 켭니다. 정확한 좌클릭 HOLD와 광학 배율 zoom.level은 지원하지 않습니다.
+
+기본 파이먼 예제는 BUFFERED_CLICK과 SLOWNESS 조준을 사용하며 recoil-multiplier·movement-speed-multiplier 모두 1.0입니다. Slowness 자체의 이동 감속은 적용됩니다. FOV_EFFECT는 대안으로 유지합니다.

@@ -201,4 +201,4 @@ JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, 
 
 ## 선택 기능: 조준
 
-[조준·사격 설정](docs/ko/aim-and-input.md)에서 우클릭 AutoFire, 좌클릭 조준, 무기별 반동 감소와 transient 속도 modifier를 설명합니다. 기본 아이템 사용 추적은 막대기·블레이즈 막대·괭이를 지원하며 선택 반복 클릭 모드는 명시한 타임아웃으로 해제를 추정합니다. 선택 FOV 확대는 클라이언트 FOV 효과 설정의 영향을 받으며 실제 망원경 배율은 아닙니다. 기존 Buff 사격도 유지합니다. [총기 플러그인 비교](docs/ko/input-comparison.md)와 [파이먼 연사 예제](examples/right-click-paimon.yml)를 참고하세요. 정확한 좌클릭 HOLD와 자동 탄퍼짐 재정의는 계속 제외합니다.
+[조준·사격 설정](docs/ko/aim-and-input.md)에서 우클릭 AutoFire, 좌클릭 조준, 무기별 반동 감소와 transient 속도 modifier를 설명합니다. 기본 CrackShot식 모드는 총기 아이템을 수정하지 않고 5틱 발사 버퍼를 보충합니다. 좌클릭 Slowness 조준 예제는 기존 반동을 유지하고 조준 중 이동속도를 낮춥니다. 기본 사용·타임아웃 입력과 abilities 패킷 FOV도 선택할 수 있습니다. 확대는 클라이언트 FOV 효과 설정의 영향을 받으며 실제 망원경 배율은 아닙니다. 기존 Buff 사격도 유지합니다. [총기 플러그인 비교](docs/ko/input-comparison.md)와 [파이먼 연사 예제](examples/right-click-paimon.yml)를 참고하세요. 정확한 좌클릭 HOLD와 자동 탄퍼짐 재정의는 계속 제외합니다.

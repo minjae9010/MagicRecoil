@@ -64,6 +64,7 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
         if (args[0].equals("aim")) {
             var plugin = MagicRecoilPlugin.instance();
             var ammo = com.nisovin.magicspells.MagicSpells.getVariableManager().getVariable("Paimon");
+            var slow = player.getPotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS);
             sender.sendMessage("AIM player=" + player.getName()
                     + " speed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getValue()
                     + " baseSpeed=" + player.getAttribute(Attribute.MOVEMENT_SPEED).getBaseValue()
@@ -73,6 +74,9 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
                     + " firing=" + plugin.autoFireManager().activePlayers()
                     + " using=" + (player.hasActiveItem() ? 1 : 0)
                     + " prepared=" + (dev.magicrecoil.firing.UseItemSupport.marked(player.getInventory().getItemInMainHand()) ? 1 : 0)
+                    + " itemHash=" + player.getInventory().getItemInMainHand().hashCode()
+                    + " slowness=" + (slow == null ? -1 : slow.getAmplifier())
+                    + " slownessTicks=" + (slow == null ? 0 : slow.getDuration())
                     + " ammo=" + (ammo == null ? -1 : ammo.getValue(player))
                     + " cobblestone=" + java.util.Arrays.stream(player.getInventory().getContents())
                             .filter(item -> item != null && item.getType() == org.bukkit.Material.COBBLESTONE)

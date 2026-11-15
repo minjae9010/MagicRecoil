@@ -21,7 +21,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.function.Predicate;
 
-/** Shared server-tick input tracking: native item use or an explicit repeated-click timeout. */
+/** Shared server-tick firing: a short input-refilled queue, native use, or a repeat timeout. */
 public final class AutoFireManager implements Listener {
     private final JavaPlugin plugin;
     private final Predicate<Player> inventoryReady;
@@ -29,7 +29,21 @@ public final class AutoFireManager implements Listener {
     private final Map<UUID, Session> sessions = new HashMap<>();
     private final Set<UUID> observedUses = new HashSet<>();
     private final Map<UUID, Pulse> pulses = new HashMap<>();
-    private record Pulse(AutoFireSpell gun, int tick) {}
+    private static final int BUFFER_TICKS = 5;
+    private record Pulse(AutoFireSpell gun, int tick, ArrayDeque<Integer> pending) {
+        void refill(int now) {
+            // Refill only missing opportunities, as in CrackShot; clicks never stack complete bursts.
+            for (int offset = 1; offset <= BUFFER_TICKS && pending.size() < BUFFER_TICKS; offset++) {
+                int due = now + offset;
+                if (pending.isEmpty() || due - pending.peekLast() > 0) pending.addLast(due);
+            }
+        }
+        boolean consume(int now) {
+            boolean due = false;
+            while (!pending.isEmpty() && now - pending.peekFirst() >= 0) { pending.removeFirst(); due = true; }
+            return due; // Never catch up with multiple shots in one server tick.
+        }
+    }
     private BukkitTask task;
     private Spell invoking;
     private UUID invokingPlayer;
@@ -62,10 +76,16 @@ public final class AutoFireManager implements Listener {
         return player.isOnline() && !player.isDead() && player.getGameMode() != GameMode.SPECTATOR
                 && inventoryReady.test(player)
                 && gun.matches(player.getInventory().getItemInMainHand())
-                && (gun.settings().inputMode() == AutoFireSettings.InputMode.REPEATED_CLICK ? pulseAlive(player, gun)
-                    : player.hasActiveItem() && player.getActiveItemHand() == EquipmentSlot.HAND
+                && switch (gun.settings().inputMode()) {
+                    case BUFFERED_CLICK -> {
+                        Pulse pulse = pulses.get(player.getUniqueId());
+                        yield pulse != null && pulse.gun() == gun && !pulse.pending().isEmpty();
+                    }
+                    case REPEATED_CLICK -> pulseAlive(player, gun);
+                    case NATIVE_USE -> player.hasActiveItem() && player.getActiveItemHand() == EquipmentSlot.HAND
                         && UseItemSupport.marked(player.getInventory().getItemInMainHand())
-                        && player.getActiveItem().isSimilar(player.getInventory().getItemInMainHand()));
+                        && player.getActiveItem().isSimilar(player.getInventory().getItemInMainHand());
+                };
     }
     private boolean pulseAlive(Player player, AutoFireSpell gun) {
         Pulse pulse = pulses.get(player.getUniqueId());
@@ -88,10 +108,13 @@ public final class AutoFireManager implements Listener {
                     stop(id); observedUses.remove(id); restore(player); continue;
                 }
                 if (gun.settings().inputMode() == AutoFireSettings.InputMode.NATIVE_USE && !UseItemSupport.prepare(item)) { stop(id); continue; }
-                if (!usable(player, gun)) { stop(id); observedUses.remove(id); continue; }
+                if (!usable(player, gun)) { stop(id); observedUses.remove(id); pulses.remove(id); continue; }
                 if (observedUses.add(id)) castImmediate(gun, player);
+                Pulse pulse = pulses.get(id);
+                boolean opportunity = gun.settings().inputMode() != AutoFireSettings.InputMode.BUFFERED_CLICK
+                        || pulse != null && pulse.consume(Bukkit.getCurrentTick());
                 Session session = sessions.get(id);
-                if (session == null) continue;
+                if (session == null || !opportunity) continue;
                 if (session.gun != gun || session.slot != player.getInventory().getHeldItemSlot() || !session.item.isSimilar(item)) {
                     stop(id); continue;
                 }
@@ -139,8 +162,17 @@ public final class AutoFireManager implements Listener {
         if (event.getHand() != EquipmentSlot.HAND || (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)) return;
         AutoFireSpell gun = matching(event.getItem());
         if (gun == null || event.useItemInHand() == Event.Result.DENY) return;
-        if (gun.settings().inputMode() == AutoFireSettings.InputMode.REPEATED_CLICK) {
-            pulses.put(event.getPlayer().getUniqueId(), new Pulse(gun, Bukkit.getCurrentTick()));
+        if (gun.settings().inputMode() != AutoFireSettings.InputMode.NATIVE_USE) {
+            UUID id = event.getPlayer().getUniqueId();
+            int now = Bukkit.getCurrentTick();
+            Pulse previous = pulses.get(id);
+            if (previous != null && (previous.gun() != gun || (gun.settings().inputMode() == AutoFireSettings.InputMode.BUFFERED_CLICK
+                    && now - previous.tick() > BUFFER_TICKS))) {
+                stop(id); observedUses.remove(id); previous = null;
+            }
+            Pulse pulse = new Pulse(gun, now, previous == null ? new ArrayDeque<>() : previous.pending());
+            if (gun.settings().inputMode() == AutoFireSettings.InputMode.BUFFERED_CLICK) pulse.refill(now);
+            pulses.put(id, pulse);
             event.setUseInteractedBlock(Event.Result.DENY); event.setUseItemInHand(Event.Result.DENY);
         } else if (UseItemSupport.marked(event.getItem())) {
             // Suppress hoe tilling/container opening, while leaving item-use cancellation to protection plugins.
@@ -148,7 +180,12 @@ public final class AutoFireManager implements Listener {
         }
     }
     @EventHandler(priority = EventPriority.MONITOR)
-    public void released(PlayerStopUsingItemEvent event) { stop(event.getPlayer().getUniqueId()); observedUses.remove(event.getPlayer().getUniqueId()); }
+    public void released(PlayerStopUsingItemEvent event) {
+        // A different/offhand item's native release is not a release signal for buffered clicks.
+        if (UseItemSupport.marked(event.getItem())) {
+            stop(event.getPlayer().getUniqueId()); observedUses.remove(event.getPlayer().getUniqueId());
+        }
+    }
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void consume(PlayerItemConsumeEvent event) {
         if (UseItemSupport.marked(event.getItem())) { event.setCancelled(true); stop(event.getPlayer().getUniqueId()); }

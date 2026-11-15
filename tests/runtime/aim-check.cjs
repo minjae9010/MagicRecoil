@@ -217,10 +217,68 @@ function pass(name) { console.log('PASS ' + name); }
     assert.equal((await snapshot()).firing, 0);
     pass('AutoFire eventless stop, ms reload, F swap and death terminate active native firing');
 
-    await command('item replace entity ADS_A weapon.mainhand with diamond_hoe');
-    await cast('Hold_Aim');
-    a.write('use_item', { hand: 0, sequence: 47, rotation: { x: 0, y: 0 } }); await delay(200);
-    assert.equal((await snapshot()).firing, 1); // Leave ADS + firing active for normal shutdown cleanup.
+    await command('item replace entity ADS_A weapon.mainhand with golden_hoe[custom_model_data={floats:[12.0f]},custom_data={fixture:1}]');
+    await command('ms variable modify Paimon ADS_A =30');
+    await command('ms variable modify reload ADS_A =0');
+    const bufferedBefore = await snapshot(); assert.equal(bufferedBefore.prepared, 0);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    const potionScoped = await snapshot();
+    assert.equal(potionScoped.slowness, 2); near(potionScoped.speed, 0.055);
+    near(potionScoped.serverWalkSpeed, 0.1); assert.equal(potionScoped.itemHash, bufferedBefore.itemHash);
+    const beforeBufferedShot = await snapshot();
+    a.write('use_item', { hand: 0, sequence: 60, rotation: { x: beforeBufferedShot.yaw, y: beforeBufferedShot.pitch } });
+    await delay(600); const oneBuffer = await snapshot();
+    assert.equal(beforeBufferedShot.ammo - oneBuffer.ammo, 3);
+    near(beforeBufferedShot.pitch - oneBuffer.pitch, 3 * 1.5); // No extra recoil reduction from zoom.
+    assert.equal(oneBuffer.firing, 0); assert.equal(oneBuffer.using, 0); assert.equal(oneBuffer.prepared, 0);
+    assert.equal(oneBuffer.itemHash, bufferedBefore.itemHash);
+    for (let i = 0; i < 4; i++) {
+      const aim = await snapshot();
+      a.write('use_item', { hand: 0, sequence: 61 + i, rotation: { x: aim.yaw, y: aim.pitch } }); await delay(150);
+    }
+    await delay(500); const bufferDrained = await snapshot();
+    assert.ok(bufferDrained.ammo < oneBuffer.ammo - 3); assert.equal(bufferDrained.firing, 0);
+    await delay(300); assert.equal((await snapshot()).ammo, bufferDrained.ammo);
+    assert.equal(bufferDrained.itemHash, bufferedBefore.itemHash);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    assert.equal((await snapshot()).slowness, -1); near((await snapshot()).speed, 0.1);
+    pass('CrackShot-style five-tick input buffer, repeated refills, unchanged custom item, ammo and full-strength recoil');
+
+    await command('effect give ADS_A slowness 20 0 true');
+    const oldPotion = await snapshot();
+    a.write('arm_animation', { hand: 0 }); await delay(600);
+    assert.equal((await snapshot()).slowness, 2);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    const restoredPotion = await snapshot();
+    assert.equal(restoredPotion.slowness, 0); assert.ok(restoredPotion.slownessTicks < oldPotion.slownessTicks);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    await command('effect give ADS_A slowness 30 4 true'); await delay(600);
+    assert.equal((await snapshot()).slowness, 4);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    assert.equal((await snapshot()).slowness, 4); // Newer external effects take priority over scope cleanup.
+    await command('effect clear ADS_A slowness');
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    a.write('held_item_slot', { slotId: 1 }); await delay(300);
+    assert.equal((await snapshot()).slowness, -1);
+    a.write('held_item_slot', { slotId: 0 }); await delay(200);
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    await command('ms variable modify Paimon ADS_A =30');
+    a.write('use_item', { hand: 0, sequence: 70, rotation: { x: 0, y: 0 } }); await delay(100);
+    await cast('Weapon_Reload_파이먼');
+    const reloadBuffered = await snapshot();
+    for (let i = 0; i < 3; i++) { a.write('use_item', { hand: 0, sequence: 71 + i, rotation: { x: 0, y: 0 } }); await delay(150); }
+    assert.equal((await snapshot()).ammo, reloadBuffered.ammo); assert.equal((await snapshot()).slowness, -1);
+    await delay(400); await command('ms variable modify reload ADS_A =0');
+    a.write('arm_animation', { hand: 0 }); await delay(400);
+    await command('ms reload'); await delay(1200);
+    assert.equal((await snapshot()).slowness, -1); assert.equal((await snapshot()).firing, 0);
+    pass('Slowness zoom toggle, timed potion restoration, external effect preservation, slot and reload cleanup');
+
+    await command('item replace entity ADS_A weapon.mainhand with golden_hoe[custom_model_data={floats:[12.0f]},custom_data={fixture:1}]');
+    await cast('Buffered_Zoom');
+    a.write('use_item', { hand: 0, sequence: 80, rotation: { x: 0, y: 0 } }); await delay(150);
+    const atShutdown = await snapshot(); assert.equal(atShutdown.firing, 1); assert.equal(atShutdown.slowness, 2);
+    // Leave potion scope + buffered firing active for normal shutdown/restart cleanup.
     console.log('ALL ADS RUNTIME CHECKS PASSED');
   } catch (error) {
     console.error(error); process.exitCode = 1;

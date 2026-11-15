@@ -16,18 +16,20 @@ Weapon_파이먼_조준:
   cancel-on-hand-swap: true
   cancel-on-death: true
   cancel-on-logout: true
-  movement-speed-multiplier: 0.65
-  recoil-multiplier: 0.5
+  movement-speed-multiplier: 1.0
+  recoil-multiplier: 1.0
   recoil-spells: [Weapon_파이먼_반동]
   stop-on-spells: [Weapon_Reload_파이먼]
   # Optional: end ADS when the firing buff ends / 사격 Buff 종료 시 조준도 해제하려면:
   # stop-on-buff-end: [Weapon_파이먼_Buff]
-  # Optional FOV effect, NOT native spyglass. FOV Effects 0% disables visible zoom.
-  # 선택 FOV 효과이며 실제 망원경이 아닙니다. 클라이언트 FOV 효과 0%에서는 확대되지 않습니다.
+  # CrackShot-style scope: Slowness III slows movement and narrows FOV; recoil stays unchanged.
+  # CrackShot식 조준: Slowness III로 이동속도와 시야를 줄이며 반동은 그대로 유지합니다.
+  # FOV Effects 0% disables visible zoom. This is not native spyglass magnification.
+  # FOV 효과 0%에서는 화면이 확대되지 않습니다. 실제 망원경 배율은 아닙니다.
   zoom:
-    enabled: false
-    mode: FOV_EFFECT
-    fov-factor: 0.65
+    enabled: true
+    mode: SLOWNESS
+    slowness-amplifier: 2
   modifiers:
     - holdingprecise 파이먼 require
 

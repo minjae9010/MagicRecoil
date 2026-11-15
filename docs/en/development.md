@@ -91,3 +91,5 @@ New production files: `aiming/AimSettings.java`, `aiming/AimManager.java`, `spel
 ## Firing and FOV Java changes
 
 New production files under `src/main/java/dev/magicrecoil/`: `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java` and `packet/v1_21_11/Paper12111ZoomAdapter.java`. `MagicRecoilPlugin`, `AimSettings` and `AimManager` register and reconcile these optional features. The rotation adapter, recoil patterns and success gate are unchanged by this follow-up. Tests cover intervals, timeout, reload latch, normal hard-cast invocation, cast-time rejection, FOV math and restoration. See [runtime evidence](testing.md#right-click-firing-and-fov-verification).
+
+The CrackShot-control follow-up adds `aiming/SlownessZoom.java` and updates AutoFireSettings/Manager, AimSettings/Manager, Paimon examples and runtime fixtures. Existing recoil/projectile/ammunition implementations remain unchanged. Queue tests cover duplicate events, refills, the five-tick drain, item changes and reload latching.

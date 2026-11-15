@@ -105,6 +105,7 @@ Hold_AutoFire:
   spell-class: dev.magicrecoil.spells.AutoFireSpell
   always-granted: true
   use-item: diamond_hoe
+  input-mode: NATIVE_USE
   fire-spell: Hold_Fire
   interval-ticks: 2
   stop-on-spells: [Weapon_Reload_파이먼]
@@ -148,3 +149,32 @@ Hold_Eventless_Stop:
   spell-class: .MultiSpell
   always-granted: true
   spells: ["Hold_Stop (mode=direct)"]
+
+# Item-preserving CrackShot-style input and potion scope; original recoil stays at 1.5 degrees.
+Buffered_AutoFire:
+  spell-class: dev.magicrecoil.spells.AutoFireSpell
+  always-granted: true
+  use-item: 'golden_hoe{"custom-model-data":12}'
+  input-mode: BUFFERED_CLICK
+  interval-ticks: 2
+  fire-spell: Buffered_Fire
+  stop-on-spells: [Weapon_Reload_파이먼]
+Buffered_Fire:
+  spell-class: .MultiSpell
+  always-granted: true
+  modifiers: [holding golden_hoe require, variable reload=0 require, variable Paimon>0 require]
+  variable-mods-cast: [Paimon -1]
+  spells: [Weapon_파이먼_Beam, Weapon_파이먼_반동]
+Buffered_Zoom:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  always-granted: true
+  left-click-cast-item: 'golden_hoe{"custom-model-data":12}'
+  cooldown: 0.25
+  movement-speed-multiplier: 1.0
+  recoil-multiplier: 1.0
+  recoil-spells: [Weapon_파이먼_반동]
+  stop-on-spells: [Weapon_Reload_파이먼]
+  zoom:
+    enabled: true
+    mode: SLOWNESS
+    slowness-amplifier: 2

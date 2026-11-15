@@ -12,6 +12,7 @@ MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.S
 - [Weapon ownership and restoration](#weapon-ownership-and-restoration)
 - [Recoil and existing Buff guns](#recoil-and-existing-buff-guns)
 - [Right-click automatic fire](#right-click-automatic-fire)
+- [CrackShot-style Slowness zoom](#crackshot-style-slowness-zoom)
 - [Optional FOV zoom](#optional-fov-zoom)
 - [Left-click and spread limits](#left-click-and-spread-limits)
 - [Verification](#verification)
@@ -26,8 +27,8 @@ MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.S
 | Movement | One transient, keyed `MOVEMENT_SPEED` modifier; only this modifier is removed |
 | Recoil | Per-player, per-recoil-spell scaling of new shots; existing pattern phase and growth retained |
 | Left-click HOLD autofire | Excluded: no general attack-button release signal in the vanilla protocol |
-| Optional FOV zoom | Abilities-packet FOV effect with explicit opt-in; not native spyglass |
-| Right-click automatic fire | Native item use by default; explicit repeated-click timeout compatibility mode |
+| Optional FOV zoom | CrackShot-style Slowness scope or optional abilities-packet FOV effect; not native spyglass |
+| Right-click automatic fire | Five-tick input-refilled buffer by default; optional native-use and timeout modes |
 | Automatic spread reduction | Excluded: no generic validated per-cast spread override in this addon |
 
 ## Binding and configuration
@@ -60,13 +61,14 @@ The binding uses MagicSpells' normal spellbook/permission checks, `hardCast`, co
 | `cancel-on-hand-swap` | `true` | Boolean. Successful F-key swaps end ADS; `false` suspends until the original item returns |
 | `cancel-on-death` | `true` | Only `true` is accepted; death cleanup is mandatory |
 | `cancel-on-logout` | `true` | Only `true` is accepted; logout cleanup is mandatory |
-| `movement-speed-multiplier` | `0.65` | Finite YAML number in `[0.01, 1]`; `1` adds no speed modifier |
-| `recoil-multiplier` | `0.5` | Finite YAML number in `[0, 1]`; `0` delivers no new-shot rotation |
+| `movement-speed-multiplier` | `0.65`; `1` for SLOWNESS mode | Finite YAML number in `[0.01, 1]`; `1` adds no speed modifier |
+| `recoil-multiplier` | `0.5`; `1` for SLOWNESS mode | Finite YAML number in `[0, 1]`; `0` delivers no new-shot rotation |
 | `recoil-spells` | Required when enabled | List of 1–128 RecoilSpell internal names for this gun; case insensitive |
 | `stop-on-spells` | `[]` | Up to 128 spell names; their cast attempts end ADS, including failed attempts |
 | `stop-on-buff-end` | `[]` | Up to 128 buff names; BuffEndEvent for the affected player ends ADS |
 | `zoom.enabled` | `false` | Boolean; enables the optional FOV effect |
-| `zoom.mode` | Unset | `FOV_EFFECT` must be explicit when zoom is enabled |
+| `zoom.mode` | Unset | Explicit `SLOWNESS` or `FOV_EFFECT` when zoom is enabled |
+| `zoom.slowness-amplifier` | `2` | Integer `[0, 5]`, SLOWNESS only; 2 means Slowness III, not optical 3x |
 | `zoom.fov-factor` | `0.65` | Finite number `[0.55, 1]`, target FOV factor at 100% FOV Effects, grounded and without other FOV effects |
 | `zoom.level` | Unsupported | Use fov-factor instead; this is not an optical magnification guarantee |
 | `trigger` | Unsupported | Use MagicSpells' `left-click-cast-item` for ADS |
@@ -103,18 +105,26 @@ MagicSpells Beta 18 [`Subspell`](https://github.com/TheComputerGeek2/MagicSpells
 | `use-item` | Required | Named magic item or item string; follows MagicSpells cast-item matching options |
 | `fire-spell` | Required | Ordinary synchronous firing entry; PassiveSpell and AutoFireSpell targets are rejected |
 | `interval-ticks` | `2` | Integer `[1, 1200]`; actual source cooldowns still apply |
-| `input-mode` | `NATIVE_USE` | `NATIVE_USE` or `REPEATED_CLICK` |
+| `input-mode` | `BUFFERED_CLICK` | `BUFFERED_CLICK`, `NATIVE_USE` or `REPEATED_CLICK` |
 | `release-timeout-ticks` | `6` | Only for REPEATED_CLICK; integer `[5, 40]` |
 | `stop-on-spells` | `[]` | Up to 128 reload/end spell names; attempts stop and latch firing until release |
 | `stop-on-buff-end` | `[]` | Up to 128 BuffEnd references |
 
-`NATIVE_USE` supports STICK, BLAZE_ROD and wooden/stone/iron/golden/diamond/netherite hoes. It keeps the material and existing model/name/lore/attributes, adds temporary Consumable/UseEffects components with no animation/particles/sound and no extra use slowdown, and checks the real main-hand native use every tick. Paper's PlayerStopUsingItemEvent stops firing upon the received release. It does not wait for repeated clicks. Existing custom Consumable/UseEffects overrides are refused. Preparation is removed on switching, inventory handling, death/drop/logout/reload/shutdown and recovered at join. One native use has a one-hour duration; consumption is cancelled to prevent losing the gun. Items moved by other plugins into unloaded containers cannot be swept globally; return such marked items to a player with the addon enabled for cleanup before removing the addon.
+`BUFFERED_CLICK` is the primary CrackShot-style mode. Each accepted main-hand right-click refills missing firing opportunities within the next five server ticks. At most five are pending; duplicate events do not stack bursts or produce multiple calls in one tick. Each due opportunity still respects interval-ticks and the full firing entry checks. With no further input, the queue drains within five ticks (about 0.25 seconds at 20 TPS), so release is not instantaneous or directly detected. Reload, item/hand change and lifecycle hooks stop the session immediately. The item material, model, lore, attributes and custom data remain untouched; there is no material whitelist for this mode. Use a named magic item with its existing matching metadata.
+
+The optional `NATIVE_USE` supports STICK, BLAZE_ROD and wooden/stone/iron/golden/diamond/netherite hoes. It keeps the material and existing model/name/lore/attributes, adds temporary Consumable/UseEffects components with no animation/particles/sound and no extra use slowdown, and checks the real main-hand native use every tick. Paper's PlayerStopUsingItemEvent stops firing upon the received release. It does not wait for repeated clicks. Existing custom Consumable/UseEffects overrides are refused. Preparation is removed on switching, inventory handling, death/drop/logout/reload/shutdown and recovered at join. One native use has a one-hour duration; consumption is cancelled to prevent losing the gun. Items moved by other plugins into unloaded containers cannot be swept globally; return such marked items to a player with the addon enabled for cleanup before removing the addon.
 
 `REPEATED_CLICK` leaves item components unchanged and permits other item materials, while suppressing the registered gun's normal right-click action. It observes repeated main-hand right-click interactions. Missing input for 6 ticks stops firing (about 0.30 seconds at 20 TPS); this is **release estimation**, not exact mouse-release tracking. The scanner runs once per server tick. Scanning faster cannot make the client send input sooner, and packet gaps can stop the estimated session. A subsequent click may start another session. Use a unique named magic item rather than binding an entire common material unintentionally.
 
-All firing runs on one synchronous shared task. Item/hand changes, death, logout, teleport, reload and shutdown stop firing. Reload stop hooks latch the current held input until native release or repeat-timeout. `dev.magicrecoil.spells.StopAutoFireSpell` explicitly stops eventless/direct reload chains. Put it first, alongside StopAimSpell and StopRecoilSpell when appropriate. A delayed/burst subspell can continue its own scheduled work after the input session ends; keep this entry's shot processing synchronous. Already launched projectiles retain their existing behavior.
+All firing runs on one synchronous shared task. Item/hand changes, death, logout, teleport, reload and shutdown stop firing. Reload stop hooks latch the current held input until the input buffer drains, native release occurs or the repeat timeout expires. `dev.magicrecoil.spells.StopAutoFireSpell` explicitly stops eventless/direct reload chains. Put it first, alongside StopAimSpell and StopRecoilSpell when appropriate. A delayed/burst subspell can continue its own scheduled work after the input session ends; keep this entry's shot processing synchronous. Already launched projectiles retain their existing behavior.
 
 To preserve a Paimon gun, extract the successful-fire modifiers, Paimon decrement, Beam/recoil calls, sounds, particles and cooldown into an ordinary `.MultiSpell` firing entry. Keep `buffactive` on the legacy Passive wrapper, which may hard-cast that shared entry when the legacy mode is used. Never enable the legacy Buff loop and AutoFire together. Source cooldowns, costs and reload/ammo checks remain effective even when interval-ticks is shorter. No zero-second fire interval is supported.
+
+## CrackShot-style Slowness zoom
+
+The primary Paimon example enables left-click `zoom.mode: SLOWNESS` with `zoom.slowness-amplifier: 2`. It leaves `recoil-multiplier: 1.0` and `movement-speed-multiplier: 1.0` so recoil stays unchanged and no additional ADS attribute multiplier is added. Slowness itself reduces actual movement speed and narrows the client FOV, as in CrackShot. This is not native spyglass and the client FOV Effects setting still controls visibility.
+
+The addon refreshes a ten-tick Slowness lease while ADS is active. Ending ADS removes its current effect and restores the previous active Slowness with elapsed ticks subtracted, including an infinite duration when applicable. A stronger/equal or layered existing Slowness is left intact. An external replacement or removal takes priority and suppresses further scope refresh for that ADS session. Other potion types are untouched. Cancelled potion events are respected. Normal slot/F/death/logout/reload/shutdown hooks clear scope; the short lease bounds a leftover addon slowdown to ten server ticks after refresh stops. This is not a crash recovery guarantee for a previously backed-up effect.
 
 ## Optional FOV zoom
 
@@ -124,7 +134,7 @@ At client FOV Effects **100%**, the grounded movement part of the vanilla formul
 
 ## Left-click and spread limits
 
-Exact general left-click HOLD is still excluded. Paper Input has no attack-button state, and block-dig or item-use release actions are not universal attack-release signals. Native right-click use has a usable release signal; ordinary right-click repeat is a separately labelled compatibility mode. See [the actual gun-plugin comparison](input-comparison.md), including CrackShot's queued firing and Slowness-based scope.
+Exact general left-click HOLD is still excluded. Paper Input has no attack-button state, and block-dig or item-use release actions are not universal attack-release signals. Native right-click use has a usable release signal; buffered clicks and timeout tracking are separately labelled repeat-input modes. See [the actual gun-plugin comparison](input-comparison.md), including CrackShot's queued firing and Slowness-based scope.
 
 BeamSpell's private ConfigData spread can be configured dynamically by weapon authors, but the addon adds no generic per-player override and never rewrites shared spread fields. Automatic spread reduction remains excluded.
 

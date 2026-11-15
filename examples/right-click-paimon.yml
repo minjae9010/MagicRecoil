@@ -9,7 +9,7 @@ Weapon_파이먼_우클릭연사:
   always-granted: true
   enabled: true
   use-item: 파이먼
-  input-mode: NATIVE_USE
+  input-mode: BUFFERED_CLICK
   fire-spell: Weapon_파이먼_발사처리
   interval-ticks: 2
   stop-on-spells: [Weapon_Reload_파이먼]
@@ -58,7 +58,11 @@ Weapon_파이먼_발사처리:
       volume: 1.5
       category: players
 
-# Alternative legacy-style input: no component preparation and no fixed material whitelist.
+# BUFFERED_CLICK preserves the item and refills up to five future firing ticks per input.
+# BUFFERED_CLICK는 아이템을 수정하지 않고 입력마다 최대 5틱의 발사 예약을 보충합니다.
+# Releasing can leave up to five ticks of queued work; reload/swap cancels immediately.
+# 버튼 해제 뒤 최대 5틱의 예약이 남을 수 있으며 재장전·교체 시에는 즉시 중지합니다.
+# Alternative timeout input: no component preparation and no fixed material whitelist.
 # 기존 플러그인식 대안: 컴포넌트 추가 없이 일반 아이템에 사용할 수 있습니다.
 # This ESTIMATES release after six ticks without another event; it is not exact mouse release.
 # 마지막 이벤트 후 6틱 동안 입력이 없으면 해제로 추정합니다. 정확한 버튼 해제 신호는 아닙니다.

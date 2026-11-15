@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,7 @@ public final class AimManager implements Listener {
     private final JavaPlugin plugin;
     private final Function<Player, AttributeInstance> movementAttribute;
     private final ZoomAdapter zoom;
+    private final SlownessZoom slownessZoom = new SlownessZoom();
     private final Map<UUID, Session> sessions = new HashMap<>();
     private BukkitTask task;
 
@@ -113,12 +115,18 @@ public final class AimManager implements Listener {
             speed.addTransientModifier(new AttributeModifier(SPEED_KEY,
                     session.settings.movementSpeedMultiplier() - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
         }
-        if (session.matches(player) && session.settings.zoomEnabled()) zoom.zoom(player, session.settings.fovFactor());
-        else zoom.clear(player);
+        if (session.matches(player) && session.settings.zoomEnabled()) {
+            if (session.settings.zoomMode() == AimSettings.ZoomMode.SLOWNESS) {
+                zoom.clear(player); slownessZoom.zoom(player, session.settings.slownessAmplifier());
+            } else {
+                slownessZoom.clear(player); zoom.zoom(player, session.settings.fovFactor());
+            }
+        } else { zoom.clear(player); slownessZoom.clear(player); }
     }
 
     private void removeSpeed(Player player) {
         zoom.clear(player);
+        slownessZoom.clear(player);
         var speed = movementAttribute.apply(player);
         if (speed != null && speed.getModifier(SPEED_KEY) != null) speed.removeModifier(SPEED_KEY);
     }
@@ -168,6 +176,8 @@ public final class AimManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void teleport(PlayerTeleportEvent event) { stop(event.getPlayer().getUniqueId()); }
     @EventHandler public void world(PlayerChangedWorldEvent event) { stop(event.getPlayer().getUniqueId()); }
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void potion(EntityPotionEffectEvent event) { slownessZoom.changed(event); }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void attempting(SpellCastEvent event) {
