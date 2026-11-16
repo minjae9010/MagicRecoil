@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.3.0-alpha.1 — 2026-11-16
+
+- Add optional HitSpell with ray shots and particle-projectile callbacks, six victim-relative directions, linearly interpolated distance damage, and hit/head/body/direction subspells.
+- Include swimming/gliding Player eyes in the head region, with projectile-rounding tolerance and preserved body hits. All 92 live two-player PvP/pose checks pass, including the four prior failures.
+- Preserve main's existing right-click firing, Slowness/FOV scope, recoil, and compatibility features. Add the new hit tests alongside the existing full test suite, without exclusions.
+- Publish bilingual README examples, integration/verification documentation, before/after result artifacts, plugin/source JARs and SHA-256 checksums.
+
 - Extend compatibility to Paper 1.21.4+ and MagicSpells 4.0-Beta-17+. Accept compatible later beta, RC, and stable releases after numeric version and binary API checks. Discover and cache relative/absolute rotation-only native methods at startup instead of linking to Paper 1.21.11. Keep the current aiming/firing features, discover legacy FOV packet APIs, and reject NATIVE_USE with a clear hint when USE_EFFECTS is absent. Lower the API baseline, add Beta 17/18/19 CI coverage, and retain Java 21 plugin bytecode. Build version: 0.2.0-alpha.2. See the bilingual compatibility guides for verified combinations and limits.
 
 ## 0.2.0-alpha.1 — 2026-11-15

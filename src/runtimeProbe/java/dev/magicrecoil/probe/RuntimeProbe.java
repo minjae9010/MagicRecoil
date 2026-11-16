@@ -28,8 +28,12 @@ import java.util.WeakHashMap;
 public final class RuntimeProbe extends JavaPlugin implements Listener {
     private final Map<UUID, Vector> launchDirections = new HashMap<>();
     private final Map<Tracker, Boolean> observed = new WeakHashMap<>();
+    private final PvpHitProbe pvp = new PvpHitProbe(this);
 
-    @Override public void onEnable() { getServer().getPluginManager().registerEvents(this, this); }
+    @Override public void onEnable() {
+        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(pvp, this);
+    }
     @EventHandler(priority = EventPriority.LOWEST)
     public void input(PlayerInteractEvent event) {
         if (event.getItem() != null && event.getItem().getType() == org.bukkit.Material.BLAZE_ROD) {
@@ -58,7 +62,9 @@ public final class RuntimeProbe extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("magicrecoil.probe") || args.length != 2) return false;
+        if (!sender.hasPermission("magicrecoil.probe") || args.length < 2) return false;
+        if (args[0].equals("pvp")) return pvp.command(sender, args);
+        if (args.length != 2) return false;
         var player = Bukkit.getPlayerExact(args[1]);
         if (player == null) return false;
         if (args[0].equals("aim")) {

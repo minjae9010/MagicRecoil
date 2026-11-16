@@ -7,12 +7,42 @@ The default fixture remains 1.21.11/Beta 18. For another matching server/client 
 <!-- toc:start -->
 ## On this page
 
+- [Player PvP and swimming/gliding test](#player-pvp-and-swimminggliding-test)
+- [Hit detection smoke test](#hit-detection-smoke-test)
 - [Protocol checks](#protocol-checks)
 - [Visual burst fixture](#visual-burst-fixture)
 - [ADS integration fixture](#ads-integration-fixture)
 - [Right-click firing and FOV fixture](#right-click-firing-and-fov-fixture)
 - [CrackShot controls fixture](#crackshot-controls-fixture)
 <!-- toc:end -->
+
+## Player PvP and swimming/gliding test
+
+Build `build runtimeProbeJar`, then run two connected Player entities on a disposable Paper 1.21.11 / MagicSpells Beta 18 server:
+
+```powershell
+node tests/runtime/pvp-smoke.cjs --base-server .work/server --java "C:/path/to/jdk21/bin/java.exe"
+```
+
+The base installation needs its accepted EULA, cached Paper libraries, MagicSpells JAR/configuration, and the Node dependencies from `npm ci` in `tests/runtime`. Override `--work-dir`, `--port`, `--addon-jar`, `--probe-jar`, and `--magic-spells-jar` as needed. The default disposable directory is `.work/pvp-hit/server` on loopback port 25588. The script does not change the base installation.
+
+The test-only probe starts swimming in water and gliding with an equipped elytra. It verifies live `isSwimming` / `isGliding` flags, the actual pose, bounding box, eye height, damage events, health, and each callback count. It does not override `setPose`. Targets remain stationary with gravity disabled; these are headless protocol clients, not human input or rendered model inspection. Natural regeneration is disabled through Bukkit's API.
+
+The full run checks 92 cases: 72 upper-box/body × six incoming sides × ray/particle × standing/swimming/gliding; 12 rotated-facing cases; two world-PvP-disabled cases; and six independent eye-height headshot expectations. `--quick true` runs a smaller front-facing diagnostic set. Reports remain in `pvp-results.json` and `pvp-console.log` under the work directory. The script exits nonzero for any unmet expectation and still finishes the remaining cases and stops both clients/server.
+
+The six eye-height cases include regression checks for the four formerly failing swimming/gliding ray/particle shots. Expected head/body hooks and damage are unchanged: a two-point eye-height hit must apply the twofold headshot multiplier. See the [recorded result](../../docs/ko/testing.md#플레이어-pvp와-수영활강-검증) / [English result](../../docs/en/testing.md#player-pvp-and-swimminggliding-validation).
+
+## Hit detection smoke test
+
+`hit-smoke.py` starts a separate loopback-only Paper 1.21.11 server and a headless protocol client. It copies cached server libraries, an already accepted `eula.txt`, `paper.jar`, and MagicSpells configuration from `--base-server`; it leaves that installation unchanged. Use an empty/disposable work directory. Build the addon first and run `npm ci` in `tests/runtime`. Java 21, Python, Node, and MagicSpells Beta 18 are required.
+
+```powershell
+python tests/runtime/hit-smoke.py --base-server .work/server --work-dir .work/hit/server --java "C:/path/to/jdk21/bin/java.exe" --addon-jar build/libs/MagicRecoil-0.3.0-alpha.1.jar --magic-spells-jar build/dependencies/MagicSpells-4.0-Beta-18.jar
+```
+
+The default port is 25587; override it with `--port`. The script installs [spells-hit.yml](spells-hit.yml) and the distributed [hit examples](../../examples/hit-integration.yml) in the disposable server. It checks actual villager health and scoreboard callback counters for head/rear, body/front, linear distance falloff, walls, misses, launch snapshots after shooter movement, and reload. It also checks that wall/miss shots retain existing recoil packets and that omitting `targeting=entity_from_location` fails without firing another ray. Aim checks cover movement/recoil scaling, toggle/explicit stop/reload cleanup, external speed modifiers, and retaining aim across actual hotbar slot packets. Counter subspells intentionally execute scoreboard commands on this test server's console.
+
+Logs stay in the work directory and both child processes stop in a `finally` block. This is a functional regression check; it does not establish client rendering, production protection-plugin behavior, or network performance. See [hit setup](../../docs/en/hit-detection.md) / [한국어 설정](../../docs/ko/hit-detection.md).
 
 ## Protocol checks
 

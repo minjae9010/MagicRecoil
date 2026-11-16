@@ -11,6 +11,8 @@ The detailed measurements below are the original 1.21.11/Beta 18 investigation. 
 <!-- toc:start -->
 ## On this page
 
+- [Hit feature validation](#hit-feature-validation)
+- [Player PvP and swimming/gliding validation](#player-pvp-and-swimminggliding-validation)
 - [Environment](#environment)
 - [Automated checks](#automated-checks)
 - [Running-server observations](#running-server-observations)
@@ -21,6 +23,38 @@ The detailed measurements below are the original 1.21.11/Beta 18 investigation. 
 - [Right-click firing and FOV verification](#right-click-firing-and-fov-verification)
 - [CrackShot controls verification](#crackshot-controls-verification)
 <!-- toc:end -->
+
+## Hit feature validation
+
+For v0.3.0-alpha.1 on 2026-11-16, **all 216 tests passed with zero exclusions or skips**, including the swimming/gliding eye-height regressions and the existing aiming, firing, and zoom tests from main. `clean build runtimeProbeJar` passed with the baseline Paper 1.21.4 / MagicSpells Beta 17 API. The complete suite was also checked with Paper 1.21.11 / Beta 18 and Paper 1.21.4 / Beta 19 with Java 25. The earlier isolated hit/aim development build had 182 tests; the release preserves main's additional functionality and tests.
+
+An isolated Paper 1.21.11 / MagicSpells Beta 18 / Java 21 server with a headless client verified:
+
+- Head/rear hit: 4 base × 2 head × 1.5 rear = 12 damage; common/head/rear callbacks each run once.
+- Body/front hit: 4 damage; common/body/front callbacks each run once.
+- Interpolated falloff at approximately 29.7 blocks against actual target health.
+- Wall impacts and misses cause no hit damage/hooks while retaining three existing recoil packets per shot.
+- Moving the shooter 30 blocks sideways during particle-projectile flight preserves launch-based damage.
+- Omitting the required callback argument causes no damage, hooks, or additional ray shot.
+- Both ray and particle shots preserve damage and callback counts after `/ms reload`.
+- Aim applies movement speed 0.065 and half recoil, restores speed on toggle/stop/reload, and preserves another plugin's speed modifier.
+
+See [runtime instructions](../../tests/runtime/README.md#hit-detection-smoke-test) to reproduce. Model-specific head regions and production PvP plugins, shields, armor, latency, and anti-cheat combinations still need acceptance testing.
+
+## Player PvP and swimming/gliding validation
+
+On 2026-11-16, 92 runtime cases used **two connected Player entities** on Paper 1.21.11 / MagicSpells Beta 18 / Java 21. These were headless protocol clients, not human input or rendered-model inspection. Swimming began in water and gliding with an equipped elytra in the air; each case checked live swimming/gliding flags, pose, and bounding box without overriding `setPose`. Targets were stationary with gravity disabled, yaw 0°/90°, and pitch 0°. Regeneration was disabled, and damage events, actual health, and subspell counts were recorded together.
+
+| Check | Result |
+| --- | --- |
+| Standing/swimming/gliding × upper-box/body × six sides × ray/particle | 72/72 passed |
+| Front/back/left/right after rotating the victim 90° | 12/12 passed |
+| World PvP disabled: no damage or hit callbacks | 2/2 passed |
+| Independent expectation that eye-height hits are headshots | 6/6 passed, including the four previously failing swimming/gliding cases |
+
+**All 92 passed after correction.** The [before-fix report](../media/pvp-hit-results-before-eye-fix.json) recorded 88 passes and four failures. Swimming/gliding has a box height of about 0.6 and eyes at about 0.4, below the old head-strip minimum of about 0.45. The corrected region extends down to the actual eyes for these Player poses. Both ray and particle eye-height shots now invoke head callbacks and deal the expected 4 damage, while lower body hits retain 2 damage. Six-direction classification, rotated victims, and world PvP restrictions still pass. Expected damage and callback assertions were not changed.
+
+See the [after-fix per-case JSON](../media/pvp-hit-results.json) and [reproduction instructions](../../tests/runtime/README.md#player-pvp-and-swimminggliding-test). This integration test is separate from the 216 Gradle tests and completed with exit code 0; unmet expectations still cause exit code 1. Moving-target interpolation, other gliding pitches, latency, and production protection-plugin combinations were not covered.
 
 ## Environment
 
@@ -34,7 +68,7 @@ The detailed measurements below are the original 1.21.11/Beta 18 investigation. 
 
 ## Automated checks
 
-`./gradlew clean build runtimeProbeJar` succeeds with the real Paper/MagicSpells artifacts. **53 automated tests** pass:
+`./gradlew clean build runtimeProbeJar` succeeds with the real Paper/MagicSpells artifacts. **216 automated tests** pass:
 
 - Strict numeric/type/range validation and all distributed recoil examples.
 - First-shot rise, growth, vector caps, left/right sway, random bounds, and custom loop/hold/stop rules.

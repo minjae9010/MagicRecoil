@@ -17,6 +17,7 @@ PAGES = [
     ('recoil-logic', 'Recoil-Logic', '반동 계산과 수평 규칙', 'Recoil logic'),
     ('configuration', 'Configuration', '설정 전체 표', 'Configuration'),
     ('integration', 'Integration', '기존 총기 연결', 'Gun integration'),
+    ('hit-detection', 'Hit-Detection', '명중 판정과 적중 스펠', 'Hit detection and callbacks'),
     ('aim-and-input', 'Aiming', '조준과 입력 한계', 'Aiming and input limits'),
     ('input-comparison', 'Input-Comparison', '기존 총기 구현 비교', 'Existing gun plugin comparison'),
     ('troubleshooting', 'Troubleshooting', '증상별 문제 해결', 'Troubleshooting'),

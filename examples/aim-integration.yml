@@ -1,0 +1,26 @@
+# Optional aim state. Invoke Weapon_Aim from your existing MagicSpells input binding.
+# 선택적 조준 상태입니다. 기존 MagicSpells 입력 설정에서 Weapon_Aim을 실행하세요.
+Weapon_Aim:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  helper-spell: true
+  enabled: true
+  toggle: true
+  movement-speed-multiplier: 0.65
+  recoil-multiplier: 0.5
+  recoil-spells: [Weapon_Recoil]
+  cancel-on-item-swap: true
+  cancel-on-hand-swap: true
+  stop-on-spells: [Weapon_StopAim]
+
+# Add Weapon_StopAim to your existing reload-start branch if desired.
+# 기존 재장전 시작 분기에 Weapon_StopAim을 연결할 수 있습니다.
+Weapon_StopAim:
+  spell-class: dev.magicrecoil.spells.StopAimSpell
+  helper-spell: true
+
+Weapon_Recoil:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  helper-spell: true
+  recoil: 2.5
+  # Keep your existing successful-fire guard and reload-stop options.
+  # 기존 발사 성공 확인과 재장전 중지 옵션은 유지하세요.

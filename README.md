@@ -10,11 +10,12 @@ MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damag
 
 Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, open **[Troubleshooting](docs/en/troubleshooting.md)**; use the **[documentation map](docs/en/README.md)** or **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)** to browse all topics.
 
-Current release: **[v0.2.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1)** — right-click automatic fire and left-click zoom, with the original gun item and firing logic retained.
+Current release: **[v0.3.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.1)** — headshots, six hit directions, distance damage and hit spells, with existing recoil, right-click firing and zoom.
 
 <!-- toc:start -->
 ## On this page
 
+- [Headshots, directions, distance damage and hit spells](#headshots-directions-distance-damage-and-hit-spells)
 - [Right-click fire and left-click zoom](#right-click-fire-and-left-click-zoom)
 - [Recoil demo](#recoil-demo)
 - [Requirements](#requirements)
@@ -30,6 +31,29 @@ Current release: **[v0.2.0-alpha.1](https://github.com/minjae9010/MagicRecoil/re
 - [Optional aiming](#optional-aiming)
 <!-- toc:end -->
 
+## Headshots, directions, distance damage and hit spells
+
+`dev.magicrecoil.spells.HitSpell` supports instant ray shots and direct callbacks from existing `ParticleProjectileSpell` guns. Configure head/body multipliers, the six incoming directions relative to the victim, and a linearly interpolated distance curve. Common, head/body and directional subspells run on valid impacts.
+
+```yaml
+MyGun_Hit:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  damage: 6
+  headshot-multiplier: 2
+  direction-multipliers: {back: 1.5}
+  distance-damage:
+    - {distance: 0, multiplier: 1}
+    - {distance: 50, multiplier: 0.5}
+  # Define this effect spell separately, then uncomment:
+  # spell-on-headshot: MyGun_HeadshotEffect
+```
+
+For an existing particle projectile, set `spell-on-hit-entity: "MyGun_Hit(targeting=entity_from_location)"`. For instant shots, call `"MyGun_Hit(targeting=none)"` before recoil. Swimming/gliding players include their eye height in the head region; lower body hits remain bodyshots. Replace the prior damage callback to avoid double damage and keep recoil attached to successful firing. [Full guide](docs/en/hit-detection.md) · [complete YAML](examples/hit-integration.yml).
+
+Validation: **216 automated tests** and all **92 two-player PvP/pose cases passed**, including the four formerly failing swimming/gliding eye-height shots. Targets were real connected Player entities driven by headless clients; rendered models, human input, moving targets, latency and protection-plugin combinations remain acceptance checks. Full build/API checks and normal hit/aim/reload regressions are in [Testing](docs/en/testing.md).
+
 ## Right-click fire and left-click zoom
 
 | Input | Behavior |
@@ -41,7 +65,7 @@ Current release: **[v0.2.0-alpha.1](https://github.com/minjae9010/MagicRecoil/re
 
 Merge [right-click-paimon.yml](examples/right-click-paimon.yml) and [aim-paimon.yml](examples/aim-paimon.yml) into the existing gun configuration. Keep the current magic item, ammunition variables, reload conditions, projectile, sound and recoil spells. Remove the old firing Buff's mouse bindings so only one firing loop runs. Direct/eventless reload chains must call StopAutoFireSpell first. [Full settings and integration](docs/en/aim-and-input.md) explain the options and legacy controls.
 
-No client mod or ProtocolLib is required. The item is not converted to a spyglass or prepared with use components in BUFFERED_CLICK mode. Zoom depends on the client's FOV Effects setting; 0% disables visible magnification. Its rendered strength and the complete production gun still require in-game acceptance. The release passes 115 automated tests and real Paper input, ammo/recoil, potion-restoration and restart checks; see [test evidence](docs/en/testing.md#crackshot-controls-verification).
+No client mod or ProtocolLib is required. The item is not converted to a spyglass or prepared with use components in BUFFERED_CLICK mode. Zoom depends on the client's FOV Effects setting; 0% disables visible magnification. Its rendered strength and the complete production gun still require in-game acceptance. The current release passes 216 automated tests; the retained firing/scope features also have earlier real Paper input, ammo/recoil, potion-restoration and restart evidence; see [test evidence](docs/en/testing.md#crackshot-controls-verification).
 
 ## Recoil demo
 
@@ -68,7 +92,7 @@ Version equality locks have been removed. Newer releases are accepted when the r
 
 ## Install
 
-1. Build the current `MagicRecoil-0.2.0-alpha.2.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
+1. Build the current `MagicRecoil-0.3.0-alpha.1.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
 2. Stop the server. Put the JAR in `plugins/` alongside MagicSpells. Do not place another copy inside `plugins/MagicSpells/`.
 3. Put the following spell in `plugins/MagicSpells/spells-recoil.yml`:
 
@@ -196,7 +220,7 @@ Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet acces
 .\gradlew.bat clean build
 ```
 
-Output: `build/libs/MagicRecoil-0.2.0-alpha.1.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
+Output: `build/libs/MagicRecoil-0.3.0-alpha.1.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
 
 `./gradlew test` runs automated tests; the HTML report is `build/reports/tests/test/index.html`. GitHub Actions builds and tests on Linux and Windows and uploads the plugin and source JARs. See [Development](docs/en/development.md).
 

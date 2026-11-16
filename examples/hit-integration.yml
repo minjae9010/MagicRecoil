@@ -1,0 +1,134 @@
+# Standalone hitscan example plus a fragment for existing ParticleProjectileSpell guns.
+# 즉시 명중 예제와 기존 파티클 발사체 연동 예제입니다. 실제 무기의 탄약/재장전 조건을 유지하세요.
+
+# Option A: one ray shot, followed by the existing recoil spell.
+# 방식 A: 레이캐스트 사격 후 기존 반동을 실행합니다. 빗나가도 정상 발사이므로 반동이 발생합니다.
+Weapon_Ray_Fire:
+  spell-class: .MultiSpell
+  spells:
+    - "Weapon_Ray_Hit(targeting=none)"
+    - Weapon_Ray_Recoil
+
+Weapon_Ray_Hit:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  helper-spell: true
+  range: 64
+  can-target: [players, nonplayers]
+  damage: 6
+  power-affects-damage: true
+  headshot-entities: [PLAYER, ZOMBIE, SKELETON]
+  headshot-height: 0.25
+  headshot-multiplier: 2.0
+  vertical-angle: 45
+  direction-multipliers:
+    front: 1.0
+    back: 1.5
+    left: 1.0
+    right: 1.0
+    above: 1.2
+    below: 1.0
+  distance-damage:
+    - {distance: 0, multiplier: 1.0}
+    - {distance: 15, multiplier: 1.0}
+    - {distance: 50, multiplier: 0.5}
+  spell-on-hit: Weapon_Hit_Effect
+  spell-on-headshot: Weapon_Head_Effect
+  spell-on-back: Weapon_Back_Effect
+
+Weapon_Ray_Recoil:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  helper-spell: true
+  recoil: 2.5
+  require-success-of: Weapon_Ray_Hit
+
+# Option B: retain your existing particle projectile, adding this direct callback.
+# 방식 B: 기존 발사체에 다음 한 줄을 연결하세요. 지정한 캐스트 인자는 반드시 유지합니다.
+# Your_Existing_Projectile:
+#   spell-class: .instant.ParticleProjectileSpell
+#   ... keep your existing flight, targeting, ammunition, and visual settings ...
+#   spell-on-hit-entity: "Weapon_Projectile_Hit(targeting=entity_from_location)"
+# Fire your existing projectile first, then recoil immediately in the same tick.
+# Keep require-success-of pointing to the projectile launch, not Weapon_Projectile_Hit.
+# 반동의 require-success-of는 아래 적중 콜백이 아니라 기존 발사체 발사 주문을 참조합니다.
+# Replace the previous damage callback with this one to prevent double damage.
+# 기존 데미지 콜백을 이 주문으로 교체하여 피해가 중복되지 않도록 하세요.
+Weapon_Projectile_Hit:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  damage: 6
+  headshot-entities: [PLAYER, ZOMBIE, SKELETON]
+  headshot-multiplier: 2
+  distance-damage:
+    - {distance: 0, multiplier: 1}
+    - {distance: 50, multiplier: 0.5}
+  spell-on-hit: Weapon_Hit_Effect
+  spell-on-headshot: Weapon_Head_Effect
+  spell-on-bodyshot: Weapon_Body_Effect
+  spell-on-front: Weapon_Front_Effect
+  spell-on-back: Weapon_Back_Effect
+  spell-on-left: Weapon_Left_Effect
+  spell-on-right: Weapon_Right_Effect
+  spell-on-above: Weapon_Above_Effect
+  spell-on-below: Weapon_Below_Effect
+
+# Replace these harmless dummy effects with your own subspells.
+# 아래 더미 효과를 원하는 후속 스펠로 바꾸세요. damage: 0이면 판정과 연계만 실행합니다.
+Weapon_Hit_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  effects:
+    impact:
+      position: target
+      effect: particles
+      particle-name: electric_spark
+      count: 3
+      horiz-spread: 0.05
+      vert-spread: 0.05
+
+Weapon_Head_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  effects:
+    critical:
+      position: target
+      effect: particles
+      particle-name: crit
+      count: 5
+
+Weapon_Body_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+
+Weapon_Front_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+
+Weapon_Back_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+
+Weapon_Left_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+
+Weapon_Right_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+
+Weapon_Above_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+
+Weapon_Below_Effect:
+  spell-class: .targeted.DummySpell
+  helper-spell: true
+  can-target: [players, nonplayers]

@@ -2,6 +2,8 @@ package dev.magicrecoil.aiming;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.events.BuffEndEvent;
+import com.nisovin.magicspells.spells.BuffSpell;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -38,6 +40,7 @@ class AimManagerTest {
         final Player player = mock(Player.class);
         final PlayerInventory inventory = mock(PlayerInventory.class);
         final ItemStack item = mock(ItemStack.class);
+        final Material material = mock(Material.class);
         final AttributeInstance speed = mock(AttributeInstance.class);
         final Map<net.kyori.adventure.key.Key, AttributeModifier> modifiers = new HashMap<>();
         final AimManager manager;
@@ -50,7 +53,7 @@ class AimManagerTest {
             when(player.isOnline()).thenReturn(true); when(player.getInventory()).thenReturn(inventory);
             bukkit.when(() -> Bukkit.getPlayer(id)).thenReturn(player);
             when(inventory.getItemInMainHand()).thenReturn(item); when(item.clone()).thenReturn(item);
-            when(item.getType()).thenReturn(mock(Material.class)); when(item.isSimilar(item)).thenReturn(true);
+            when(item.getType()).thenReturn(material); when(item.isSimilar(item)).thenReturn(true);
             when(speed.getModifier(any(net.kyori.adventure.key.Key.class))).thenAnswer(i -> modifiers.get(i.getArgument(0)));
             doAnswer(i -> { AttributeModifier m = i.getArgument(0); modifiers.put(m.getKey(), m); return null; }).when(speed).addTransientModifier(any());
             doAnswer(i -> { modifiers.remove(i.getArgument(0)); return null; }).when(speed).removeModifier(any(net.kyori.adventure.key.Key.class));
@@ -178,6 +181,68 @@ class AimManagerTest {
             verify(zoom).zoom(f.player, 0.7);
             manager.stop(f.player.getUniqueId()); verify(zoom, atLeastOnce()).clear(f.player);
             assertEquals(0, manager.activePlayers()); assertFalse(f.modifiers.containsKey(SPEED));
+        }
+    }
+
+    @Test void emptyMainHandDoesNotCreateASessionOrStartTheScheduler() throws Exception {
+        try (var f = new Fixture()) {
+            when(f.material.isAir()).thenReturn(true);
+            assertFalse(f.manager.cast(f.player, "aim", settings("")));
+            assertEquals(0, f.manager.activePlayers());
+            verify(f.scheduler, never()).runTaskTimer(any(), any(Runnable.class), anyLong(), anyLong());
+            verify(f.speed, never()).addTransientModifier(any());
+        }
+    }
+
+    @Test void missingSpeedAttributeRollsBackTheSession() throws Exception {
+        try (var f = new Fixture()) {
+            var manager = new AimManager(f.plugin, player -> null);
+            assertThrows(IllegalStateException.class, () -> manager.cast(f.player, "aim", settings("")));
+            assertEquals(0, manager.activePlayers());
+            verify(f.scheduler, never()).runTaskTimer(any(), any(Runnable.class), anyLong(), anyLong());
+        }
+    }
+
+    @Test void buffEndStopsOnlyTheConfiguredBuffAndCancelsTheLastTask() throws Exception {
+        try (var f = new Fixture()) {
+            f.manager.cast(f.player, "Aim", settings("stop-on-buff-end: [FiringBuff]"));
+            var buff = mock(BuffSpell.class);
+            var event = mock(BuffEndEvent.class);
+            when(event.getTarget()).thenReturn(f.player);
+            when(event.getBuffSpell()).thenReturn(buff);
+            when(buff.getInternalName()).thenReturn("OtherBuff");
+            f.manager.buffEnded(event);
+            assertEquals(1, f.manager.activePlayers());
+            when(buff.getInternalName()).thenReturn("FiringBuff");
+            f.manager.buffEnded(event);
+            assertEquals(0, f.manager.activePlayers());
+            assertFalse(f.modifiers.containsKey(SPEED));
+            verify(f.task).cancel();
+        }
+    }
+
+    @Test void twoPlayersShareOneTaskAndStoppingOneKeepsTheOtherActive() throws Exception {
+        try (var f = new Fixture()) {
+            var other = mock(Player.class);
+            var otherSpeed = mock(AttributeInstance.class);
+            UUID id = UUID.randomUUID();
+            when(other.getUniqueId()).thenReturn(id);
+            when(other.isOnline()).thenReturn(true);
+            when(other.getInventory()).thenReturn(f.inventory);
+            f.bukkit.when(() -> Bukkit.getPlayer(id)).thenReturn(other);
+            var manager = new AimManager(f.plugin, player -> player == f.player ? f.speed : otherSpeed);
+            manager.cast(f.player, "a", settings(""));
+            manager.cast(other, "b", settings("movement-speed-multiplier: 0.8\nrecoil-multiplier: 0.2"));
+            verify(f.scheduler).runTaskTimer(eq(f.plugin), any(Runnable.class), eq(1L), eq(1L));
+            assertEquals(2, manager.activePlayers());
+            assertEquals(0.2, manager.recoilMultiplier(other, "gun_recoil"));
+            manager.stop(f.player.getUniqueId());
+            assertEquals(1, manager.activePlayers());
+            assertEquals(0.2, manager.recoilMultiplier(other, "gun_recoil"));
+            verify(f.task, never()).cancel();
+            manager.clear();
+            assertEquals(0, manager.activePlayers());
+            verify(f.task).cancel();
         }
     }
 }

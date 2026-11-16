@@ -10,11 +10,12 @@
 
 처음 사용하면 **[빠른 시작](docs/ko/getting-started.md)**부터 읽으세요. 수평 반동 문제는 **[증상별 진단](docs/ko/troubleshooting.md)**, 전체 문서 탐색은 **[문서 안내](docs/ko/README.md)** 또는 **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)**에서 시작할 수 있습니다.
 
-현재 릴리스: **[v0.2.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1)** — 기존 총기 아이템과 발사 처리를 유지하는 우클릭 연사·좌클릭 줌을 추가했습니다.
+현재 릴리스: **[v0.3.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.1)** — 기존 반동·우클릭 연사·줌에 헤드샷·6방향·거리 데미지·적중 스펠을 추가했습니다.
 
 <!-- toc:start -->
 ## 목차
 
+- [헤드샷·방향·거리 데미지와 적중 스펠](#헤드샷방향거리-데미지와-적중-스펠)
 - [우클릭 연사와 좌클릭 줌](#우클릭-연사와-좌클릭-줌)
 - [반동 테스트 GIF](#반동-테스트-gif)
 - [지원 환경](#지원-환경)
@@ -30,6 +31,29 @@
 - [선택 기능: 조준](#선택-기능-조준)
 <!-- toc:end -->
 
+## 헤드샷·방향·거리 데미지와 적중 스펠
+
+`dev.magicrecoil.spells.HitSpell`로 즉시 명중 사격 또는 기존 `ParticleProjectileSpell`의 적중 콜백을 처리합니다. 머리·몸통, 피격자 기준 앞·뒤·좌·우·위·아래, 거리별 선형 배율을 설정하고 공통·머리/몸통·방향별 후속 스펠을 실행할 수 있습니다.
+
+```yaml
+MyGun_Hit:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  damage: 6
+  headshot-multiplier: 2
+  direction-multipliers: {back: 1.5}
+  distance-damage:
+    - {distance: 0, multiplier: 1}
+    - {distance: 50, multiplier: 0.5}
+  # 효과 스펠을 별도로 정의한 다음 주석을 해제하세요.
+  # spell-on-headshot: MyGun_HeadshotEffect
+```
+
+기존 파티클 발사체에는 `spell-on-hit-entity: "MyGun_Hit(targeting=entity_from_location)"`를 연결합니다. 즉시 사격은 반동 전에 `"MyGun_Hit(targeting=none)"`를 실행합니다. 수영·활강 플레이어도 눈높이 명중은 헤드샷이며 아래쪽 몸통은 구분합니다. 피해 중복을 막도록 이전 데미지 콜백을 교체하고, 반동은 발사 성공 직후에 유지하세요. [전체 안내](docs/ko/hit-detection.md) · [완성 YAML 예제](examples/hit-integration.yml).
+
+**자동 테스트 216개와 두 플레이어 PvP·자세 검증 92개 모두 통과**했습니다. 이전에 실패한 수영·활강 눈높이 4개도 포함합니다. 실제 연결된 Player를 자동 클라이언트로 검사했으며, 렌더링·사람의 조작·이동 표적·지연·보호 플러그인 조합은 별도 검수가 필요합니다. 전체 빌드/API 검사와 일반 명중·조준·리로드 회귀 결과는 [테스트 문서](docs/ko/testing.md)에 있습니다.
+
 ## 우클릭 연사와 좌클릭 줌
 
 | 조작 | 동작 |
@@ -41,7 +65,7 @@
 
 기존 총기 설정에 [right-click-paimon.yml](examples/right-click-paimon.yml)과 [aim-paimon.yml](examples/aim-paimon.yml)을 병합하세요. 현재 magic item, 탄약 변수, 재장전 조건, 발사체·소리·반동 주문을 유지합니다. 기존 사격 Buff의 마우스 바인딩을 제거하여 연사 루프를 하나만 실행하고, 이벤트 없는 direct 재장전에는 StopAutoFireSpell을 맨 앞에서 호출하세요. [전체 설정과 연동 안내](docs/ko/aim-and-input.md)에서 세부 옵션과 이전 조작을 설명합니다.
 
-클라이언트 모드와 ProtocolLib은 필요 없습니다. BUFFERED_CLICK 모드는 총기를 망원경으로 바꾸거나 사용 컴포넌트를 붙이지 않습니다. 클라이언트 FOV 효과가 0%면 화면 확대는 보이지 않으며 시각적인 확대 정도와 전체 운영 총기는 게임 내 확인이 필요합니다. 자동 테스트 115개와 실제 Paper 입력·탄약/반동·포션 복원·재시작 검사를 통과했습니다. [검증 결과](docs/ko/testing.md#crackshot-조작-검증)를 참고하세요.
+클라이언트 모드와 ProtocolLib은 필요 없습니다. BUFFERED_CLICK 모드는 총기를 망원경으로 바꾸거나 사용 컴포넌트를 붙이지 않습니다. 클라이언트 FOV 효과가 0%면 화면 확대는 보이지 않으며 시각적인 확대 정도와 전체 운영 총기는 게임 내 확인이 필요합니다. 현재 릴리즈는 자동 테스트 216개를 통과했으며, 기존 연사·줌의 실제 Paper 입력·탄약/반동·포션 복원·재시작 검증 기록도 유지합니다. [검증 결과](docs/ko/testing.md#crackshot-조작-검증)를 참고하세요.
 
 ## 반동 테스트 GIF
 
@@ -68,7 +92,7 @@
 
 ## 설치
 
-1. 아래 방법으로 현재 `MagicRecoil-0.2.0-alpha.2.jar`를 빌드하거나, [Releases](https://github.com/minjae9010/MagicRecoil/releases)에서 필요한 호환 범위의 배포본을 선택합니다.
+1. 아래 방법으로 현재 `MagicRecoil-0.3.0-alpha.1.jar`를 빌드하거나, [Releases](https://github.com/minjae9010/MagicRecoil/releases)에서 필요한 호환 범위의 배포본을 선택합니다.
 2. 서버를 종료하고 MagicSpells와 함께 `plugins/`에 넣습니다. `plugins/MagicSpells/` 안에는 중복 JAR을 넣지 않습니다.
 3. `plugins/MagicSpells/spells-recoil.yml`에 다음 주문을 작성합니다.
 
@@ -198,7 +222,7 @@ JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, 
 ./gradlew clean build
 ```
 
-설치할 파일은 `build/libs/MagicRecoil-0.2.0-alpha.1.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
+설치할 파일은 `build/libs/MagicRecoil-0.3.0-alpha.1.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
 
 ## 도입 전에 확인할 한계
 

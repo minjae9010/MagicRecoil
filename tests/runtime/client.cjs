@@ -47,4 +47,8 @@ process.stdin.on('data', line => {
     compensation = Number(a); log('compensation-setting', { compensation });
   }
   if (command === 'quit') client.end();
+  if (command === 'slot' && Number.isInteger(Number(a)) && Number(a) >= 0 && Number(a) <= 8) {
+    client.write('held_item_slot', { slotId: Number(a) });
+    log('slot-input', { slot: Number(a) });
+  }
 });

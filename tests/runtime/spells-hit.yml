@@ -1,0 +1,102 @@
+# Isolated hit-smoke.py fixture. Counter hooks intentionally run console scoreboard commands.
+MR_Hit:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  range: 64
+  damage: 4
+  headshot-entities: [VILLAGER]
+  headshot-height: 0.25
+  headshot-multiplier: 2
+  direction-multipliers: {back: 1.5}
+  distance-damage: [{distance: 10, multiplier: 1}, {distance: 30, multiplier: 0.5}]
+  spell-on-hit: MR_Hook_hit
+  spell-on-headshot: MR_Hook_head
+  spell-on-bodyshot: MR_Hook_body
+  spell-on-back: MR_Hook_back
+  spell-on-front: MR_Hook_front
+MR_Recoil:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  helper-spell: true
+  recoil: 1
+  recoil-steps: 3
+  require-success-of: MR_Hit
+MR_Aim:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  helper-spell: true
+  recoil-spells: [MR_Recoil]
+  stop-on-spells: [MR_StopAim]
+MR_StopAim:
+  spell-class: dev.magicrecoil.spells.StopAimSpell
+  helper-spell: true
+MR_AimKeep:
+  spell-class: dev.magicrecoil.spells.AimSpell
+  helper-spell: true
+  recoil-spells: [MR_Recoil]
+  cancel-on-item-swap: false
+  cancel-on-hand-swap: false
+MR_Fire:
+  spell-class: .MultiSpell
+  spells: ["MR_Hit(targeting=none)", MR_Recoil]
+MR_Projectile:
+  spell-class: .instant.ParticleProjectileSpell
+  projectile-velocity: 10
+  projectile-gravity: 0
+  projectile-spread: 0
+  start-x-offset: 0
+  start-y-offset: 1.62
+  start-z-offset: 0
+  tick-interval: 1
+  intermediate-hitboxes: 3
+  max-distance: 64
+  hit-players: false
+  hit-non-players: true
+  hit-radius: 0.2
+  vertical-hit-radius: 0.2
+  spell-on-hit-entity: "MR_Hit(targeting=entity_from_location)"
+MR_Projectile_MissingArgument:
+  spell-class: .instant.ParticleProjectileSpell
+  projectile-velocity: 10
+  projectile-gravity: 0
+  projectile-spread: 0
+  start-x-offset: 0
+  start-y-offset: 1.62
+  start-z-offset: 0
+  tick-interval: 1
+  intermediate-hitboxes: 3
+  max-distance: 64
+  hit-players: false
+  hit-non-players: true
+  hit-radius: 0.2
+  vertical-hit-radius: 0.2
+  spell-on-hit-entity: MR_Hit
+MR_Hook_hit:
+  spell-class: .ExternalCommandSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  execute-on-console-instead: true
+  command-to-execute: ["scoreboard players add hit mrhooks 1"]
+MR_Hook_head:
+  spell-class: .ExternalCommandSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  execute-on-console-instead: true
+  command-to-execute: ["scoreboard players add head mrhooks 1"]
+MR_Hook_body:
+  spell-class: .ExternalCommandSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  execute-on-console-instead: true
+  command-to-execute: ["scoreboard players add body mrhooks 1"]
+MR_Hook_back:
+  spell-class: .ExternalCommandSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  execute-on-console-instead: true
+  command-to-execute: ["scoreboard players add back mrhooks 1"]
+MR_Hook_front:
+  spell-class: .ExternalCommandSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  execute-on-console-instead: true
+  command-to-execute: ["scoreboard players add front mrhooks 1"]

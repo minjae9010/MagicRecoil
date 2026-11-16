@@ -44,6 +44,8 @@ spells:
 
 This is a **fragment**, not a complete replacement for `Weapon_AR_FireLoop`. The original weapon file was not attached. Therefore its ammo conditions, reload spell name, projectile success semantics, and firing buff lifecycle could not be audited. [weapon-integration.yml](../../examples/weapon-integration.yml) is safe to review as a recoil block replacement; it is not a claim of a completed original-file migration.
 
+For optional headshots, six directions, distance damage, and hit callbacks, see [HitSpell integration](hit-detection.md).
+
 ## Why the success guard exists
 
 Beta 18 `MultiSpell` iterates its subspells without stopping when a previous subcast fails. Merely listing a projectile before recoil is insufficient if the projectile can fail independently.
