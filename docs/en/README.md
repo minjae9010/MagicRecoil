@@ -27,6 +27,7 @@ A working recoil spell does not establish that ammunition or reload integration 
 | Goal | Guide | What to find |
 | --- | --- | --- |
 | Install and run the addon | [Getting started](getting-started.md) | JAR location, minimal YAML, console checks |
+| Check supported versions | [Version compatibility](compatibility.md) | Minimum versions, relative/absolute mode, validation matrix |
 | Enable horizontal recoil | [Recoil logic](recoil-logic.md) | Zero yaw in vertical, random example, first four valorant shots |
 | Look up an option | [Configuration](configuration.md) | Defaults, units, valid ranges, operation order |
 | Connect an existing gun | [Integration](integration.md) | Beam/PP guard names, shot order, reload cancellation |

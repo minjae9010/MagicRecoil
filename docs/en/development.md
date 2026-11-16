@@ -18,7 +18,7 @@ For building, code changes, version ports, and documentation maintenance. For in
 
 ## Reproducible entry point
 
-Use JDK 21 and the committed Gradle 9.3.0 wrapper. `./gradlew clean build` compiles against the real Paper 1.21.11 development bundle and the official MagicSpells Beta 18 release. The download task verifies MagicSpells' SHA-256. The wrapper distribution is also checksum-pinned. Paper's dev bundle remains a versioned Maven snapshot, so a fully hermetic offline build is not claimed.
+Use JDK 21 and the committed Gradle 9.3.0 wrapper. `./gradlew clean build` compiles against the Paper 1.21.4 API and the official MagicSpells Beta 17 release. The download task verifies MagicSpells' SHA-256. The wrapper distribution is also checksum-pinned. Paper's API remains a versioned Maven snapshot, so a fully hermetic offline build is not claimed.
 
 Dependencies are compile-only in the shipping JAR. Test dependencies include JUnit, Bukkit configuration support, and Mockito for scheduler isolation. `./gradlew test` runs configuration, math, pattern, buffer, session, scheduler, and success-receipt tests. The test suite includes 100,000 simulated shots and one shared scheduler serving 100 mocked players; these are algorithm tests, not a network load benchmark.
 
@@ -29,7 +29,7 @@ Artifacts are reproducibly ordered and omit timestamp metadata. `build/libs/*-so
 | Path under `src/main/java/dev/magicrecoil/` | Responsibility |
 | --- | --- |
 | `MagicRecoilPlugin.java` | Bootstrap, loader registration, events, lifecycle, diagnostics |
-| `spells/RecoilSpell.java` | Beta 18 custom spell constructor and casting entry point |
+| `spells/RecoilSpell.java` | Beta 17+ custom spell constructor and casting entry point |
 | `spells/StopRecoilSpell.java` | Explicit stop/reset integration hook |
 | `recoil/RecoilSettings.java` | Typed, immutable, validated literal settings |
 | `recoil/RecoilPattern.java` | Normalized pattern generation and shot scaling |
@@ -38,21 +38,19 @@ Artifacts are reproducibly ordered and omit timestamp metadata. `build/libs/*-so
 | `recoil/RecoilManager.java` | UUID sessions and one synchronous task |
 | `integration/SuccessGate.java` | Same-tick, single-use successful-cast receipts |
 | `packet/RotationAdapter.java` | Version boundary |
-| `packet/v1_21_11/Paper12111RotationAdapter.java` | Current NMS implementation |
+| `packet/PaperRotationAdapter.java` | Cached discovery of relative/absolute native rotation methods |
 
 Java integrations can call `MagicRecoilPlugin.instance().reset(player.getUniqueId())` on the main thread after checking that the plugin is enabled. Configuration-only integrations should prefer StopRecoilSpell.
 
 ## Porting to a later Minecraft version
 
-1. Create a new adapter package and compile it against that version's Paper bundle; select the required Java toolchain from Paper's version-specific requirements.
-2. Inspect the rotation packet and server update path again. Do not assume constructor fields, relative flags, or camera behavior stayed the same.
-3. Inspect the target MagicSpells version's class-loader list, constructor contract, cast events, and reload sequence.
-4. Add explicit version selection. Unsupported versions must fail with a clear message rather than fall back to position teleportation.
-5. Repeat the runtime and human acceptance matrix in [Testing](testing.md). Only then extend the support table.
+The adapter discovers the supported Mojang-mapped method signatures once at startup. Compatible newer servers need no hardcoded version entry. MagicSpells uses a numeric minimum-version check plus binary API checks before registering the addon loader. Incompatible APIs stop startup with a diagnostic. See [Version compatibility](compatibility.md) for build overrides and the validation matrix.
+
+When an upstream signature changes, extend the adapter only after inspecting the rotation-only packet and server aim update. Add meaningful transport tests and repeat runtime/human acceptance checks. Keep NMS classes out of the core.
 
 ## CI and releases
 
-GitHub Actions runs `clean build` with Java 21 on Linux and Windows for pushes and pull requests. It publishes build artifacts for download. A manual release should attach the plugin JAR, source JAR, and SHA-256 checksums, and state any uncompleted human/server acceptance tests. Never commit local server worlds, credentials, downloaded third-party JARs, or `.work/`.
+GitHub Actions checks the Beta 17 baseline on Linux/Windows, Beta 18 with Paper 1.21.11, and Beta 19 APIs with Java 25 on Linux. Shipping classes still target Java 21. It publishes build artifacts for download. A manual release should attach the plugin JAR, source JAR, and SHA-256 checksums, and state any uncompleted human/server acceptance tests. Never commit local server worlds, credentials, downloaded third-party JARs, or `.work/`.
 
 Contributions should include tests for meaningful state, calculation, or lifecycle changes, and update both English and Korean documentation. Avoid promising frame-level smoothness from server packets.
 
@@ -90,6 +88,6 @@ New production files: `aiming/AimSettings.java`, `aiming/AimManager.java`, `spel
 
 ## Firing and FOV Java changes
 
-New production files under `src/main/java/dev/magicrecoil/`: `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java` and `packet/v1_21_11/Paper12111ZoomAdapter.java`. `MagicRecoilPlugin`, `AimSettings` and `AimManager` register and reconcile these optional features. The rotation adapter, recoil patterns and success gate are unchanged by this follow-up. Tests cover intervals, timeout, reload latch, normal hard-cast invocation, cast-time rejection, FOV math and restoration. See [runtime evidence](testing.md#right-click-firing-and-fov-verification).
+New production files under `src/main/java/dev/magicrecoil/`: `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java` and `packet/PaperZoomAdapter.java`. `MagicRecoilPlugin`, `AimSettings` and `AimManager` register and reconcile these optional features. The rotation adapter, recoil patterns and success gate are unchanged by this follow-up. Tests cover intervals, timeout, reload latch, normal hard-cast invocation, cast-time rejection, FOV math and restoration. See [runtime evidence](testing.md#right-click-firing-and-fov-verification).
 
 The CrackShot-control follow-up adds `aiming/SlownessZoom.java` and updates AutoFireSettings/Manager, AimSettings/Manager, Paimon examples and runtime fixtures. Existing recoil/projectile/ammunition implementations remain unchanged. Queue tests cover duplicate events, refills, the five-tick drain, item changes and reload latching.

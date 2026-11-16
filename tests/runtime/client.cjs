@@ -3,7 +3,7 @@ const mc = require('minecraft-protocol');
 const fs = require('node:fs');
 const client = mc.createClient({
   host: '127.0.0.1', port: Number(process.env.RECOIL_TEST_PORT || 25579),
-  username: 'RecoilProbe', auth: 'offline', version: '1.21.11'
+  username: 'RecoilProbe', auth: 'offline', version: process.env.RECOIL_TEST_VERSION || '1.21.11'
 });
 let yaw = 0, pitch = 0, loaded = false, compensation = 0;
 function log(event, data = {}) {

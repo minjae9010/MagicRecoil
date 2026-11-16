@@ -2,7 +2,7 @@ name: MagicRecoil
 version: '${version}'
 main: dev.magicrecoil.MagicRecoilPlugin
 description: Relative camera recoil for MagicSpells.
-api-version: '1.21.11'
+api-version: '1.21.4'
 depend: [MagicSpells]
 authors: [MagicRecoil contributors]
 website: https://github.com/minjae9010/MagicRecoil

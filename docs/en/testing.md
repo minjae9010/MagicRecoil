@@ -6,6 +6,8 @@ Status: **experimental / human acceptance pending**. Compilation, local protocol
 
 Separates algorithm checks, running-server observations, and camera feel requiring a person. Use the checklist after installation/integration, or open [Troubleshooting](troubleshooting.md) for a failure.
 
+The detailed measurements below are the original 1.21.11/Beta 18 investigation. The current minimum versions and 2026-11-15 multi-version checks are in [Version compatibility](compatibility.md).
+
 <!-- toc:start -->
 ## On this page
 
@@ -117,7 +119,7 @@ Use a real vanilla 1.21.11 client with the original weapon YAML. Compare identic
 - Perceptual superiority over RotateSpell or a native VALORANT-like renderer.
 - Real mouse comfort, high-latency synchronization, anti-cheat compatibility, or a production concurrency limit.
 - Correctness of the missing original production gun, its ammunition variables, reload conditions, or custom `ms-*.jar` binaries.
-- Minecraft 26.3, Folia, and alternative MagicSpells releases.
+- Minecraft 26.3, Folia, and combinations beyond the checks listed in [Version compatibility](compatibility.md).
 
 A client mod with frame-based additive recoil is the next step if the vanilla client cannot meet the feel requirement. This alpha should be evaluated, not described as having completed that acceptance test.
 

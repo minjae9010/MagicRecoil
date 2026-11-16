@@ -19,12 +19,12 @@
 
 | 항목 | 대상 |
 | --- | --- |
-| 서버 | Paper 1.21.11, 검증 빌드 132 |
-| Java | 21 |
-| MagicSpells | 공식 4.0-Beta-18 |
+| 서버 | Paper 1.21.4 이상(호환 회전 API 필요) |
+| Java | 21+ (26.x: 25) |
+| MagicSpells | 4.0-Beta-17 이상 |
 | MagicRecoil | 플러그인 JAR 한 개. sources JAR은 설치하지 않음 |
 
-ProtocolLib은 필요 없습니다. 다른 버전·Folia·버전 변환 프록시 지원을 가정하지 마세요. [지원 범위](../../README.ko.md#지원-환경)에서 세부 조건을 확인할 수 있습니다.
+ProtocolLib은 필요 없습니다. [버전 호환 안내](compatibility.md)에서 이후 버전 허용 기준과 구버전 절대 회전 동작을 확인하세요. Folia는 지원하지 않으며 버전 변환은 별도 검증이 필요합니다. [지원 범위](../../README.ko.md#지원-환경)에서 세부 조건을 확인할 수 있습니다.
 
 ## 2. 플러그인과 최소 주문 설치
 
@@ -45,7 +45,7 @@ Test_Recoil:
 
 ## 3. 서버에서 최소 반동 확인
 
-서버를 켜고 콘솔에서 `Enabled relative rotation`과 MagicSpells 로딩 완료를 확인합니다. 플레이어가 접속한 상태에서 **서버 콘솔**에 입력합니다.
+서버를 켜고 콘솔에서 `Enabled rotation:`과 MagicSpells 로딩 완료를 확인합니다. 플레이어가 접속한 상태에서 **서버 콘솔**에 입력합니다.
 
 ```text
 ms cast as PlayerName Test_Recoil

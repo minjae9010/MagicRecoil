@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend compatibility to Paper 1.21.4+ and MagicSpells 4.0-Beta-17+. Accept compatible later beta, RC, and stable releases after numeric version and binary API checks. Discover and cache relative/absolute rotation-only native methods at startup instead of linking to Paper 1.21.11. Keep the current aiming/firing features, discover legacy FOV packet APIs, and reject NATIVE_USE with a clear hint when USE_EFFECTS is absent. Lower the API baseline, add Beta 17/18/19 CI coverage, and retain Java 21 plugin bytecode. Build version: 0.2.0-alpha.2. See the bilingual compatibility guides for verified combinations and limits.
+
 ## 0.2.0-alpha.1 — 2026-11-15
 
 - Publish CrackShot-style right-click firing and left-click Slowness zoom. Gun items are unchanged; complete existing firing entries retain ammunition, reload checks, costs, cooldowns and recoil. Slowness scope defaults to recoil multiplier 1.0.

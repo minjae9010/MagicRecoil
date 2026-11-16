@@ -65,7 +65,7 @@ Use random or nonzero-horizontal custom points if sideways motion is required on
 
 ## No recoil at all
 
-1. Confirm Paper 1.21.11, Java 21, and official MagicSpells Beta 18.
+1. Confirm Paper 1.21.4+, MagicSpells Beta 17+, and the Java required by that server. Check the startup compatibility diagnostic and [version guide](compatibility.md).
 2. Check that exactly one addon JAR is installed in plugins and the full spell class is correct.
 3. Inspect startup/reload errors for the spell. Quoted numbers and out-of-range settings are rejected.
 4. Try the [minimal spell](getting-started.md#2-install-the-plugin-and-a-minimal-spell) from the server console without a success guard.

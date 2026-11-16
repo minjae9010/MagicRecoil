@@ -2,6 +2,8 @@
 
 These fixtures are for an **isolated local Paper 1.21.11 server** only and are not part of the plugin JAR. The Node protocol client does not simulate Minecraft rendering; the [visual burst fixture](#visual-burst-fixture) runs with a real Minecraft client. Keep the server bound to `127.0.0.1`, use a disposable world, and do not connect the offline protocol client to a production server.
 
+The default fixture remains 1.21.11/Beta 18. For another matching server/client combination, set `RECOIL_TEST_VERSION` and `RECOIL_TEST_PORT` (defaults: `1.21.11`, `25579`). The same client was also exercised on 1.21.4/Beta 17; its rotation packets are absolute. The installed protocol library does not support 26.2. See the [compatibility matrix](../../docs/en/compatibility.md) for tested combinations and limits.
+
 <!-- toc:start -->
 ## On this page
 

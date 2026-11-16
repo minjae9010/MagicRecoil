@@ -3,13 +3,15 @@ package dev.magicrecoil;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.events.*;
+import dev.magicrecoil.compat.MagicSpellsCompatibility;
+import dev.magicrecoil.compat.VersionPolicy;
 import dev.magicrecoil.integration.SuccessGate;
 import dev.magicrecoil.aiming.AimManager;
 import dev.magicrecoil.spells.AimSpell;
 import dev.magicrecoil.spells.AutoFireSpell;
 import dev.magicrecoil.firing.AutoFireManager;
-import dev.magicrecoil.packet.v1_21_11.Paper12111RotationAdapter;
-import dev.magicrecoil.packet.v1_21_11.Paper12111ZoomAdapter;
+import dev.magicrecoil.packet.PaperZoomAdapter;
+import dev.magicrecoil.packet.PaperRotationAdapter;
 import dev.magicrecoil.recoil.RecoilManager;
 import dev.magicrecoil.spells.RecoilSpell;
 import org.bukkit.Bukkit;
@@ -38,6 +40,8 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     private RecoilManager manager;
     private AimManager aimManager;
     private AutoFireManager autoFireManager;
+    private String compatibilityError;
+    private boolean loaderRegistered;
     private final Set<String> stopSpells = new HashSet<>();
     private final Set<String> stopBuffs = new HashSet<>();
 
@@ -45,33 +49,52 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public void onLoad() {
         instance = this;
         // All onLoad calls precede plugin enabling. MagicSpells needs our classes during its onEnable.
-        registerSpellLoader();
+        try {
+            VersionPolicy.requireMinecraft(Bukkit.getMinecraftVersion());
+            var magicSpells = getServer().getPluginManager().getPlugin("MagicSpells");
+            if (magicSpells == null) throw new IllegalStateException("MagicSpells is required");
+            VersionPolicy.requireMagicSpells(magicSpells.getDescription().getVersion());
+            MagicSpellsCompatibility.verifyApi();
+            registerSpellLoader();
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
+            compatibilityError = error.toString();
+            getLogger().severe("Cannot load MagicRecoil: " + compatibilityError);
+        }
     }
 
     private void registerSpellLoader() {
         if (!MagicSpells.getClassLoaders().contains(getClassLoader())) MagicSpells.getClassLoaders().add(getClassLoader());
+        loaderRegistered = true;
     }
 
     @Override
     public void onEnable() {
-        if (!Bukkit.getMinecraftVersion().equals("1.21.11")) {
-            getLogger().severe("Only Paper 1.21.11 is supported. A separate adapter and validation are required for other versions.");
+        if (compatibilityError != null) {
+            getLogger().severe("MagicRecoil disabled: " + compatibilityError);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        if (!MagicSpells.getInstance().getPluginMeta().getVersion().equals("4.0-Beta-18")) {
-            getLogger().severe("MagicSpells 4.0-Beta-18 is required; other releases have not been validated.");
+        PaperRotationAdapter adapter;
+        try {
+            adapter = PaperRotationAdapter.create();
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
+            getLogger().log(java.util.logging.Level.SEVERE,
+                    "No compatible rotation-only adapter for Paper " + Bukkit.getMinecraftVersion(), error);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        manager = new RecoilManager(this, new Paper12111RotationAdapter());
-        aimManager = new AimManager(this, new Paper12111ZoomAdapter());
+        manager = new RecoilManager(this, adapter);
+        aimManager = new AimManager(this, PaperZoomAdapter.create());
         autoFireManager = new AutoFireManager(this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(aimManager, this);
         getServer().getPluginManager().registerEvents(autoFireManager, this);
         refreshWatches();
-        getLogger().info("Enabled relative rotation for Paper 1.21.11 / MagicSpells 4.0-Beta-18.");
+        getLogger().info("Enabled rotation: " + adapter.name() + " / MagicSpells "
+                + MagicSpells.getInstance().getDescription().getVersion() + '.');
+        if (!adapter.supportsRelativeRotation()) {
+            getLogger().warning("This server uses absolute rotation packets. Mouse movement may be overwritten in transit; newer protocols support relative rotation.");
+        }
     }
 
     @Override
@@ -80,15 +103,19 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
         if (aimManager != null) aimManager.clear();
         if (autoFireManager != null) autoFireManager.clear();
         successGate.clear();
-        MagicSpells.getClassLoaders().remove(getClassLoader());
+        if (loaderRegistered) {
+            try { MagicSpells.getClassLoaders().remove(getClassLoader()); }
+            catch (RuntimeException | LinkageError error) { getLogger().warning("Could not unregister MagicSpells loader: " + error); }
+            loaderRegistered = false;
+        }
         instance = null;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void loading(MagicSpellsLoadingEvent event) {
-        manager.clear();
-        aimManager.clear();
-        autoFireManager.clear();
+        if (manager != null) manager.clear();
+        if (aimManager != null) aimManager.clear();
+        if (autoFireManager != null) autoFireManager.clear();
         successGate.watch(Set.of());
         // unload() clears MagicSpells' class loader list on every /ms reload.
         registerSpellLoader();
@@ -174,7 +201,12 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void inventoryDrag(InventoryDragEvent event) { reset(event.getWhoClicked().getUniqueId()); }
     @EventHandler public void disabled(PluginDisableEvent event) {
-        if (event.getPlugin().getName().equals("MagicSpells")) { manager.clear(); aimManager.clear(); autoFireManager.clear(); successGate.clear(); }
+        if (event.getPlugin().getName().equals("MagicSpells")) {
+            if (manager != null) manager.clear();
+            if (aimManager != null) aimManager.clear();
+            if (autoFireManager != null) autoFireManager.clear();
+            successGate.clear();
+        }
     }
 
     @Override

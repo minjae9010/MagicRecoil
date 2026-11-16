@@ -19,7 +19,7 @@
 
 ## 구현 선택
 
-Paper 1.21.11 전용 어댑터에서 `ServerPlayer.forceSetRotation(yaw변화량, true, pitch변화량, true)`을 호출합니다. 실제 매핑된 서버 바이트코드를 확인한 결과 서버의 yaw·머리 yaw·pitch·이전 회전값을 갱신한 뒤 `ClientboundPlayerRotationPacket`을 보냅니다. 이 패킷에는 yaw, 상대 yaw 여부, pitch, 상대 pitch 여부만 있고 좌표와 텔레포트 번호가 없습니다.
+최신 서버의 상대 회전 경로에서는 `ServerPlayer.forceSetRotation(yaw변화량, true, pitch변화량, true)`을 호출합니다. 실제 매핑된 서버 바이트코드를 확인한 결과 서버의 yaw·머리 yaw·pitch·이전 회전값을 갱신한 뒤 `ClientboundPlayerRotationPacket`을 보냅니다. 이 패킷에는 yaw, 상대 yaw 여부, pitch, 상대 pitch 여부만 있고 좌표와 텔레포트 번호가 없습니다. 이전 서버에서는 두 float 인자를 받는 절대 회전 경로를 선택합니다.
 
 서버 조준 방향도 갱신하므로 시각적 효과만 주는 패킷은 아닙니다. 이후 클라이언트가 보내는 일반 회전 패킷은 기존 서버 처리 경로를 따릅니다. 지연이 있는 환경에서는 이전 입력 패킷이 잠시 서버 추정값을 덮어쓸 수 있으며, 네트워크를 건너 양쪽 시점이 매 순간 동일하다고 보장하지 않습니다. 입력을 가로채 새로운 조준 권한 체계를 만들지 않습니다.
 
@@ -70,7 +70,7 @@ plugin.yml에 `depend: [MagicSpells]`를 선언합니다. 모든 플러그인의
 
 ## 호환성 경계와 근거
 
-1.21.11만 명시적으로 지원하며 다른 버전을 reflection으로 추측해서 실행하지 않습니다. Folia나 다른 플러그인의 회전·텔레포트 개입도 별도 검증 대상입니다. 향후 26.3 대응 시 NMS 어댑터와 MagicSpells API·로더·이벤트를 다시 검토해야 합니다.
+Paper 1.21.4 이상과 MagicSpells Beta 17 이상을 기준으로 합니다. 시작 시 지원되는 네이티브 회전 메서드와 MagicSpells 바이너리 API를 확인하며, API가 호환되는 이후 베타·RC·정식 버전도 허용합니다. 탐지한 메서드는 저장해 사용하므로 매 틱 다시 찾지 않습니다. 이전 프로토콜은 절대각도, 이후 프로토콜은 상대 회전을 사용하며 두 경로 모두 위치를 텔레포트하지 않습니다. Folia는 지원하지 않습니다. 버전 변환이나 다른 플러그인의 회전·텔레포트 개입은 별도 검증이 필요합니다. [버전 호환 안내](compatibility.md)에 검증 범위와 한계를 정리했습니다.
 
 공식 자료와 정확한 소스 기준점은 [영어 문서의 Primary evidence](../en/architecture.md#primary-evidence)에 모았습니다. 핵심 기준은 MagicSpells 커밋 `1996743cacaac8c5742ac146e7ff905caf270f8a`, 공식 Beta 18 JAR, Paper 커밋 `c5eb0790f199da6c38d0a650e1e5cd5415b28185`와 실제 개발 번들의 서버 바이트코드입니다. Java 버전은 Paper의 현재 최신 버전 설명이 아니라 1.21.11에 해당하는 표를 적용하여 21을 사용합니다.
 
@@ -86,6 +86,6 @@ plugin.yml에 `depend: [MagicSpells]`를 선언합니다. 모든 플러그인의
 
 `firing/AutoFireSettings`는 입력 모드·전체 발사 진입점·틱 간격을 검증합니다. `AutoFireManager`는 등록 주문, UUID별 입력 차단 상태, 기본 사용·반복 이벤트와 공용 동기 작업 하나를 관리합니다. `UseItemSupport`는 지원 재질의 임시 표시 컴포넌트만 추가·복구합니다. `AutoFireSpell`이 일반 발사 처리 전체를 hardCast하고 `StopAutoFireSpell`이 이벤트 없는 재장전을 지원합니다. 기존 발사체·탄약·재장전은 총기 설정에 남습니다. 최상위 양수 cast-time은 거부하며 이미 별도 예약된 하위 효과는 취소하지 않습니다.
 
-`aiming/ZoomAdapter`는 조준 생명주기와 Paper 1.21.11 패킷 처리를 분리합니다. `Paper12111ZoomAdapter`는 현재 abilities를 복제하여 유한한 송신 walking-speed 값을 계산하고 해제 시 현재 실제 abilities로 돌립니다. 서버 walk speed·포션 효과는 변경하지 않습니다. 실제 렌더링과 FOV 효과 설정은 클라이언트의 영역입니다.
+`aiming/ZoomAdapter`는 조준 생명주기와 서버별 abilities 패킷 처리를 분리합니다. `PaperZoomAdapter`는 현재 abilities를 복제하여 유한한 송신 walking-speed 값을 계산하고 해제 시 현재 실제 abilities로 돌립니다. 서버 walk speed·포션 효과는 변경하지 않습니다. 실제 렌더링과 FOV 효과 설정은 클라이언트의 영역입니다.
 
 `BUFFERED_CLICK`는 UUID별로 최대 5개의 미래 발사 기회를 보관합니다. 반복 이벤트는 전체 버스트를 더하지 않고 부족한 예약을 보충합니다. 동기 검사기가 예약을 소비하고 간격 제한과 기존 전체 발사 처리를 적용합니다. 중지 훅은 버퍼 소진까지 재개를 차단합니다. `aiming/SlownessZoom`이 짧은 포션 적용과 이전 활성 효과 백업을 관리하고 AimManager의 포션 변경 이벤트를 통해 외부 교체·제거 시 추가 갱신을 억제합니다.

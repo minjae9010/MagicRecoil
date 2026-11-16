@@ -19,12 +19,12 @@ For server operators installing the addon for the first time. Verify a minimal r
 
 | Component | Target |
 | --- | --- |
-| Server | Paper 1.21.11, tested build 132 |
-| Java | 21 |
-| MagicSpells | Official 4.0-Beta-18 |
+| Server | Paper 1.21.4+ (compatible rotation API) |
+| Java | 21+ (26.x: 25) |
+| MagicSpells | 4.0-Beta-17+ |
 | MagicRecoil | One plugin JAR; do not install the sources JAR |
 
-ProtocolLib is unnecessary. Do not assume support for other versions, Folia, or protocol translators. See [Requirements](../../README.md#requirements) for details.
+ProtocolLib is unnecessary. See [Version compatibility](compatibility.md) for newer versions, older absolute rotation behavior, and tested combinations. Folia is unsupported; protocol translators need separate testing. See [Requirements](../../README.md#requirements) for details.
 
 ## 2. Install the plugin and a minimal spell
 
@@ -45,7 +45,7 @@ Use the full class name. This spell deliberately tests upward recoil only; it ha
 
 ## 3. Check minimal recoil on the server
 
-Start the server and look for `Enabled relative rotation` and completion of MagicSpells loading. With a player connected, use the **server console**:
+Start the server and look for `Enabled rotation:` and completion of MagicSpells loading. With a player connected, use the **server console**:
 
 ```text
 ms cast as PlayerName Test_Recoil

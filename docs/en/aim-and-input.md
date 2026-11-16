@@ -2,7 +2,9 @@
 
 [한국어](../ko/aim-and-input.md) · [Documentation](README.md)
 
-MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.StopAimSpell` for **Paper 1.21.11 / official MagicSpells 4.0-Beta-18**. ADS is optional; existing firing, commands, recoil settings and success gates retain their behavior when no AimSpell is cast. There is no new runtime dependency. The current control layout is right-click firing and left-click ADS; legacy bindings remain available.
+MagicRecoil adds `dev.magicrecoil.spells.AimSpell` and `dev.magicrecoil.spells.StopAimSpell` for **Paper 1.21.4+ / compatible MagicSpells 4.0-Beta-17+**. ADS is optional; existing firing, commands, recoil settings and success gates retain their behavior when no AimSpell is cast. There is no new runtime dependency. The current control layout is right-click firing and left-click ADS; legacy bindings remain available.
+
+Version support and feature availability are in [Version compatibility](compatibility.md). The default BUFFERED_CLICK and Slowness scope work without USE_EFFECTS; optional NATIVE_USE is enabled only when that Paper API exists.
 
 <!-- toc:start -->
 ## On this page
@@ -128,7 +130,7 @@ The addon refreshes a ten-tick Slowness lease while ADS is active. Ending ADS re
 
 ## Optional FOV zoom
 
-Enable `zoom.enabled: true`, `zoom.mode: FOV_EFFECT` and a `zoom.fov-factor` only if this client-dependent effect is desired. The Paper 1.21.11 adapter copies the current real player abilities and changes only the outgoing walking-speed field used by the vanilla FOV formula. It never sets server walk speed, changes the attribute base, applies Slowness or modifies potion effects. Flight/creative flags are copied. Scoped packets are refreshed each active tick; unscoping restores current real abilities, including changes by other plugins.
+Enable `zoom.enabled: true`, `zoom.mode: FOV_EFFECT` and a `zoom.fov-factor` only if this client-dependent effect is desired. The capability-selected Paper adapter copies the current real player abilities and changes only the outgoing walking-speed field used by the vanilla FOV formula. It never sets server walk speed, changes the attribute base, applies Slowness or modifies potion effects. Flight/creative flags are copied. Scoped packets are refreshed each active tick; unscoping restores current real abilities, including changes by other plugins.
 
 At client FOV Effects **100%**, the grounded movement part of the vanilla formula is `(movementAttribute / packetWalkingSpeed + 1) / 2`. The adapter derives a positive finite packet field from the requested factor and current movement attribute. At **0%** this FOV effect is invisible. Flying, sprinting, client mods and other FOV influences change the final view. This is not the native spyglass effect, a spyglass overlay, or guaranteed optical 2x magnification. No ProtocolLib dependency is added. Other plugins sending abilities packets may compete with the effect; client rendering/anti-cheat acceptance still requires game testing.
 

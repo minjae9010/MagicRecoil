@@ -61,7 +61,11 @@ public final class AutoFireManager implements Listener {
     AutoFireManager(JavaPlugin plugin, Predicate<Player> inventoryReady) { this.plugin = plugin; this.inventoryReady = inventoryReady; }
     public void configure(List<AutoFireSpell> definitions) {
         clear();
-        guns = definitions.stream().filter(g -> g.settings().enabled() && g.resolve()).toList();
+        guns = definitions.stream().filter(g -> g.settings().enabled() && g.resolve()).filter(g -> {
+            if (g.settings().inputMode() != AutoFireSettings.InputMode.NATIVE_USE || UseItemSupport.nativeUseAvailable()) return true;
+            plugin.getLogger().warning(g.getInternalName() + ": NATIVE_USE requires the Paper USE_EFFECTS API; use BUFFERED_CLICK on this server");
+            return false;
+        }).toList();
         if (!guns.isEmpty()) task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1, 1);
     }
     private AutoFireSpell matching(ItemStack item) {

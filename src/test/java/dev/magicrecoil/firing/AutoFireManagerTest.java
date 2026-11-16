@@ -54,6 +54,8 @@ class AutoFireManagerTest {
             when(item.clone()).thenReturn(item); when(item.isSimilar(item)).thenReturn(true);
             items.when(() -> UseItemSupport.marked(item)).thenReturn(true);
             items.when(() -> UseItemSupport.prepare(item)).thenReturn(true);
+            items.when(UseItemSupport::nativeUseAvailable).thenReturn(true);
+            when(plugin.getLogger()).thenReturn(mock(java.util.logging.Logger.class));
             when(gun.settings()).thenReturn(settings("input-mode: NATIVE_USE\nstop-on-spells: [Reload]"));
             when(gun.resolve()).thenReturn(true); when(gun.matches(item)).thenReturn(true); when(gun.fireSpell()).thenReturn(fire);
             manager = new AutoFireManager(plugin, p -> true);
@@ -74,6 +76,18 @@ class AutoFireManagerTest {
             manager.interact(event);
         }
         @Override public void close() { items.close(); bukkit.close(); }
+    }
+
+    @Test void unsupportedNativeUseIsRejectedWithoutBreakingBufferedFire() throws Exception {
+        try (var f = new Fixture()) {
+            f.items.when(UseItemSupport::nativeUseAvailable).thenReturn(false);
+            f.manager.configure(List.of(f.gun));
+            verify(f.plugin.getLogger()).warning(contains("BUFFERED_CLICK"));
+            verify(f.task).cancel();
+            when(f.gun.settings()).thenReturn(settings("input-mode: BUFFERED_CLICK"));
+            f.manager.configure(List.of(f.gun));
+            verify(f.scheduler, times(2)).runTaskTimer(eq(f.plugin), any(Runnable.class), eq(1L), eq(1L));
+        }
     }
     @Test void singleNativeUseStartsOnceAndFiresAtServerTickIntervals() throws Exception {
         try (var f = new Fixture()) {

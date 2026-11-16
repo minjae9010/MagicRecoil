@@ -2,7 +2,9 @@
 
 [English](../en/aim-and-input.md) · [문서 안내](README.md)
 
-**Paper 1.21.11 / 공식 MagicSpells 4.0-Beta-18**용 `dev.magicrecoil.spells.AimSpell`, `dev.magicrecoil.spells.StopAimSpell`을 추가합니다. 조준은 선택 기능입니다. AimSpell을 사용하지 않으면 기존 발사, 명령어, 반동 설정, 성공 검증은 기존 동작을 유지합니다. 새 런타임 의존성은 없습니다. 현재 권장 조작은 우클릭 연사·좌클릭 조준이며 이전 바인딩도 사용할 수 있습니다.
+**Paper 1.21.4 이상 / 호환되는 MagicSpells 4.0-Beta-17 이상**용 `dev.magicrecoil.spells.AimSpell`, `dev.magicrecoil.spells.StopAimSpell`을 추가합니다. 조준은 선택 기능입니다. AimSpell을 사용하지 않으면 기존 발사, 명령어, 반동 설정, 성공 검증은 기존 동작을 유지합니다. 새 런타임 의존성은 없습니다. 현재 권장 조작은 우클릭 연사·좌클릭 조준이며 이전 바인딩도 사용할 수 있습니다.
+
+서버별 지원과 기능 조건은 [버전 호환 안내](compatibility.md)를 확인하세요. 기본 BUFFERED_CLICK과 Slowness 줌은 USE_EFFECTS 없이 동작하며, 선택적 NATIVE_USE는 해당 Paper API가 있을 때만 활성화됩니다.
 
 <!-- toc:start -->
 ## 목차

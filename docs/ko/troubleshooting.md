@@ -65,7 +65,7 @@ growth: 0.0
 
 ## 반동 전체가 없음
 
-1. Paper 1.21.11 / Java 21 / 공식 MagicSpells Beta 18인지 확인합니다.
+1. Paper 1.21.4 이상 / MagicSpells Beta 17 이상 / 해당 서버가 요구하는 Java인지 확인합니다. 시작 시 호환성 오류와 [버전 안내](compatibility.md)를 확인하세요.
 2. 애드온 JAR이 `plugins/`에 한 개만 있는지, 전체 `spell-class`가 정확한지 확인합니다.
 3. 시작 또는 `/ms reload` 콘솔에서 해당 주문의 설정 오류를 확인합니다. 숫자를 따옴표로 감싸거나 범위를 벗어나면 거부됩니다.
 4. [빠른 시작의 최소 주문](getting-started.md#2-플러그인과-최소-주문-설치)을 성공 확인 옵션 없이 콘솔에서 시험합니다.

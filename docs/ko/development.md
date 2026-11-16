@@ -18,7 +18,7 @@
 
 ## 빌드와 의존성
 
-JDK 21과 저장소에 포함된 Gradle 9.3.0 Wrapper를 사용합니다. `./gradlew clean build`는 실제 Paper 1.21.11 개발 번들과 공식 MagicSpells Beta 18 JAR을 사용합니다. MagicSpells 다운로드 및 Gradle 배포본은 SHA-256으로 검증합니다. Paper 개발 번들은 버전별 Maven snapshot이므로 완전히 고정된 오프라인 빌드를 주장하지는 않습니다.
+JDK 21과 저장소에 포함된 Gradle 9.3.0 Wrapper를 사용합니다. `./gradlew clean build`는 Paper 1.21.4 API와 공식 MagicSpells Beta 17 JAR을 사용합니다. MagicSpells 다운로드 및 Gradle 배포본은 SHA-256으로 검증합니다. Paper API는 버전별 Maven snapshot이므로 완전히 고정된 오프라인 빌드를 주장하지는 않습니다.
 
 Paper와 MagicSpells는 배포 JAR에 묶지 않습니다. 테스트는 JUnit, Bukkit YAML 기능, 스케줄러 격리용 Mockito를 사용합니다. `./gradlew test`는 설정, 패턴, 버퍼, 세션, 성공 기록, 스케줄러를 검사합니다. 100,000발 연사 시뮬레이션과 모의 플레이어 100명이 작업 하나를 공유하는 검증은 알고리즘 테스트이며 실제 네트워크 부하 시험이 아닙니다.
 
@@ -31,7 +31,7 @@ JAR 내부 순서는 고정하고 타임스탬프는 제거합니다. `-sources.
 | 경로 | 역할 |
 | --- | --- |
 | `MagicRecoilPlugin.java` | 시작, 로더, 이벤트, 정리, 상태 명령어 |
-| `spells/RecoilSpell.java` | Beta 18 주문 생성자와 시전 진입점 |
+| `spells/RecoilSpell.java` | Beta 17 이상 주문 생성자와 시전 진입점 |
 | `spells/StopRecoilSpell.java` | 재장전·교체 시 명시적 초기화 |
 | `recoil/RecoilSettings.java` | 불변 설정과 엄격한 검증 |
 | `recoil/RecoilPattern.java` | 패턴과 발당 강도 계산 |
@@ -40,21 +40,20 @@ JAR 내부 순서는 고정하고 타임스탬프는 제거합니다. `-sources.
 | `recoil/RecoilManager.java` | UUID 세션과 공용 작업 |
 | `integration/SuccessGate.java` | 같은 틱의 단일 소비 성공 기록 |
 | `packet/RotationAdapter.java` | 버전 경계 |
-| `packet/v1_21_11/` | 현재 NMS 구현 |
+| `packet/PaperRotationAdapter.java` | 시작 시 상대·절대 회전 메서드 탐지와 호출 |
+| `compat/` | 최소 버전과 MagicSpells 바이너리 API 검사 |
 
 Java 연동은 플러그인 활성화를 확인하고 메인 스레드에서 `MagicRecoilPlugin.instance().reset(player.getUniqueId())`를 호출할 수 있습니다. YAML만으로 연결할 때는 StopRecoilSpell을 사용하세요.
 
 ## 차기 Minecraft 버전 대응
 
-1. 대상 Paper 개발 번들과 필요한 Java 버전을 확인하고 새 어댑터 패키지를 만듭니다.
-2. 회전 패킷 필드, relative 플래그, 서버 상태 변경 및 클라이언트 동작을 다시 조사합니다.
-3. 대상 MagicSpells의 클래스 로더, 생성자, 시전 이벤트, 리로드 순서를 확인합니다.
-4. 명시적인 버전 선택을 추가합니다. 모르는 버전에서 위치 텔레포트로 자동 대체하지 않습니다.
-5. [테스트 절차](testing.md)의 서버·클라이언트 검증을 통과한 뒤 지원 표를 바꿉니다.
+현재 어댑터는 시작 시 지원되는 Mojang 매핑 회전 메서드를 탐지해 저장합니다. API가 같은 이후 버전에는 버전 문자열을 추가할 필요가 없습니다. MagicSpells도 최소 버전과 필요한 바이너리 API를 검사합니다. [버전 호환 안내](compatibility.md)에 빌드 옵션과 검증 범위를 정리했습니다.
+
+상위 API가 바뀌면 회전 전용 패킷과 서버 조준 상태 갱신을 조사한 뒤 어댑터를 확장하고 전송·서버·수동 검증을 반복하세요. 위치 텔레포트로 대체하지 않으며 핵심 반동 로직에는 NMS 클래스를 넣지 않습니다.
 
 ## CI와 배포
 
-GitHub Actions는 push와 pull request마다 Java 21, Linux/Windows에서 clean build를 수행하고 JAR과 소스 JAR을 아티팩트로 올립니다. 릴리스에는 플러그인 JAR, 소스 JAR, SHA-256 체크섬과 아직 수행하지 못한 수동 시험 항목을 포함합니다.
+GitHub Actions는 Beta 17 기준을 Linux/Windows에서, Beta 18/Paper 1.21.11 및 Beta 19/Java 25 API를 Linux에서 빌드·테스트합니다. 배포 클래스는 Java 21 형식을 유지합니다. 릴리스에는 플러그인 JAR, 소스 JAR, SHA-256 체크섬과 아직 수행하지 못한 수동 시험 항목을 포함합니다.
 
 서버 월드, 자격 증명, 외부에서 받은 의존성 JAR, `.work/`는 커밋하지 않습니다. 동작 변경에는 필요한 검증을 추가하고 영어·한국어 문서를 함께 갱신하세요. 서버 패킷만으로 프레임 단위 부드러움을 보장한다고 설명하면 안 됩니다.
 
@@ -92,6 +91,6 @@ git -C .work/wiki push origin HEAD
 
 ## 사격과 FOV Java 변경
 
-`src/main/java/dev/magicrecoil/`에 `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java`, `packet/v1_21_11/Paper12111ZoomAdapter.java`를 추가했습니다. `MagicRecoilPlugin`, `AimSettings`, `AimManager`가 선택 기능을 등록·정리합니다. 이번 추가 작업에서 회전 어댑터·반동 패턴·성공 검증은 변경하지 않았습니다. [실제 검증 범위](testing.md#우클릭-연사와-fov-검증)를 참고하세요.
+`src/main/java/dev/magicrecoil/`에 `firing/AutoFireSettings.java`, `firing/AutoFireManager.java`, `firing/UseItemSupport.java`, `spells/AutoFireSpell.java`, `spells/StopAutoFireSpell.java`, `aiming/ZoomAdapter.java`, `packet/PaperZoomAdapter.java`를 추가했습니다. `MagicRecoilPlugin`, `AimSettings`, `AimManager`가 선택 기능을 등록·정리합니다. 이번 추가 작업에서 회전 어댑터·반동 패턴·성공 검증은 변경하지 않았습니다. [실제 검증 범위](testing.md#우클릭-연사와-fov-검증)를 참고하세요.
 
 CrackShot 조작 추가 작업에서 `aiming/SlownessZoom.java`를 추가하고 AutoFireSettings/Manager, AimSettings/Manager, 파이먼 예제와 실제 서버 구성을 수정했습니다. 기존 반동·발사체·탄약 구현은 변경하지 않았습니다. 큐 테스트는 중복 이벤트·보충·5틱 소진·아이템 변경·재장전 차단을 확인합니다.

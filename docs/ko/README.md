@@ -27,6 +27,7 @@
 | 하고 싶은 일 | 읽을 문서 | 찾을 내용 |
 | --- | --- | --- |
 | 처음 설치해서 실행 | [빠른 시작](getting-started.md) | JAR 위치, 최소 YAML, 콘솔 시험 |
+| 지원 버전 확인 | [버전 호환 안내](compatibility.md) | 최소 버전, 상대·절대 회전, 검증 조합 |
 | 수평 반동 켜기 | [반동 로직](recoil-logic.md) | vertical의 수평 0, random 예시, valorant 첫 4발 |
 | 각 옵션의 범위 확인 | [설정 전체 표](configuration.md) | 기본값, 단위, 유효성 검사, 적용 순서 |
 | 기존 총기에 적용 | [연동 가이드](integration.md) | Beam/PP 성공 이름, 호출 순서, 재장전 중지 |

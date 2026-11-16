@@ -2,7 +2,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [상세 한국어 문서](docs/ko/README.md) · [Wiki](https://github.com/minjae9010/MagicRecoil/wiki)
 
-**Paper 1.21.11에서 기존 MagicSpells 총기에 상대 시점 반동을 추가하는 애드온입니다.**
+**Paper 1.21.4 이상에서 기존 MagicSpells 총기에 시점 반동을 추가하는 애드온입니다.**
 
 발사체, 탄약, 데미지, 재장전, 효과, 연사 로직은 기존 설정을 사용합니다. 기존 반동 주문을 `RecoilSpell`로 교체하면 한 발의 yaw/pitch 변화량을 여러 서버 틱으로 나누어 적용합니다. 마우스로 반동을 제어할 수 있도록 상대 회전을 사용하며, 기본값에서는 시점을 이전 각도로 강제로 되돌리지 않습니다.
 
@@ -55,20 +55,20 @@
 
 | 구성 요소 | 대상 |
 | --- | --- |
-| 서버 | Paper **1.21.11**, **132번 빌드**에서 검증 |
-| Java | 빌드와 서버 모두 **21** |
-| MagicSpells | 공식 **4.0-Beta-18** |
+| 서버 | Paper **1.21.4 이상**, 호환되는 네이티브 회전 API 필요 |
+| Java | **21 이상**. 서버가 요구하는 Java 사용(26.x는 Java 25) |
+| MagicSpells | **4.0-Beta-17 이상**. API가 호환되는 이후 베타·RC·정식 버전 포함 |
 | 빌드 | **Gradle 9.3.0**, Wrapper 포함 |
 | ProtocolLib | 불필요 |
-| 클라이언트 | Java Edition 1.21.11, 기본 반동에 별도 모드 불필요 |
+| 클라이언트 | 서버와 일치하는 바닐라 Java 클라이언트. 기본 반동에 모드 불필요 |
 
-요청서의 `ms-MagicSpells-4.0-Beta-18.jar`는 파일명만으로 공식 배포본과 동일한지 확인할 수 없습니다. 이 프로젝트는 체크섬을 고정한 공식 Beta 18 JAR로 컴파일합니다. 공식 배포본에는 자체 EffectLib이 포함되어 있으며, MagicRecoil은 별도 EffectLib을 직접 사용하지 않습니다. 기존 배포본이 요구하는 의존성은 유지하세요. 요청서에 적힌 별도의 `ms-EffectLib-9.0.jar`는 첨부되지 않아 해당 바이너리를 시험하지 못했습니다.
+체크섬을 고정한 공식 MagicSpells Beta 17 API로 컴파일하고, 시작 시 필요한 API를 확인합니다. 파일명만 바꾼 JAR은 바이너리 호환성을 보장하지 않습니다. 공식 배포본에는 자체 EffectLib이 포함되어 있으며, MagicRecoil은 별도 EffectLib을 직접 사용하지 않습니다. 기존 MagicSpells 배포본이 요구하는 의존성은 유지하세요.
 
-다른 Minecraft 버전, Folia, 버전 변환 프록시, 수정된 MagicSpells는 검증하지 않았습니다. 1.21.11 및 Beta 18이 아니면 플러그인을 비활성화합니다. 버전별 회전 어댑터를 분리했지만 **26.3 지원은 아직 포함되지 않았습니다**.
+버전 완전 일치 제한을 제거했습니다. 이후 버전도 필요한 API가 호환되면 허용하고, API가 맞지 않으면 시작 시 원인을 출력하고 중지합니다. 상대 회전을 지원하는 서버는 상대 회전을, 이전 프로토콜은 절대각도 회전 전용 패킷을 자동 선택합니다. 절대각도 패킷은 전송 중 마우스 입력을 덮어쓸 수 있습니다. Folia는 지원하지 않으며 버전 변환·수정 배포본은 별도 검증이 필요합니다. [버전 호환 안내](docs/ko/compatibility.md)에 기준과 검증 범위를 정리했습니다.
 
 ## 설치
 
-1. [Releases](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1)에서 `MagicRecoil-0.2.0-alpha.1.jar`를 받거나 아래 방법으로 빌드합니다.
+1. 아래 방법으로 현재 `MagicRecoil-0.2.0-alpha.2.jar`를 빌드하거나, [Releases](https://github.com/minjae9010/MagicRecoil/releases)에서 필요한 호환 범위의 배포본을 선택합니다.
 2. 서버를 종료하고 MagicSpells와 함께 `plugins/`에 넣습니다. `plugins/MagicSpells/` 안에는 중복 JAR을 넣지 않습니다.
 3. `plugins/MagicSpells/spells-recoil.yml`에 다음 주문을 작성합니다.
 
@@ -78,7 +78,7 @@
      recoil: 2.5
    ```
 
-4. 서버를 시작합니다. 콘솔에서 `Enabled relative rotation` 메시지와 주문 로딩 오류 유무를 확인합니다.
+4. 서버를 시작합니다. 콘솔에서 `Enabled rotation:` 메시지와 주문 로딩 오류 유무를 확인합니다.
 5. 콘솔에서 `ms cast as 플레이어이름 MyGun_Recoil`로 시험합니다. 플레이어의 `/ms cast MyGun_Recoil`은 MagicSpells 권한과 주문 소유 조건을 충족해야 합니다.
 6. 실제 총기에는 [연동 가이드](docs/ko/integration.md)에 따라 발사 성공 조건과 재장전 중지 처리를 연결합니다.
 
@@ -186,7 +186,7 @@ auto-return: false
 
 ## Gradle 빌드
 
-JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, Paper 개발 번들, MagicSpells 공식 배포본, 테스트 의존성을 받기 위한 인터넷 연결이 필요합니다.
+JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, Paper API, MagicSpells 공식 배포본, 테스트 의존성을 받기 위한 인터넷 연결이 필요합니다.
 
 ```powershell
 # Windows

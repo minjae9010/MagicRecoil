@@ -20,7 +20,7 @@ Implementation evidence for developers. Operators should start with [Configurati
 
 ## Decision
 
-Use an isolated NMS adapter for Paper 1.21.11 that calls `ServerPlayer.forceSetRotation(yawDelta, true, pitchDelta, true)`. Inspection of the mapped server bytecode confirms that the server updates yaw, head yaw, pitch, and old rotation, then sends `ClientboundPlayerRotationPacket`. Its payload contains yaw, relative-yaw, pitch, and relative-pitch; it has no position or teleport identifier.
+On newer servers the capability-selected adapter calls `ServerPlayer.forceSetRotation(yawDelta, true, pitchDelta, true)`. Inspection of the mapped server bytecode confirms that the server updates yaw, head yaw, pitch, and old rotation, then sends `ClientboundPlayerRotationPacket`. Its payload contains yaw, relative-yaw, pitch, and relative-pitch; it has no position or teleport identifier. Older servers use the two-float absolute rotation method.
 
 The immediate server update makes this more than a cosmetic camera packet. Returning client movement packets still participate in the normal server rotation pipeline. An instantaneous agreement over a delayed network is impossible: old inbound look packets can temporarily precede the client's acknowledgement of the new angle. The addon does not intercept or rewrite those packets, which avoids inventing a competing input-authority system.
 
@@ -31,7 +31,7 @@ The immediate server update makes this more than a cosmetic camera packet. Retur
 | Paper `Player.setRotation(yaw, pitch)` | `CraftPlayer` delegates to `CraftEntity`, which normalizes absolute angles and calls `forceSetRotation(..., false, ..., false)`. It already uses the rotation-only packet, not a position teleport, on this version. Absolute targets can overwrite mouse changes between calculation and delivery. | Official implementation inspected; real server/protocol baseline confirmed absolute flags and immediate aim update. |
 | Relative rotation packet | `ClientboundPlayerRotationPacket(float, boolean, float, boolean)` supports independent relative flags. Applying deltas on the receiving client composes with its latest local angle. | Selected packet; real local protocol traffic verified. Do not confuse it with the position-and-look teleport packet. |
 | ProtocolLib | Provides a wrapper around Minecraft packets. Sending the same relative packet cannot add client interpolation. A raw send also needs a deliberate server-state update. | With the 5.4.0 `-all` artifact, raw relative packet delivery worked. Immediate server pitch remained 0°, then became -3° after the test client's look response. ProtocolLib warns that 1.21.11 is untested; this is a narrow packet check, not full compatibility certification. No production dependency is added. |
-| Direct NMS | The vanilla `forceSetRotation` method updates server aim and sends the relative packet together. Compile-time checks use the actual Paper 1.21.11 development bundle. | Selected implementation; built and exercised on Paper 1.21.11 build 132. Version-coupled code lives in `packet/v1_21_11/`. |
+| Direct NMS | The vanilla `forceSetRotation` method updates server aim and sends the rotation packet together. | The initial implementation was compiled and exercised on Paper 1.21.11 build 132. The current `packet/PaperRotationAdapter.java` discovers supported relative/absolute method signatures at startup. |
 
 The four entries overlap: a packet describes the wire operation, while API, ProtocolLib, and NMS are ways to produce it. This is not a four-way performance benchmark. The relative position-and-look teleport packet is deliberately excluded from the recoil implementation because it brings coordinate/teleport-confirmation behavior that this feature does not need.
 
@@ -73,11 +73,12 @@ All Bukkit/NMS operations run on the main server thread. Async recoil calls fail
 
 ## Compatibility boundaries
 
-- Paper 1.21.11 only; no reflection-based guessing for other versions.
-- Exact upstream Beta 18 API and release JAR are the compilation baseline.
+- Paper 1.21.4+ with a supported native rotation signature; discovery is cached at startup.
+- Official Beta 17 is the compilation baseline. Compatible later beta, RC, and stable releases pass numeric minimum-version and binary API checks.
+- Older servers use absolute rotation-only packets; newer servers use relative flags. Neither path teleports players.
 - Folia is not supported by this scheduler model.
 - Other plugins may still issue absolute rotation/teleport packets, cancel casts, or rewrite movement.
-- A future 26.3 adapter must be independently compiled and tested. Keep core patterns/state free of NMS imports; port only the transport and review changed MagicSpells APIs/class loading.
+- See [Version compatibility](compatibility.md) for current test evidence. New API shapes require transport changes and validation; keep core patterns/state free of NMS imports.
 
 ## Primary evidence
 
@@ -100,6 +101,6 @@ All Bukkit/NMS operations run on the main server thread. Async recoil calls fail
 
 `firing/AutoFireSettings` validates the input mode, whole firing entry and tick intervals. `AutoFireManager` owns registered definitions, per-player input latches, native-use/repeat pulses and one synchronous task. `UseItemSupport` prepares only supported idle-use materials and restores its marked temporary components. `AutoFireSpell` hard-casts an ordinary firing entry; `StopAutoFireSpell` supports eventless reload chains. The existing projectile/ammo/reload code stays in the gun configuration. A top-level positive cast time is rejected; independently scheduled nested effects are not cancelled.
 
-`aiming/ZoomAdapter` separates ADS lifecycle from the Paper 1.21.11 abilities packet implementation. `Paper12111ZoomAdapter` copies current abilities, derives a finite outgoing walking-speed field and restores current real abilities on clear. It never changes server walk speed or potion effects. Client rendering and FOV Effects remain outside the server contract.
+`aiming/ZoomAdapter` separates ADS lifecycle from the capability-selected Paper abilities packet implementation. `PaperZoomAdapter` copies current abilities, derives a finite outgoing walking-speed field and restores current real abilities on clear. It never changes server walk speed or potion effects. Client rendering and FOV Effects remain outside the server contract.
 
 `BUFFERED_CLICK` maintains a bounded per-player queue of at most five upcoming opportunities. Repeated events refill rather than append complete bursts. The synchronous scanner consumes due work, applies interval limits and calls the same complete firing entry. Stop hooks latch input until its queue drains. `aiming/SlownessZoom` owns short potion leases and prior active-effect backups; AimManager delegates potion-change events so external replacements/removals suppress further scope refresh.

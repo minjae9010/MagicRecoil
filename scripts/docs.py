@@ -13,6 +13,7 @@ LINK = re.compile(r'(!?\[[^\]\n]+\]\()([^\)\n]+)(\))')
 PAGES = [
     ('README', 'Home', '문서 안내', 'Documentation'),
     ('getting-started', 'Getting-Started', '설치와 첫 발사', 'Getting started'),
+    ('compatibility', 'Compatibility', '버전 호환 안내', 'Version compatibility'),
     ('recoil-logic', 'Recoil-Logic', '반동 계산과 수평 규칙', 'Recoil logic'),
     ('configuration', 'Configuration', '설정 전체 표', 'Configuration'),
     ('integration', 'Integration', '기존 총기 연결', 'Gun integration'),
@@ -107,7 +108,7 @@ def export_wiki(output):
         (output / f'{name}.md').write_text(text, encoding='utf-8', newline='\n')
     home = '''# MagicRecoil Wiki
 
-v0.2.0-alpha.1 · Paper 1.21.11 · Java 21 · MagicSpells 4.0-Beta-18
+Source build v0.2.0-alpha.2 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
 
 기존 총기에 시점 반동을 연결하는 안내입니다. **설치 → 반동 규칙 → 총기 연결 → 실제 테스트** 순서로 읽으세요.
 
@@ -150,7 +151,7 @@ Experimental: server packets do not guarantee frame-level camera interpolation. 
     sidebar += '\n'.join(f'- [{en}](EN-{name})' for _, name, _, en in PAGES)
     sidebar += f'\n\n[GitHub]({REPO}) · [Releases]({REPO}/releases)\n'
     (output / '_Sidebar.md').write_text(sidebar, encoding='utf-8', newline='\n')
-    footer = f'[Wiki Home](Home) · [한국어](KO-Home) · [English](EN-Home) · [Source]({REPO})\n\nPaper 1.21.11 / MagicSpells 4.0-Beta-18 · Experimental / 실험 버전\n'
+    footer = f'[Wiki Home](Home) · [한국어](KO-Home) · [English](EN-Home) · [Source]({REPO})\n\nPaper 1.21.4+ / MagicSpells 4.0-Beta-17+ · Experimental / 실험 버전\n'
     (output / '_Footer.md').write_text(footer, encoding='utf-8', newline='\n')
     validate(list(output.glob('*.md')), wiki=True)
     print(f'PASS: {len(mapping) + 3} exported Wiki pages; page links and heading anchors verified.')

@@ -2,7 +2,7 @@
 
 [English](README.md) · [한국어](README.ko.md) · [Documentation](docs/en/README.md) · [한국어 문서](docs/ko/README.md) · [Wiki](https://github.com/minjae9010/MagicRecoil/wiki)
 
-**Relative camera recoil for existing MagicSpells guns on Paper 1.21.11.**
+**Camera recoil for existing MagicSpells guns on Paper 1.21.4 and newer.**
 
 MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damage, reload, sound, and firing logic; replace the recoil spell. Each shot adds small relative yaw/pitch impulses over server ticks. Players can compensate with normal mouse movement, and the default configuration never returns them to a saved camera angle.
 
@@ -55,20 +55,20 @@ Actual Minecraft 1.21.11 frames captured through MCP on a local Paper server: 18
 
 | Component | Supported target |
 | --- | --- |
-| Server | Paper **1.21.11**, tested on build **132** |
-| Java | **21** for both build and server |
-| MagicSpells | Official **4.0-Beta-18** release |
+| Server | Paper **1.21.4+**, with a compatible native rotation API |
+| Java | **21+**; use the Java version required by your server (26.x requires Java 25) |
+| MagicSpells | **4.0-Beta-17+**, including later beta, RC, and stable releases with compatible APIs |
 | Build | Gradle **9.3.0**, wrapper included |
 | ProtocolLib | Not required |
-| Client | Vanilla Java 1.21.11; no client mod required for basic recoil |
+| Client | Vanilla Java matching the server; no client mod required for basic recoil |
 
-The supplied `ms-MagicSpells-4.0-Beta-18.jar` filename alone does not establish binary identity: this project compiles against the checksum-pinned official release. That release includes its own shaded EffectLib. MagicRecoil has no separate EffectLib dependency; keep the dependencies required by your existing MagicSpells distribution. A separately supplied `ms-EffectLib-9.0.jar` was not available for testing.
+This project compiles against the checksum-pinned official MagicSpells Beta 17 API and checks the required API contracts at startup. A renamed JAR does not establish binary compatibility. That release includes its own shaded EffectLib. MagicRecoil has no separate EffectLib dependency; keep the dependencies required by your existing MagicSpells distribution. A separately supplied `ms-EffectLib-9.0.jar` was not available for testing.
 
-Other Minecraft versions, Folia, protocol translators, and modified MagicSpells builds are not validated. The plugin rejects server versions other than 1.21.11 and MagicSpells versions other than 4.0-Beta-18. The isolated rotation adapter makes a future 26.3 port possible; **26.3 support is not included**.
+Version equality locks have been removed. Newer releases are accepted when the required APIs remain compatible; incompatible APIs fail at startup with a diagnostic. The adapter automatically selects relative rotation where available and absolute rotation on older protocols. Absolute packets can overwrite mouse changes during network transit. Folia is unsupported; protocol translators and modified distributions need separate validation. See [Version compatibility](docs/en/compatibility.md) for the support policy and verification matrix.
 
 ## Install
 
-1. Download `MagicRecoil-0.2.0-alpha.1.jar` from [Releases](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.2.0-alpha.1), or build it below.
+1. Build the current `MagicRecoil-0.2.0-alpha.2.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
 2. Stop the server. Put the JAR in `plugins/` alongside MagicSpells. Do not place another copy inside `plugins/MagicSpells/`.
 3. Put the following spell in `plugins/MagicSpells/spells-recoil.yml`:
 
@@ -78,7 +78,7 @@ Other Minecraft versions, Folia, protocol translators, and modified MagicSpells 
      recoil: 2.5
    ```
 
-4. Start the server. Check for `Enabled relative rotation` and no missing/malformed spell classes.
+4. Start the server. Check for `Enabled rotation:` and no missing/malformed spell classes.
 5. From the console, try `ms cast as PlayerName MyGun_Recoil`. With appropriate MagicSpells permissions/spell ownership, players can use `/ms cast MyGun_Recoil`.
 6. For a real gun, follow [Integration](docs/en/integration.md) to gate recoil on successful shots and stop pending recoil on reload.
 
@@ -184,7 +184,7 @@ There is no global recoil `config.yml`: each MagicSpells spell owns its settings
 
 ## Build from source
 
-Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet access for Gradle, Paper's development bundle, the pinned MagicSpells release, and test dependencies.
+Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet access for Gradle, the Paper API, the pinned MagicSpells release, and test dependencies.
 
 ```sh
 # Linux / macOS
