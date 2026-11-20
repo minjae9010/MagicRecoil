@@ -109,15 +109,15 @@ def export_wiki(output):
         (output / f'{name}.md').write_text(text, encoding='utf-8', newline='\n')
     home = '''# MagicRecoil Wiki
 
-Source build v0.2.0-alpha.2 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
+Source build v0.3.0-alpha.2 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
 
 기존 총기에 시점 반동을 연결하는 안내입니다. **설치 → 반동 규칙 → 총기 연결 → 실제 테스트** 순서로 읽으세요.
 
 Relative camera recoil for existing MagicSpells guns. Follow **installation → recoil rules → integration → acceptance testing**.
 
-이번 릴리스는 **기존 아이템·탄약·재장전·반동을 유지하는 우클릭 연사와 좌클릭 Slowness 줌**을 추가합니다. 우클릭은 최대 5틱의 발사 버퍼를 보충하며 줌 중 실제 이동속도도 낮아집니다.
+이번 릴리스는 BeamSpell에서 헤드샷·방향·거리 피해를 지원합니다. HitSpell에는 데이터 팩으로 등록한 피해 유형을 지정할 수 있습니다.
 
-This release adds **right-click buffered fire and left-click Slowness zoom**, preserving the gun item and existing firing entry. Release can leave up to five ticks of queued work; scope also slows actual movement.
+This release connects BeamSpell to headshots, directional damage, and distance falloff. HitSpell can use damage types registered by a data pack.
 
 ## 바로 시작 / Start here
 

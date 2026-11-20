@@ -1,5 +1,6 @@
 package dev.magicrecoil.hit;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
 
@@ -12,7 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public record HitSettings(double range, double damage, boolean powerAffectsDamage,
+public record HitSettings(double range, double damage, NamespacedKey damageType, boolean powerAffectsDamage,
                           double headshotHeight, double headshotMultiplier, Set<EntityType> headshotEntities,
                           double verticalAngle, Map<HitDirection, Double> directionMultipliers,
                           List<DistancePoint> distanceDamage, Map<String, String> hooks) {
@@ -83,10 +84,20 @@ public record HitSettings(double range, double damage, boolean powerAffectsDamag
 
         return new HitSettings(number(config.get("range", 64), "range", 0.1, 512),
                 number(config.get("damage", 4), "damage", 0, 1_000_000),
+                damageType(config),
                 bool(config, "power-affects-damage", true),
                 number(config.get("headshot-height", 0.25), "headshot-height", 0.01, 1),
                 number(config.get("headshot-multiplier", 2), "headshot-multiplier", 0, 100), entities,
                 number(config.get("vertical-angle", 45), "vertical-angle", 1, 90), directions, points, hooks);
+    }
+
+    private static NamespacedKey damageType(ConfigurationSection config) {
+        Object raw = config.get("damage-type", "minecraft:arrow");
+        if (raw instanceof String name) {
+            NamespacedKey key = NamespacedKey.fromString(name);
+            if (key != null) return key;
+        }
+        throw invalid("damage-type", "must be a valid key, such as minecraft:arrow");
     }
 
     /** Linear interpolation, clamped to the first/last configured multiplier. */

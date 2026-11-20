@@ -120,12 +120,12 @@ class AimManagerTest {
     @Test void nonToggleIsIdempotentAndDifferentAimReplacesWithoutStacking() throws Exception {
         try (var f = new Fixture()) {
             var s = settings("toggle: false");
-            f.manager.cast(f.player, "a", s); f.manager.cast(f.player, "a", s);
+            f.manager.cast(f.player, "a", s); f.manager.cast(f.player, "A", s);
             verify(f.speed).addTransientModifier(any()); assertEquals(1, f.manager.activePlayers());
             f.manager.cast(f.player, "b", settings("movement-speed-multiplier: 0.3\nrecoil-multiplier: 0.2"));
             assertEquals(-0.7, f.modifiers.get(SPEED).getAmount(), 1e-9);
             f.manager.stopSpell("a"); assertEquals(1, f.manager.activePlayers());
-            f.manager.stopSpell("b"); assertEquals(0, f.manager.activePlayers());
+            f.manager.stopSpell("B"); assertEquals(0, f.manager.activePlayers());
         }
     }
 

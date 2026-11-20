@@ -20,8 +20,8 @@ if (base === directory || directory.startsWith(base + path.sep) || base.startsWi
 }
 const port = Number(option('port', '25588'));
 const java = option('java', 'java');
-const addon = path.resolve(option('addon-jar', path.join(root, 'build/libs/MagicRecoil-0.3.0-alpha.1.jar')));
-const probe = path.resolve(option('probe-jar', path.join(root, 'build/runtime-probe/MagicRecoilProbe-0.3.0-alpha.1.jar')));
+const addon = path.resolve(option('addon-jar', path.join(root, 'build/libs/MagicRecoil-0.3.0-alpha.2.jar')));
+const probe = path.resolve(option('probe-jar', path.join(root, 'build/runtime-probe/MagicRecoilProbe-0.3.0-alpha.2.jar')));
 fs.mkdirSync(directory, { recursive: true });
 for (const name of ['cache', 'libraries', 'versions']) {
   if (fs.existsSync(path.join(base, name)) && !fs.existsSync(path.join(directory, name))) {

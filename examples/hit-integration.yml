@@ -1,5 +1,5 @@
-# Standalone hitscan example plus a fragment for existing ParticleProjectileSpell guns.
-# 즉시 명중 예제와 기존 파티클 발사체 연동 예제입니다. 실제 무기의 탄약/재장전 조건을 유지하세요.
+# Ray and beam firing examples and a callback for existing ParticleProjectileSpell guns.
+# 즉시 명중, 빔 사격, 기존 파티클 발사체 연동 예제입니다. 실제 무기의 탄약/재장전 조건을 유지하세요.
 
 # Option A: one ray shot, followed by the existing recoil spell.
 # 방식 A: 레이캐스트 사격 후 기존 반동을 실행합니다. 빗나가도 정상 발사이므로 반동이 발생합니다.
@@ -71,6 +71,39 @@ Weapon_Projectile_Hit:
   spell-on-right: Weapon_Right_Effect
   spell-on-above: Weapon_Above_Effect
   spell-on-below: Weapon_Below_Effect
+
+# Option C: reuse MagicSpells' beam and apply the same HitSpell damage as Option A.
+# 방식 C: MagicSpells 빔으로 발사하고 방식 A와 같은 HitSpell을 적용합니다.
+Weapon_Beam_Fire:
+  spell-class: .MultiSpell
+  spells:
+    - "Weapon_Beam(targeting=none)"
+    - Weapon_Beam_Recoil
+
+Weapon_Beam:
+  spell-class: dev.magicrecoil.spells.BeamHitSpell
+  helper-spell: true
+  can-target: [players, nonplayers]
+  relative-offset: 0, 1.62, 0
+  interval: 1
+  max-distance: 64
+  hit-radius: 0.5
+  vertical-hit-radius: 0.5
+  stop-on-hit-entity: false
+  stop-on-hit-ground: true
+  spell: "Weapon_Ray_Hit(targeting=entity_from_location)"
+  effects:
+    trail:
+      position: special
+      effect: particles
+      particle-name: enchanted_hit
+      count: 1
+
+Weapon_Beam_Recoil:
+  spell-class: dev.magicrecoil.spells.RecoilSpell
+  helper-spell: true
+  recoil: 2.5
+  require-success-of: Weapon_Beam
 
 # Replace these harmless dummy effects with your own subspells.
 # 아래 더미 효과를 원하는 후속 스펠로 바꾸세요. damage: 0이면 판정과 연계만 실행합니다.

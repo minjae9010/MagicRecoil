@@ -9,6 +9,7 @@
 
 - [Instant ray shots](#instant-ray-shots)
 - [Connect an existing particle projectile](#connect-an-existing-particle-projectile)
+- [Connect an existing BeamSpell](#connect-an-existing-beamspell)
 - [Direction and headshot rules](#direction-and-headshot-rules)
 - [Damage and option ranges](#damage-and-option-ranges)
 - [Cast spells on impact](#cast-spells-on-impact)
@@ -53,6 +54,23 @@ Replace the old damage callback to avoid applying damage twice. Recoil runs **im
 
 The callback reconstructs the travel line's entry into the real body box. A radius-only grazing collision counts as a bodyshot. Other projectile classes and arbitrary location casts are unsupported; callbacks without a captured launch origin apply neither damage nor follow-up spells.
 
+## Connect an existing BeamSpell
+
+Update the class and entity-hit callback on your existing beam.
+
+```yaml
+MyGun_Beam:
+  spell-class: dev.magicrecoil.spells.BeamHitSpell
+  can-target: [players, nonplayers]
+  relative-offset: 0, 1.62, 0
+  max-distance: 64
+  stop-on-hit-entity: false
+  stop-on-hit-ground: true
+  spell: "MyGun_Hit(targeting=entity_from_location)"
+```
+
+The native beam handles trail effects, ground collisions, target conditions, range, and piercing. Point `spell` directly at a synchronous `HitSpell` callback. The callback recovers entry into the target's body box from the sampled beam path. A radius-only collision counts as a bodyshot. Damage falloff uses the straight-line distance from the beam origin to the impact. Set recoil's `require-success-of` to `MyGun_Beam`. [Complete YAML example](../../examples/hit-integration.yml)
+
 ## Direction and headshot rules
 
 Direction is the side **from which the attack arrives relative to the victim's horizontal facing**. Looking up or down does not rotate these horizontal axes.
@@ -82,6 +100,7 @@ Bodyshots use a headshot multiplier of 1. `power-affects-damage: false` also rep
 | `range` | 64 | 0.1..512 blocks, ray shots only |
 | `damage` | 4 | 0..1,000,000 health points; 2 points = one heart |
 | `power-affects-damage` | true | YAML boolean |
+| `damage-type` | `minecraft:arrow` | Registered Minecraft damage type key, including data packs |
 | `headshot-entities` | `[PLAYER]` | Bukkit entity type names; may be empty |
 | `headshot-height` | 0.25 | 0.01..1, upper bounding-box fraction; swimming/gliding players also include their eye height |
 | `headshot-multiplier` | 2 | 0..100 |
@@ -89,7 +108,7 @@ Bodyshots use a headshot multiplier of 1. `power-affects-damage: false` also rep
 | `direction-multipliers` | all 1 | Lowercase direction keys; each 0..100 |
 | `distance-damage` | `[{distance: 0, multiplier: 1}]` | 1..128 points; distance 0..1,000,000, multiplier 0..100 |
 
-Damage passes through `SpellApplyDamageEvent` and Paper's normal damage API. Its damage type is arrow, credited to the caster. Armor, resistance, shields, invulnerability frames, and other plugins may change actual health loss. The spell does not subtract health directly or reset invulnerability frames. Target events, `can-target`, and world PvP restrictions for player-versus-player hits remain effective.
+Damage passes through `SpellApplyDamageEvent` and Paper's normal damage API. Both receive the configured damage type, and the damage is credited to the caster. Install the data pack before server startup to use a custom key such as `shardra:shoot_dot`. An unregistered key disables the spell and produces a configuration error. Actual health loss can vary with the damage type's tags, armor, effects, shields, and other plugins. Target events, `can-target`, and world PvP restrictions still apply.
 
 ## Cast spells on impact
 

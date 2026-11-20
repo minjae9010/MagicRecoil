@@ -15,6 +15,7 @@ Connect recoil while preserving the existing firing, ammunition, and reload logi
 - [`/ms reload`](#ms-reload)
 - [Troubleshooting](#troubleshooting)
 - [Adding ADS to a Buff gun](#adding-ads-to-a-buff-gun)
+- [Single-shot click timing](#single-shot-click-timing)
 <!-- toc:end -->
 
 ## Preserve the gun, replace the recoil
@@ -123,3 +124,7 @@ This supports numeric changes and newly added recoil spells with `/ms reload`. I
 ## Adding ADS to a Buff gun
 
 Follow [ADS ownership and Buff integration](aim-and-input.md#recoil-and-existing-buff-guns) and the [Paimon merge example](../../examples/aim-paimon.yml). For the new layout, bind ADS to left click and register AutoFireSpell through use-item. Retain the complete successful-fire path and add StopAimSpell / StopAutoFireSpell to eventless reload chains. See the [right-click firing fragment](../../examples/right-click-paimon.yml). Extract PassiveSpell shot processing into an ordinary synchronous firing entry; do not replace it with a direct Beam call or run both firing loops together.
+
+## Single-shot click timing
+
+The MagicSpells Beta 18 `left-click-cast-item` and `right-click-cast-item` bindings skip further clicks within the default 500 ms `global-cooldown`. Set `ignore-global-cooldown: true` on the firing spell with the click binding to bypass that check for the spell. Its own `cooldown`, ammunition, and reload rules still apply. `AutoFireSpell` has a separate `interval-ticks` setting.

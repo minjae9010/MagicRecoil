@@ -1,6 +1,7 @@
 package dev.magicrecoil.spells;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
@@ -11,6 +12,8 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellData;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import dev.magicrecoil.MagicRecoilPlugin;
 import dev.magicrecoil.hit.HitResult;
 import dev.magicrecoil.hit.HitGeometry;
@@ -29,12 +32,15 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-/** Instant ray shots, or a direct ParticleProjectileSpell entity-hit callback. */
+/** Instant ray shots, particle projectile callbacks, and native beam callbacks. */
 public final class HitSpell extends InstantSpell implements TargetedEntityFromLocationSpell, TargetedEntitySpell {
     private final HitSettings settings;
     private final Map<String, Subspell> hooks = new HashMap<>();
     private final ProjectileHitContexts projectiles = new ProjectileHitContexts();
+    private BeamHit beamHit;
+    private DamageType damageType;
     private boolean ready;
     private boolean processing;
 
@@ -49,8 +55,14 @@ public final class HitSpell extends InstantSpell implements TargetedEntityFromLo
     @Override
     protected void initialize() {
         super.initialize();
-        ready = true;
         hooks.clear();
+        damageType = RegistryAccess.registryAccess().getRegistry(RegistryKey.DAMAGE_TYPE).get(settings.damageType());
+        ready = damageType != null;
+        if (!ready) {
+            MagicSpells.error(getInternalName() + ": damage-type '" + settings.damageType()
+                    + "' is not registered; load its data pack before starting the server.");
+            return;
+        }
         settings.hooks().forEach((key, name) -> {
             Subspell hook = new Subspell(name);
             if (!hook.process() || hook.getSpell() == this) {
@@ -63,7 +75,7 @@ public final class HitSpell extends InstantSpell implements TargetedEntityFromLo
     /** A miss is still a successfully fired shot, so normal recoil gating works. */
     @Override
     public CastResult cast(SpellData data) {
-        if (!available(data) || processing) return skipped(data);
+        if (!available(data) || processing || beamHit != null) return skipped(data);
         Location origin = data.caster().getEyeLocation();
         Vector incoming = origin.getDirection();
         var ray = origin.getWorld().rayTrace(origin, incoming, settings.range(), FluidCollisionMode.NEVER, true, 0,
@@ -85,6 +97,12 @@ public final class HitSpell extends InstantSpell implements TargetedEntityFromLo
     @Override
     public CastResult castAtEntityFromLocation(SpellData data) {
         if (!available(data) || processing || data.target() == null || data.location() == null) return skipped(data);
+        BeamHit beam = beamHit;
+        if (beam != null) {
+            if (!beam.matches(data)) return skipped(data);
+            beamHit = null;
+            return applyHit(data, beam.origin(), beam.incoming(), beam.precise());
+        }
         var context = projectiles.consume(data.caster().getUniqueId(), data.target().getUniqueId(), Bukkit.getCurrentTick());
         // Never substitute the shooter's current position for an unknown launch position.
         if (context == null || !context.origin().getWorld().equals(data.location().getWorld())) return skipped(data);
@@ -92,6 +110,20 @@ public final class HitSpell extends InstantSpell implements TargetedEntityFromLo
                 context.incoming(), data.target().getBoundingBox(), context.radius());
         Location sample = impact.position().toLocation(data.location().getWorld());
         return applyHit(data.location(sample), context.origin(), context.incoming(), impact.precise());
+    }
+
+    Spell.SpellCastResult subcastFromBeam(Subspell callback, SpellData data, Location origin, Vector incoming, boolean precise) {
+        BeamHit outer = beamHit;
+        beamHit = new BeamHit(data, origin, incoming, precise);
+        try { return callback.subcast(data, false, false); }
+        finally { beamHit = outer; }
+    }
+
+    private record BeamHit(SpellData impact, Location origin, Vector incoming, boolean precise) {
+        private boolean matches(SpellData data) {
+            return Objects.equals(impact.caster(), data.caster()) && Objects.equals(impact.target(), data.target())
+                    && Objects.equals(impact.location(), data.location());
+        }
     }
 
     /** Prevent MagicSpells' entity-first projectile ordering from falling back to a new ray shot. */
@@ -132,11 +164,11 @@ public final class HitSpell extends InstantSpell implements TargetedEntityFromLo
         processing = true;
         try {
             if (result.damage() > 0) {
-                var damageEvent = new SpellApplyDamageEvent(this, data.caster(), target, result.damage(), DamageType.ARROW, "magicrecoil");
+                var damageEvent = new SpellApplyDamageEvent(this, data.caster(), target, result.damage(), damageType, "magicrecoil");
                 damageEvent.callEvent();
                 double damage = damageEvent.getFinalDamage();
                 if (Double.isFinite(damage) && damage > 0) {
-                    var source = DamageSource.builder(DamageType.ARROW).withDamageLocation(origin)
+                    var source = DamageSource.builder(damageType).withDamageLocation(origin)
                             .withCausingEntity(data.caster()).withDirectEntity(data.caster()).build();
                     target.damage(damage, source);
                 }

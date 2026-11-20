@@ -66,6 +66,7 @@ public final class AimManager implements Listener {
     public boolean cast(Player player, String spell, AimSettings settings) {
         requireMainThread();
         if (!settings.enabled() || !plugin.isEnabled() || !player.isOnline() || player.isDead()) return false;
+        spell = spell.toLowerCase(Locale.ROOT);
         Session current = sessions.get(player.getUniqueId());
         if (current != null && current.spell.equals(spell)) {
             if (settings.toggle()) stop(player.getUniqueId());
@@ -141,7 +142,8 @@ public final class AimManager implements Listener {
 
     public void stopSpell(String spell) {
         requireMainThread();
-        for (UUID id : List.copyOf(sessions.keySet())) if (sessions.get(id).spell.equals(spell)) stop(id);
+        String normalized = spell.toLowerCase(Locale.ROOT);
+        for (UUID id : List.copyOf(sessions.keySet())) if (sessions.get(id).spell.equals(normalized)) stop(id);
     }
 
     public void clear() {

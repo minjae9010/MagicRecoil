@@ -111,8 +111,8 @@ try:
     wait_for('Done (', timeout=120)
     assert 'Enabled rotation:' in output(), output()[-6000:]
     assert 'invalid spell class' not in output().lower(), output()[-6000:]
-    command('gamerule doMobSpawning false')
-    command('gamerule doDaylightCycle false')
+    command('gamerule minecraft:spawn_mobs false')
+    command('gamerule minecraft:advance_time false')
     command('scoreboard objectives add mrhooks dummy')
     (server / 'packets.jsonl').write_text('', encoding='utf-8')
     env = dict(os.environ, RECOIL_TEST_PORT=str(args.port), RECOIL_TEST_VERSION='1.21.11')
@@ -207,6 +207,19 @@ try:
     command('ms cast as RecoilProbe MR_Hit')
     time.sleep(.6)
     check('ray_after_reload', (7998, 8002), {'hit': 1, 'head': 1, 'back': 1})
+    setup()
+    command('ms cast as RecoilProbe MR_Beam')
+    time.sleep(.6)
+    check('beam_head_back_after_reload', (7998, 8002), {'hit': 1, 'head': 1, 'back': 1})
+    setup(z=-4.2)
+    command('ms cast as RecoilProbe MR_Beam')
+    time.sleep(.6)
+    check('beam_head_on_first_step', (7998, 8002), {'hit': 1, 'head': 1, 'back': 1})
+    setup()
+    command('tp RecoilProbe 0.95 -60 -5.5 0 0')
+    command('ms cast as RecoilProbe MR_Beam')
+    time.sleep(.6)
+    check('beam_radius_only_is_bodyshot', (13998, 14002), {'hit': 1, 'body': 1, 'back': 1})
     assert 'NoSuchMethodError' not in output() and 'NoClassDefFoundError' not in output(), output()[-6000:]
     print('ALL HIT RUNTIME CHECKS PASSED', flush=True)
 finally:

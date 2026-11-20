@@ -38,6 +38,18 @@ MR_AimKeep:
 MR_Fire:
   spell-class: .MultiSpell
   spells: ["MR_Hit(targeting=none)", MR_Recoil]
+MR_Beam:
+  spell-class: dev.magicrecoil.spells.BeamHitSpell
+  helper-spell: true
+  can-target: [villager]
+  relative-offset: 0, 1.62, 0
+  interval: 1
+  hit-radius: 0.5
+  vertical-hit-radius: 0.5
+  max-distance: 64
+  stop-on-hit-entity: false
+  stop-on-hit-ground: true
+  spell: "MR_Hit(targeting=entity_from_location)"
 MR_Projectile:
   spell-class: .instant.ParticleProjectileSpell
   projectile-velocity: 10

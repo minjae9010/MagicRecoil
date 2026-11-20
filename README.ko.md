@@ -10,7 +10,7 @@
 
 처음 사용하면 **[빠른 시작](docs/ko/getting-started.md)**부터 읽으세요. 수평 반동 문제는 **[증상별 진단](docs/ko/troubleshooting.md)**, 전체 문서 탐색은 **[문서 안내](docs/ko/README.md)** 또는 **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)**에서 시작할 수 있습니다.
 
-현재 릴리스: **[v0.3.0-alpha.1](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.1)** — 기존 반동·우클릭 연사·줌에 헤드샷·6방향·거리 데미지·적중 스펠을 추가했습니다.
+이번 릴리스는 BeamSpell에 헤드샷·방향·거리 피해를 연결하고 레지스트리에 등록된 피해 유형을 지원합니다. [v0.3.0-alpha.2](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.2)
 
 <!-- toc:start -->
 ## 목차
@@ -92,7 +92,7 @@ MyGun_Hit:
 
 ## 설치
 
-1. 아래 방법으로 현재 `MagicRecoil-0.3.0-alpha.1.jar`를 빌드하거나, [Releases](https://github.com/minjae9010/MagicRecoil/releases)에서 필요한 호환 범위의 배포본을 선택합니다.
+1. 아래 방법으로 현재 `MagicRecoil-0.3.0-alpha.2.jar`를 빌드하거나, [Releases](https://github.com/minjae9010/MagicRecoil/releases)에서 필요한 호환 범위의 배포본을 선택합니다.
 2. 서버를 종료하고 MagicSpells와 함께 `plugins/`에 넣습니다. `plugins/MagicSpells/` 안에는 중복 JAR을 넣지 않습니다.
 3. `plugins/MagicSpells/spells-recoil.yml`에 다음 주문을 작성합니다.
 
@@ -222,7 +222,7 @@ JDK 21을 설치하고 `JAVA_HOME`을 설정합니다. 최초 빌드는 Gradle, 
 ./gradlew clean build
 ```
 
-설치할 파일은 `build/libs/MagicRecoil-0.3.0-alpha.1.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
+설치할 파일은 `build/libs/MagicRecoil-0.3.0-alpha.2.jar`입니다. `-sources.jar`는 소스 배포용입니다. 완성 JAR에는 Paper, Minecraft, MagicSpells, ProtocolLib, EffectLib을 포함하지 않습니다. `./gradlew test`의 보고서는 `build/reports/tests/test/index.html`에 생성됩니다. GitHub Actions에서도 Linux와 Windows 빌드·테스트를 수행합니다.
 
 ## 도입 전에 확인할 한계
 

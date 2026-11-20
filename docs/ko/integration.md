@@ -16,6 +16,7 @@
 - [문제 해결](#문제-해결)
 - [Buff 총기에 조준 추가](#buff-총기에-조준-추가)
 - [우클릭 연사 연동](#우클릭-연사-연동)
+- [단발 클릭 간격](#단발-클릭-간격)
 <!-- toc:end -->
 
 ## 총기 동작을 유지하고 반동만 교체하기
@@ -128,3 +129,7 @@ Beta 18은 기존 주문을 정리하고 외부 클래스 로더 목록을 비�
 ## 우클릭 연사 연동
 
 선택 AutoFireSpell은 우클릭 입력과 발사 처리 주문의 호출 주기만 관리합니다. 탄약·발사체·데미지·재장전은 기존 MagicSpells 주문에 남깁니다. [전체 입력 설정](aim-and-input.md#우클릭-자동-사격)과 [파이먼 연사 예제](../../examples/right-click-paimon.yml)를 참고하세요. 새 조작에서는 좌클릭을 조준에 배정하고 기존 Buff의 마우스 바인딩을 제거합니다. PassiveSpell의 성공 처리 전체를 일반 동기 발사 진입점으로 분리하여 호출하며 두 연사 루프를 동시에 실행하지 마세요. 이벤트 없는 재장전에는 StopAutoFireSpell을 맨 앞에 추가합니다.
+
+## 단발 클릭 간격
+
+MagicSpells Beta 18의 `left-click-cast-item`과 `right-click-cast-item`은 기본 `global-cooldown` 500ms 안에 들어온 추가 클릭을 건너뜁니다. 클릭이 직접 연결된 발사 주문에 `ignore-global-cooldown: true`를 추가하면 해당 주문에만 이 제한을 해제합니다. 총기별 `cooldown`과 탄약·재장전 조건은 그대로 적용됩니다. `AutoFireSpell`은 별도의 `interval-ticks` 설정을 사용합니다.

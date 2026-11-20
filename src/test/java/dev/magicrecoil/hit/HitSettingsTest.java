@@ -30,12 +30,18 @@ class HitSettingsTest {
     @Test void defaultsAreConstantWithoutDistanceConfiguration() throws Exception {
         var settings = settings("");
         assertEquals(4, settings.damage());
+        assertEquals("minecraft:arrow", settings.damageType().toString());
         assertEquals(1, settings.distanceMultiplier(200));
         assertEquals(1, settings.directionMultipliers().get(HitDirection.BACK));
     }
 
+    @Test void preservesCustomDamageTypeKeyForRegistryLookup() throws Exception {
+        assertEquals("example:beam", settings("damage-type: example:beam").damageType().toString());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"damage: .nan", "damage: .inf", "damage: -1", "damage: '4'", "range: 0", "range: 513",
+            "damage-type: 4", "damage-type: ''", "damage-type: Example:Beam",
             "headshot-height: 0", "headshot-height: 1.1", "headshot-multiplier: -1", "vertical-angle: 0", "vertical-angle: 91",
             "power-affects-damage: 'false'", "headshot-entities: PLAYER", "headshot-entities: [typo]",
             "distance-damage: []", "distance-damage: 2", "distance-damage: [1]",

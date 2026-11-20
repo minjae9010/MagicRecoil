@@ -9,6 +9,7 @@
 
 - [즉시 명중 사격](#즉시-명중-사격)
 - [기존 파티클 발사체에 연결](#기존-파티클-발사체에-연결)
+- [기존 BeamSpell에 연결](#기존-beamspell에-연결)
 - [방향과 헤드샷 규칙](#방향과-헤드샷-규칙)
 - [데미지와 설정 범위](#데미지와-설정-범위)
 - [적중 시 스펠 연계](#적중-시-스펠-연계)
@@ -53,6 +54,23 @@ spell-on-hit-entity: "MyGun_Hit(targeting=entity_from_location)"
 
 발사체의 실제 몸체 교차점을 복원하여 헤드샷을 판단합니다. 충돌 반경에만 걸리고 실제 탄도가 몸체와 교차하지 않으면 몸통으로 처리합니다. 다른 발사체 종류나 임의의 위치 호출은 지원하지 않으며, 발사 원점이 없는 호출은 데미지와 연계를 실행하지 않습니다.
 
+## 기존 BeamSpell에 연결
+
+기존 빔 주문에서 클래스와 엔티티 적중 콜백을 바꿉니다.
+
+```yaml
+MyGun_Beam:
+  spell-class: dev.magicrecoil.spells.BeamHitSpell
+  can-target: [players, nonplayers]
+  relative-offset: 0, 1.62, 0
+  max-distance: 64
+  stop-on-hit-entity: false
+  stop-on-hit-ground: true
+  spell: "MyGun_Hit(targeting=entity_from_location)"
+```
+
+MagicSpells의 빔이 궤적 효과, 벽 충돌, 대상 조건, 사거리와 관통을 처리합니다. `spell`에 `HitSpell`을 동기 콜백으로 직접 연결합니다. 빔의 중심선이 몸체와 교차한 위치로 헤드샷을 판정하고, 충돌 반경에만 걸린 대상은 몸통으로 처리합니다. 거리 배율에는 빔 원점부터 명중점까지의 직선 거리를 사용합니다. 반동의 `require-success-of`에는 `MyGun_Beam`을 지정합니다. [전체 YAML 예제](../../examples/hit-integration.yml)
+
 ## 방향과 헤드샷 규칙
 
 방향은 **피격자의 수평 시선 기준으로 공격이 들어온 쪽**입니다. 피격자의 위아래 시선 기울기는 수평 기준을 바꾸지 않습니다.
@@ -82,6 +100,7 @@ spell-on-hit-entity: "MyGun_Hit(targeting=entity_from_location)"
 | `range` | 64 | 0.1..512 블록, 즉시 사격만 사용 |
 | `damage` | 4 | 0..1,000,000 체력 단위, 2가 하트 한 칸 |
 | `power-affects-damage` | true | 실제 YAML boolean |
+| `damage-type` | `minecraft:arrow` | 데이터팩을 포함한 Minecraft 레지스트리의 피해 유형 키 |
 | `headshot-entities` | `[PLAYER]` | Bukkit 엔티티 종류 이름 목록, 빈 목록 허용 |
 | `headshot-height` | 0.25 | 0.01..1, 충돌 상자 위쪽 비율. 수영·활강 플레이어의 눈높이 포함 보정 적용 |
 | `headshot-multiplier` | 2 | 0..100 |
@@ -89,7 +108,7 @@ spell-on-hit-entity: "MyGun_Hit(targeting=entity_from_location)"
 | `direction-multipliers` | 모든 방향 1 | 소문자 방향 키, 각 0..100 |
 | `distance-damage` | `[{distance: 0, multiplier: 1}]` | 1..128개 지점, 거리 0..1,000,000, 배율 0..100 |
 
-`SpellApplyDamageEvent`를 발생시킨 뒤 Paper의 일반 피해 API를 사용합니다. 피해 유형은 화살이며 시전자에게 공격 책임을 부여합니다. 방어구·저항·방패·무적 시간·다른 플러그인으로 실제 체력 감소량이 달라질 수 있습니다. 체력을 직접 차감하거나 무적 시간을 강제로 초기화하지 않습니다. `SpellTargetEvent`와 `can-target` 조건, 플레이어 간 월드 PvP 설정을 따릅니다.
+`SpellApplyDamageEvent`와 Paper의 피해 API에 설정한 피해 유형을 전달하고 시전자에게 공격 책임을 부여합니다. `shardra:shoot_dot` 같은 커스텀 유형은 서버 시작 전에 데이터팩을 설치해야 합니다. 등록되지 않은 키는 설정 오류를 기록하고 해당 스펠의 피해 처리를 중단합니다. 피해 유형 태그·방어구·저항·방패·다른 플러그인에 따라 실제 체력 감소량이 달라질 수 있습니다. `SpellTargetEvent`와 `can-target` 조건, 월드 PvP 설정도 적용됩니다.
 
 ## 적중 시 스펠 연계
 

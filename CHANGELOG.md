@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.3.0-alpha.2 — 2026-11-20
+
+- Add `BeamHitSpell` integration for native MagicSpells beams, including hit geometry, headshots, direction and distance multipliers, and existing beam effects and piercing.
+- Resolve optional `HitSpell` damage types from the server registry, including data-pack keys. The default is `minecraft:arrow`.
+- Normalize aim spell names when starting and stopping aim. Document how MagicSpells' global click cooldown affects single-shot firing.
+- Add a complete beam firing example and runtime coverage for the first beam step, grazing hits, and `/ms reload`.
+
 ## 0.3.0-alpha.1 — 2026-11-16
 
 - Add optional HitSpell with ray shots and particle-projectile callbacks, six victim-relative directions, linearly interpolated distance damage, and hit/head/body/direction subspells.
