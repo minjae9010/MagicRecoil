@@ -15,7 +15,7 @@ PAGES = [
     ('getting-started', 'Getting-Started', '설치와 첫 발사', 'Getting started'),
     ('compatibility', 'Compatibility', '버전 호환 안내', 'Version compatibility'),
     ('recoil-logic', 'Recoil-Logic', '반동 계산과 수평 규칙', 'Recoil logic'),
-    ('configuration', 'Configuration', '설정 전체 표', 'Configuration'),
+    ('configuration', 'Configuration', '설정 속성 안내', 'Spell settings'),
     ('integration', 'Integration', '기존 총기 연결', 'Gun integration'),
     ('hit-detection', 'Hit-Detection', '명중 판정과 적중 스펠', 'Hit detection and callbacks'),
     ('aim-and-input', 'Aiming', '조준과 입력 한계', 'Aiming and input limits'),
@@ -85,7 +85,7 @@ def validate(paths, wiki=False):
         raise SystemExit('\n'.join(errors))
 
 
-def export_wiki(output):
+def export_wiki(output, source_ref='main'):
     mapping = {ROOT / 'README.md': 'EN-Overview', ROOT / 'README.ko.md': 'KO-Overview'}
     for lang in ('ko', 'en'):
         for source, name, _, _ in PAGES:
@@ -102,31 +102,28 @@ def export_wiki(output):
                 converted = mapping[resolved]
             else:
                 relative = quote(resolved.relative_to(ROOT).as_posix())
-                base = 'https://raw.githubusercontent.com/minjae9010/MagicRecoil/main/' if match[1].startswith('![') else REPO + '/blob/main/'
-                converted = base + relative
+                base = 'https://raw.githubusercontent.com/minjae9010/MagicRecoil/' if match[1].startswith('![') else REPO + '/blob/'
+                converted = base + quote(source_ref, safe='') + '/' + relative
             return match[1] + converted + (separator + fragment if separator else '') + match[3]
         text = LINK.sub(replace, source.read_text(encoding='utf-8'))
         (output / f'{name}.md').write_text(text, encoding='utf-8', newline='\n')
     home = '''# MagicRecoil Wiki
 
-Source build v0.3.0-alpha.2 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
+v0.3.0-alpha.3 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
 
-기존 총기에 시점 반동을 연결하는 안내입니다. **설치 → 반동 규칙 → 총기 연결 → 실제 테스트** 순서로 읽으세요.
+MagicRecoil은 Minecraft에서 발사할 때 시점이 얼마나 움직이는지, 조준 중에 이동 속도가 어떻게 바뀌는지, 명중하면 어떤 효과가 발생하는지 주문별로 설정합니다.
 
-Relative camera recoil for existing MagicSpells guns. Follow **installation → recoil rules → integration → acceptance testing**.
-
-이번 릴리스는 BeamSpell에서 헤드샷·방향·거리 피해를 지원합니다. HitSpell에는 데이터 팩으로 등록한 피해 유형을 지정할 수 있습니다.
-
-This release connects BeamSpell to headshots, directional damage, and distance falloff. HitSpell can use damage types registered by a data pack.
+Configure how the camera kicks when a player fires, how fast they move while aiming, and what happens when a shot hits.
 
 ## 바로 시작 / Start here
 
-- **처음 설치:** [설치와 첫 발사](KO-Getting-Started)
-- **수평이 안 움직임:** [수평 반동 진단](KO-Troubleshooting#수평-반동이-없음)
-- **반동 숫자 이해:** [계산식과 패턴](KO-Recoil-Logic)
-- **우클릭 연사·좌클릭 줌:** [설정과 파이먼 연결](KO-Aiming#우클릭-자동-사격)
-- **Right-click fire / left-click zoom:** [Controls and setup](EN-Aiming#right-click-automatic-fire)
-- **English:** [Documentation home](EN-Home)
+| 하고 싶은 일 / Goal | 한국어 | English |
+| --- | --- | --- |
+| 처음 설치하고 게임에서 확인 / Try a first shot | [설치와 첫 발사](KO-Getting-Started) | [Getting started](EN-Getting-Started) |
+| 한 발의 세기 바꾸기 / Adjust the kick | [예시로 읽는 설정](KO-Configuration#예시로-읽는-설정) | [Read a spell by example](EN-Configuration#read-a-spell-by-example) |
+| 조준할 때 속도와 반동 조정 / Tune aim | [조준 속성](KO-Configuration#조준-속성) | [Aim settings](EN-Configuration#aim-settings) |
+| 명중 피해와 헤드샷 조정 / Tune hit damage | [명중 속성](KO-Hit-Detection#데미지와-설정-범위) | [Hit properties](EN-Hit-Detection#damage-and-option-ranges) |
+| 좌우 반동이 보이지 않음 / No sideways kick | [수평 반동 진단](KO-Troubleshooting#수평-반동이-없음) | [Troubleshooting](EN-Troubleshooting) |
 
 ## 문서 지도 / Documentation map
 
@@ -162,6 +159,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='Validate without rewriting tables of contents')
     parser.add_argument('--export-wiki', type=Path, help='Export bilingual pages, Home, sidebar and footer')
+    parser.add_argument('--wiki-ref', default='main', help='Git ref for example and media links on exported pages')
     args = parser.parse_args()
     paths = [ROOT / 'README.md', ROOT / 'README.ko.md', *sorted((ROOT / 'docs').glob('**/*.md')),
              ROOT / 'CONTRIBUTING.md', ROOT / 'tests/runtime/README.md']
@@ -175,7 +173,7 @@ def main():
     validate(paths)
     print(f'PASS: {len(paths)} documents; tables of contents, local links, and heading anchors verified.')
     if args.export_wiki:
-        export_wiki(args.export_wiki.resolve())
+        export_wiki(args.export_wiki.resolve(), args.wiki_ref)
 
 
 if __name__ == '__main__':

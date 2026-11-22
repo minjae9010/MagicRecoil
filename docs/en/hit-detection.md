@@ -56,7 +56,7 @@ The callback reconstructs the travel line's entry into the real body box. A radi
 
 ## Connect an existing BeamSpell
 
-Update the class and entity-hit callback on your existing beam.
+Update the class and the entity-hit callback on your existing beam.
 
 ```yaml
 MyGun_Beam:
@@ -69,7 +69,9 @@ MyGun_Beam:
   spell: "MyGun_Hit(targeting=entity_from_location)"
 ```
 
-The native beam handles trail effects, ground collisions, target conditions, range, and piercing. Point `spell` directly at a synchronous `HitSpell` callback. The callback recovers entry into the target's body box from the sampled beam path. A radius-only collision counts as a bodyshot. Damage falloff uses the straight-line distance from the beam origin to the impact. Set recoil's `require-success-of` to `MyGun_Beam`. [Complete YAML example](../../examples/hit-integration.yml)
+`BeamHitSpell` extends MagicSpells' native `BeamSpell`, which still runs its effects, ground callback, range, target conditions, and piercing. Point `spell` directly at a synchronous `HitSpell` callback. The callback uses the sampled beam segment to recover entry into the target's body box. A radius-only collision counts as a bodyshot. Damage falloff uses the straight-line distance from the beam's origin to the impact. Set recoil's `require-success-of` to `MyGun_Beam`.
+
+See the [complete Paimon beam configuration](../../examples/spells-paimon-beam.yml).
 
 ## Direction and headshot rules
 
@@ -95,35 +97,37 @@ Requested damage = damage × distance multiplier × direction multiplier × head
 
 Bodyshots use a headshot multiplier of 1. `power-affects-damage: false` also replaces the power term with 1. The distance curve interpolates linearly and clamps outside its endpoints. At 32.5 blocks, the example curve gives 0.75. Increasing curves are supported too. Duplicate, descending, or nonfinite points fail configuration loading.
 
-| Option | Default | Accepted values / meaning |
+| Property | Default | Range and effect |
 | --- | --- | --- |
-| `range` | 64 | 0.1..512 blocks, ray shots only |
-| `damage` | 4 | 0..1,000,000 health points; 2 points = one heart |
-| `power-affects-damage` | true | YAML boolean |
+| `range` | 64 | 0.1..512 blocks. Farthest distance an instant ray searches for a target. Beams and particle projectiles use their own `max-distance`. |
+| `damage` | 4 | 0..1,000,000 health points before multipliers and defenses. Four points equal two hearts. Use 0 for impact effects alone. |
 | `damage-type` | `minecraft:arrow` | Registered Minecraft damage type key, including data packs |
-| `headshot-entities` | `[PLAYER]` | Bukkit entity type names; may be empty |
-| `headshot-height` | 0.25 | 0.01..1, upper bounding-box fraction; swimming/gliding players also include their eye height |
-| `headshot-multiplier` | 2 | 0..100 |
-| `vertical-angle` | 45 | 1..90 degrees |
-| `direction-multipliers` | all 1 | Lowercase direction keys; each 0..100 |
-| `distance-damage` | `[{distance: 0, multiplier: 1}]` | 1..128 points; distance 0..1,000,000, multiplier 0..100 |
+| `power-affects-damage` | `true` | Multiplies damage by the incoming spell power when enabled. Disable to treat the power factor as 1. |
+| `headshot-entities` | `[PLAYER]` | Bukkit entity types eligible for headshots. Use `[PLAYER, ZOMBIE]` for both types or `[]` to classify all hits as bodyshots. |
+| `headshot-height` | 0.25 | 0.01..1. Fraction of the target’s collision box counted from the top. 0.25 means the top quarter. Increase it to extend the head region downward. Swimming and gliding players also include eye height. |
+| `headshot-multiplier` | 2 | 0..100. Applies only to a headshot. At 2, it deals twice the damage of an otherwise identical bodyshot. |
+| `vertical-angle` | 45 | 1..90°. Minimum incoming elevation angle for above/below classification. Raise it to require a steeper approach. |
+| `direction-multipliers` | 1 per direction | 0..100 per direction. One of `front`, `back`, `left`, `right`, `above`, or `below` applies from the victim’s perspective. For example, `back: 1.5` gives 1.5× damage from behind. |
+| `distance-damage` | `[{distance: 0, multiplier: 1}]` | 1..128 points. Each `distance` is measured from the shot origin (0..1,000,000 blocks). Its `multiplier` scales damage there (0..100). List points in increasing distance order. |
+
+With the example above, a headshot from behind at 32.5 blocks and spell power 1 deals `6 × 0.75 × 1.5 × 2 = 13.5` damage before defenses.
 
 Damage passes through `SpellApplyDamageEvent` and Paper's normal damage API. Both receive the configured damage type, and the damage is credited to the caster. Install the data pack before server startup to use a custom key such as `shardra:shoot_dot`. An unregistered key disables the spell and produces a configuration error. Actual health loss can vary with the damage type's tags, armor, effects, shields, and other plugins. Target events, `can-target`, and world PvP restrictions still apply.
 
 ## Cast spells on impact
 
-Add desired subspell references to the HitSpell block. Define those spells separately.
+Add just the lines you need under `HitSpell`. Omitted properties run no follow-up spell. Replace the example names with spells you have defined.
 
 ```yaml
-spell-on-hit: MyGun_HitEffect
-spell-on-headshot: MyGun_HeadshotEffect
-spell-on-bodyshot: MyGun_BodyEffect
-spell-on-front: MyGun_FrontEffect
-spell-on-back: MyGun_BackEffect
-spell-on-left: MyGun_LeftEffect
-spell-on-right: MyGun_RightEffect
-spell-on-above: MyGun_AboveEffect
-spell-on-below: MyGun_BelowEffect
+spell-on-hit: MyGun_HitEffect  # Every valid hit
+spell-on-headshot: MyGun_HeadshotEffect  # Head hits only
+spell-on-bodyshot: MyGun_BodyEffect  # Body hits only
+spell-on-front: MyGun_FrontEffect  # From the victim’s front
+spell-on-back: MyGun_BackEffect  # From behind the victim
+spell-on-left: MyGun_LeftEffect  # From the victim’s left
+spell-on-right: MyGun_RightEffect  # From the victim’s right
+spell-on-above: MyGun_AboveEffect  # From above the victim
+spell-on-below: MyGun_BelowEffect  # From below the victim
 ```
 
 Each impact runs configured hooks once in this order: **common → headshot or bodyshot → selected direction**. Hooks receive the victim, impact location, and original power. Location-targeted effects keep the impact point instead of switching to the victim's feet. MagicSpells removes the location for ordinary entity-targeted subspells. Hit multipliers are not multiplied into callback power again.

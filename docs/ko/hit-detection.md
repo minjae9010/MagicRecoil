@@ -69,7 +69,9 @@ MyGun_Beam:
   spell: "MyGun_Hit(targeting=entity_from_location)"
 ```
 
-MagicSpells의 빔이 궤적 효과, 벽 충돌, 대상 조건, 사거리와 관통을 처리합니다. `spell`에 `HitSpell`을 동기 콜백으로 직접 연결합니다. 빔의 중심선이 몸체와 교차한 위치로 헤드샷을 판정하고, 충돌 반경에만 걸린 대상은 몸통으로 처리합니다. 거리 배율에는 빔 원점부터 명중점까지의 직선 거리를 사용합니다. 반동의 `require-success-of`에는 `MyGun_Beam`을 지정합니다. [전체 YAML 예제](../../examples/hit-integration.yml)
+`BeamHitSpell`은 MagicSpells의 `BeamSpell`을 확장합니다. 빔의 `effects`, `spell-on-hit-ground`, `max-distance`, 대상 조건과 관통은 빔 주문이 처리합니다. `spell`은 직접 `HitSpell`을 가리키는 동기 콜백으로 설정합니다. 빔이 실제로 검사한 구간에서 몸체 교차점을 복원하며, 반경에만 걸린 대상은 몸통으로 판정합니다. 거리 배율에는 빔 원점부터 명중점까지의 직선 거리를 사용합니다. 반동의 `require-success-of`에는 `MyGun_Beam`을 지정합니다.
+
+파이먼 전체 구성은 [빔 연동 YAML](../../examples/spells-paimon-beam.yml)을 참고하세요.
 
 ## 방향과 헤드샷 규칙
 
@@ -95,35 +97,37 @@ MagicSpells의 빔이 궤적 효과, 벽 충돌, 대상 조건, 사거리와 관
 
 몸통의 헤드샷 배율은 1입니다. `power-affects-damage: false`이면 power 항도 1입니다. 거리 배율은 지점 사이를 선형 보간하고 첫 지점 이전·마지막 지점 이후는 양끝 배율로 고정합니다. 위 예제의 32.5블록은 거리 배율 0.75입니다. 배율을 증가시키는 곡선도 가능합니다. 거리 0부터 엄격한 오름차순을 권장하며 중복·역순·비정상 숫자는 로딩 오류입니다.
 
-| 설정 | 기본값 | 허용 범위 / 의미 |
+| 속성 | 기본값 | 범위와 적용 효과 |
 | --- | --- | --- |
-| `range` | 64 | 0.1..512 블록, 즉시 사격만 사용 |
-| `damage` | 4 | 0..1,000,000 체력 단위, 2가 하트 한 칸 |
-| `power-affects-damage` | true | 실제 YAML boolean |
+| `range` | 64 | 0.1..512블록. 즉시 사격으로 대상을 찾는 최대 거리입니다. 빔이나 파티클 발사체는 해당 주문의 `max-distance`를 사용합니다. |
+| `damage` | 4 | 0..1,000,000 체력 단위. 배율과 방어 효과 적용 전의 피해입니다. 4는 하트 두 칸이며, 0이면 적중 효과만 실행할 수 있습니다. |
 | `damage-type` | `minecraft:arrow` | 데이터팩을 포함한 Minecraft 레지스트리의 피해 유형 키 |
-| `headshot-entities` | `[PLAYER]` | Bukkit 엔티티 종류 이름 목록, 빈 목록 허용 |
-| `headshot-height` | 0.25 | 0.01..1, 충돌 상자 위쪽 비율. 수영·활강 플레이어의 눈높이 포함 보정 적용 |
-| `headshot-multiplier` | 2 | 0..100 |
-| `vertical-angle` | 45 | 1..90 도 |
-| `direction-multipliers` | 모든 방향 1 | 소문자 방향 키, 각 0..100 |
-| `distance-damage` | `[{distance: 0, multiplier: 1}]` | 1..128개 지점, 거리 0..1,000,000, 배율 0..100 |
+| `power-affects-damage` | `true` | 켜면 시전 시 전달받은 주문 위력(`power`)을 피해에 곱합니다. 끄면 위력이 달라져도 이 항의 배율은 1입니다. |
+| `headshot-entities` | `[PLAYER]` | 헤드샷을 허용할 Bukkit 엔티티 이름 목록입니다. `[PLAYER, ZOMBIE]`면 둘 다 머리 판정을 받고, `[]`면 모든 명중을 몸통으로 처리합니다. |
+| `headshot-height` | 0.25 | 0.01..1. 충돌 상자 위쪽에서 머리로 인정할 비율입니다. 0.25는 위쪽 25%이며 값을 키우면 영역이 아래로 넓어집니다. 수영·활강 중인 플레이어는 눈높이도 포함합니다. |
+| `headshot-multiplier` | 2 | 0..100. 머리에 맞을 때만 곱하는 피해 배율입니다. 2면 같은 조건의 몸통 피해의 두 배입니다. |
+| `vertical-angle` | 45 | 1..90°. 위·아래 공격으로 인정할 최소 각도입니다. 높일수록 더 가파른 공격만 위·아래로 분류합니다. |
+| `direction-multipliers` | 각 방향 1 | 방향마다 0..100. 피격자를 기준으로 `front`, `back`, `left`, `right`, `above`, `below` 중 하나가 적용됩니다. 예를 들어 `back: 1.5`는 뒤에서 맞으면 피해가 1.5배입니다. |
+| `distance-damage` | `[{distance: 0, multiplier: 1}]` | 1..128개 지점. 각 지점의 `distance`는 발사 원점부터의 거리(0..1,000,000블록), `multiplier`는 그 거리에서의 피해 배율(0..100)입니다. 거리가 증가하는 순서로 적으세요. |
+
+위 예제에서 32.5블록 떨어진 대상의 뒤통수에 명중하고 주문 위력이 1이면, 방어 효과 적용 전 피해는 `6 × 0.75 × 1.5 × 2 = 13.5`입니다.
 
 `SpellApplyDamageEvent`와 Paper의 피해 API에 설정한 피해 유형을 전달하고 시전자에게 공격 책임을 부여합니다. `shardra:shoot_dot` 같은 커스텀 유형은 서버 시작 전에 데이터팩을 설치해야 합니다. 등록되지 않은 키는 설정 오류를 기록하고 해당 스펠의 피해 처리를 중단합니다. 피해 유형 태그·방어구·저항·방패·다른 플러그인에 따라 실제 체력 감소량이 달라질 수 있습니다. `SpellTargetEvent`와 `can-target` 조건, 월드 PvP 설정도 적용됩니다.
 
 ## 적중 시 스펠 연계
 
-`HitSpell` 블록에 원하는 후속 스펠 이름을 지정합니다. 참조하는 스펠도 별도로 정의해야 합니다.
+`HitSpell` 아래에 사용할 줄만 골라 적으세요. 생략한 속성은 후속 주문을 실행하지 않습니다. 오른쪽 주문 이름은 실제로 정의한 주문 이름으로 바꾸세요.
 
 ```yaml
-spell-on-hit: MyGun_HitEffect
-spell-on-headshot: MyGun_HeadshotEffect
-spell-on-bodyshot: MyGun_BodyEffect
-spell-on-front: MyGun_FrontEffect
-spell-on-back: MyGun_BackEffect
-spell-on-left: MyGun_LeftEffect
-spell-on-right: MyGun_RightEffect
-spell-on-above: MyGun_AboveEffect
-spell-on-below: MyGun_BelowEffect
+spell-on-hit: MyGun_HitEffect  # 유효한 대상에 명중할 때마다
+spell-on-headshot: MyGun_HeadshotEffect  # 머리로 판정됐을 때
+spell-on-bodyshot: MyGun_BodyEffect  # 몸통으로 판정됐을 때
+spell-on-front: MyGun_FrontEffect  # 피격자의 앞쪽에서 맞았을 때
+spell-on-back: MyGun_BackEffect  # 피격자의 뒤쪽에서 맞았을 때
+spell-on-left: MyGun_LeftEffect  # 피격자의 왼쪽에서 맞았을 때
+spell-on-right: MyGun_RightEffect  # 피격자의 오른쪽에서 맞았을 때
+spell-on-above: MyGun_AboveEffect  # 위에서 내려오는 공격에 맞았을 때
+spell-on-below: MyGun_BelowEffect  # 아래에서 올라오는 공격에 맞았을 때
 ```
 
 한 명중에서 **공통 → 헤드샷 또는 몸통 → 해당 방향** 순서로 설정된 스펠을 각각 한 번 실행합니다. 피격자·명중 위치·기존 power를 전달합니다. 위치 타깃 스펠에는 피격자 발 위치 대신 명중 위치를 넘깁니다. 일반 entity 타깃 스펠은 MagicSpells의 규칙에 따라 위치 없이 대상을 받습니다. 후속 스펠의 power에는 명중 배율을 다시 곱하지 않습니다.

@@ -9,7 +9,9 @@ import dev.magicrecoil.integration.SuccessGate;
 import dev.magicrecoil.aiming.AimManager;
 import dev.magicrecoil.spells.AimSpell;
 import dev.magicrecoil.spells.AutoFireSpell;
+import dev.magicrecoil.firing.AttackCooldownIndicator;
 import dev.magicrecoil.firing.AutoFireManager;
+import dev.magicrecoil.packet.PaperAttackCooldownPackets;
 import dev.magicrecoil.packet.PaperZoomAdapter;
 import dev.magicrecoil.packet.PaperRotationAdapter;
 import dev.magicrecoil.recoil.RecoilManager;
@@ -40,10 +42,12 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     private RecoilManager manager;
     private AimManager aimManager;
     private AutoFireManager autoFireManager;
+    private AttackCooldownIndicator attackCooldownIndicator;
     private String compatibilityError;
     private boolean loaderRegistered;
     private final Set<String> stopSpells = new HashSet<>();
     private final Set<String> stopBuffs = new HashSet<>();
+    private final Set<Spell> attackCooldownSpells = new HashSet<>();
 
     @Override
     public void onLoad() {
@@ -86,6 +90,11 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
         manager = new RecoilManager(this, adapter);
         aimManager = new AimManager(this, PaperZoomAdapter.create());
         autoFireManager = new AutoFireManager(this);
+        try {
+            attackCooldownIndicator = new AttackCooldownIndicator(this, new PaperAttackCooldownPackets());
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError error) {
+            getLogger().warning("Attack cooldown indicator unavailable: " + error);
+        }
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(aimManager, this);
         getServer().getPluginManager().registerEvents(autoFireManager, this);
@@ -99,6 +108,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        if (attackCooldownIndicator != null) attackCooldownIndicator.clear();
         if (manager != null) manager.clear();
         if (aimManager != null) aimManager.clear();
         if (autoFireManager != null) autoFireManager.clear();
@@ -113,6 +123,8 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void loading(MagicSpellsLoadingEvent event) {
+        attackCooldownSpells.clear();
+        if (attackCooldownIndicator != null) attackCooldownIndicator.clear();
         if (manager != null) manager.clear();
         if (aimManager != null) aimManager.clear();
         if (autoFireManager != null) autoFireManager.clear();
@@ -125,6 +137,7 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public void loaded(MagicSpellsLoadedEvent event) { refreshWatches(); }
 
     private void refreshWatches() {
+        refreshAttackCooldownSpells();
         stopSpells.clear();
         stopBuffs.clear();
         Set<String> watched = new HashSet<>();
@@ -151,6 +164,22 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
         autoFireManager.configure(MagicSpells.getSpells().values().stream().filter(AutoFireSpell.class::isInstance).map(AutoFireSpell.class::cast).toList());
     }
 
+    private void refreshAttackCooldownSpells() {
+        attackCooldownSpells.clear();
+        if (attackCooldownIndicator == null) return;
+        try {
+            var config = MagicSpellsCompatibility.getConfig();
+            if (config == null) return;
+            for (Spell spell : MagicSpells.getSpells().values()) {
+                if (config.getBoolean("spells." + spell.getInternalName() + ".attack-cooldown-indicator", false)) {
+                    attackCooldownSpells.add(spell);
+                }
+            }
+        } catch (ReflectiveOperationException error) {
+            getLogger().warning("Could not read attack cooldown indicator settings: " + error);
+        }
+    }
+
     private void checkReference(Spell owner, String name) {
         if (MagicSpells.getSpellByInternalName(name) == null) getLogger().warning(owner.getInternalName() + ": referenced spell does not exist: " + name);
     }
@@ -171,6 +200,10 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
                 && event.getPostCastAction() != Spell.PostCastAction.ALREADY_HANDLED
                 && event.getPostCastAction() != Spell.PostCastAction.DELAYED;
         successGate.complete(player.getUniqueId(), normalized(event.getSpell()), Bukkit.getCurrentTick(), success);
+        if (success && attackCooldownSpells.contains(event.getSpell()) && !autoFireManager.isCastingFor(player.getUniqueId())
+                && event.getPostCastAction().setCooldown() && event.getCooldown() > 0) {
+            attackCooldownIndicator.start(player, event.getSpell());
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -183,7 +216,11 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
 
     private static String normalized(Spell spell) { return spell.getInternalName().toLowerCase(Locale.ROOT); }
 
-    public void reset(UUID player) { manager.stop(player); successGate.remove(player); }
+    public void reset(UUID player) {
+        if (attackCooldownIndicator != null) attackCooldownIndicator.stop(player);
+        manager.stop(player);
+        successGate.remove(player);
+    }
 
     @EventHandler public void quit(PlayerQuitEvent event) { reset(event.getPlayer().getUniqueId()); }
     @EventHandler public void death(PlayerDeathEvent event) { reset(event.getEntity().getUniqueId()); }
@@ -202,6 +239,8 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
     public void inventoryDrag(InventoryDragEvent event) { reset(event.getWhoClicked().getUniqueId()); }
     @EventHandler public void disabled(PluginDisableEvent event) {
         if (event.getPlugin().getName().equals("MagicSpells")) {
+            attackCooldownSpells.clear();
+            if (attackCooldownIndicator != null) attackCooldownIndicator.clear();
             if (manager != null) manager.clear();
             if (aimManager != null) aimManager.clear();
             if (autoFireManager != null) autoFireManager.clear();
@@ -214,13 +253,18 @@ public final class MagicRecoilPlugin extends JavaPlugin implements Listener {
         if (!sender.hasPermission("magicrecoil.admin")) { sender.sendMessage("You do not have permission."); return true; }
         if (args.length == 1 && args[0].equalsIgnoreCase("status")) {
             sender.sendMessage("MagicRecoil " + getPluginMeta().getVersion() + " | " + manager.adapterName()
-                    + " | active players: " + manager.activePlayers() + " | rotation packets: " + manager.packetsSent());
+                    + " | active players: " + manager.activePlayers() + " | rotation packets: " + manager.packetsSent()
+                    + " | aiming players: " + aimManager.activePlayers());
             return true;
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("reset")) {
             Player player = Bukkit.getPlayerExact(args[1]);
             if (player == null) sender.sendMessage("Player is not online.");
-            else { reset(player.getUniqueId()); sender.sendMessage("Recoil cleared for " + player.getName() + '.'); }
+            else {
+                reset(player.getUniqueId());
+                aimManager.stop(player.getUniqueId());
+                sender.sendMessage("Recoil and aim cleared for " + player.getName() + '.');
+            }
             return true;
         }
         return false;

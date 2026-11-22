@@ -8,6 +8,8 @@
 ## 목차
 
 - [총기 동작을 유지하고 반동만 교체하기](#총기-동작을-유지하고-반동만-교체하기)
+- [선택적 조준 상태](#선택적-조준-상태)
+- [단발 공격 쿨타임 표시](#단발-공격-쿨타임-표시)
 - [발사 성공 확인이 필요한 이유](#발사-성공-확인이-필요한-이유)
   - [호출 방식별 주의점](#호출-방식별-주의점)
 - [재장전과 중지 연결](#재장전과-중지-연결)
@@ -47,6 +49,25 @@ spells:
 이것은 전체 주문을 대체하는 YAML이 아닌 **일부분**입니다. 원본 파일이 제공되지 않아 실제 탄약 검사, 재장전 주문 이름, 발사체의 성공 판정, 버프 생명주기를 분석하지 못했습니다. [범용 총기 예시](../../examples/weapon-integration.yml)는 반동 블록 교체용으로 검토해야 합니다.
 
 선택적 헤드샷·6방향·거리 데미지·적중 스펠은 [HitSpell 연동](hit-detection.md)을 참고하세요.
+
+## 선택적 조준 상태
+
+`dev.magicrecoil.spells.AimSpell`과 `StopAimSpell`로 조준 중 이동속도와 지정한 반동 주문의 배율을 조정할 수 있습니다. 조준 YAML 예제를 기존 MagicSpells 입력 분기에 연결하세요. 확대를 생략했을 때 기본값은 토글 조준, 이동속도 0.65배, 지정한 반동 0.5배입니다. `recoil-spells`에는 해당 무기의 RecoilSpell 이름을 나열합니다. 기본 이동 반동 배율 1.5를 쓰면 조준 이동 중에는 반동 상한에 닿기 전 기준으로 기본 반동의 0.75배가 적용됩니다. [조준 YAML 예제](../../examples/aim-integration.yml)
+
+`toggle: false`는 반복 호출해도 중첩하지 않는 활성화 모드이며 마우스 홀드 감지는 아닙니다. `StopAimSpell` 또는 `stop-on-spells` / `stop-on-buff-end`로 종료합니다. `cancel-on-item-swap`과 `cancel-on-hand-swap`은 독립적이며 기본 true입니다. 슬롯 변경 취소를 끄면 원래 슬롯과 아이템을 다시 들었을 때만 효과가 복구됩니다. 이동속도는 이름 있는 임시 속성 배율로 적용하여 기존 기본 속도와 다른 플러그인의 속성 배율을 보존합니다.
+
+사망·로그아웃·텔레포트·월드 변경·아이템 드롭·MagicSpells 리로드·플러그인 종료 시 조준을 정리합니다. `/magicrecoil reset`은 반동과 조준을 함께 초기화합니다. `movement-speed-multiplier`는 0.01..1, `recoil-multiplier`는 0..1의 유한한 YAML 숫자여야 합니다.
+
+## 단발 공격 쿨타임 표시
+
+기존 단발 주문에서 `cooldown`과 같은 깊이에 `attack-cooldown-indicator: true`를 추가하세요. 실제 발사 간격은 MagicSpells의 `cooldown` 값으로 계속 제어됩니다. 발사에 성공해 쿨타임이 시작되면 클라이언트의 조준점 아래 공격 게이지에 표시됩니다. 마인크래프트 **비디오 설정 → 공격 표시기 → 조준점**을 선택해야 합니다.
+
+```yaml
+  cooldown: 0.2
+  attack-cooldown-indicator: true
+```
+
+단발과 연발이 같은 주문을 공유해도 AutoFireSpell이 호출한 발사에서는 이 표시가 꺼집니다. 표시 시간은 바닐라 공격 게이지의 시간 계산을 사용하므로 남은 시간과 몇 틱 차이가 날 수 있습니다. 기본 공격 입력은 게이지를 다시 시작할 수 있습니다. 실제 단발 쿨타임은 첫 시전 시점부터 계속 흐릅니다.
 
 ## 발사 성공 확인이 필요한 이유
 
@@ -133,3 +154,17 @@ Beta 18은 기존 주문을 정리하고 외부 클래스 로더 목록을 비�
 ## 단발 클릭 간격
 
 MagicSpells Beta 18의 `left-click-cast-item`과 `right-click-cast-item`은 기본 `global-cooldown` 500ms 안에 들어온 추가 클릭을 건너뜁니다. 클릭이 직접 연결된 발사 주문에 `ignore-global-cooldown: true`를 추가하면 해당 주문에만 이 제한을 해제합니다. 총기별 `cooldown`과 탄약·재장전 조건은 그대로 적용됩니다. `AutoFireSpell`은 별도의 `interval-ticks` 설정을 사용합니다.
+
+MagicSpells의 주문 YAML에 아래 블록을 추가하고 `/ms reload`를 실행하세요. 다른 주문에 연결되지 않은 막대기를 주 손에 들고, 일반 근접 공격 거리 밖에 있는 대상(예: 5블록 거리)을 향해 좌클릭하세요. `cooldown: 0.2`는 이 주문의 최소 시전 간격을 0.2초로 설정합니다.
+
+```yaml
+Test_SingleShot:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  always-granted: true
+  left-click-cast-item: stick
+  ignore-global-cooldown: true
+  cooldown: 0.2
+  can-target: [players, nonplayers]
+  range: 64
+  damage: 4
+```

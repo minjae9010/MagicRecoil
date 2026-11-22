@@ -22,5 +22,6 @@ Weapon_Recoil:
   spell-class: dev.magicrecoil.spells.RecoilSpell
   helper-spell: true
   recoil: 2.5
+  moving-recoil-multiplier: 1.5
   # Keep your existing successful-fire guard and reload-stop options.
   # 기존 발사 성공 확인과 재장전 중지 옵션은 유지하세요.

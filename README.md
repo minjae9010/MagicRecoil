@@ -10,7 +10,7 @@ MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damag
 
 Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, open **[Troubleshooting](docs/en/troubleshooting.md)**; use the **[documentation map](docs/en/README.md)** or **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)** to browse all topics.
 
-The current release adds BeamSpell integration for headshots, directional and distance damage, and registered damage types. [v0.3.0-alpha.2](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.2)
+This release adds movement recoil scaling, a horizontal recoil pattern and a single-shot cooldown indicator. [v0.3.0-alpha.3](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.3)
 
 <!-- toc:start -->
 ## On this page
@@ -92,7 +92,7 @@ Version equality locks have been removed. Newer releases are accepted when the r
 
 ## Install
 
-1. Build the current `MagicRecoil-0.3.0-alpha.2.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
+1. Build the current `MagicRecoil-0.3.0-alpha.3.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
 2. Stop the server. Put the JAR in `plugins/` alongside MagicSpells. Do not place another copy inside `plugins/MagicSpells/`.
 3. Put the following spell in `plugins/MagicSpells/spells-recoil.yml`:
 
@@ -172,7 +172,7 @@ See **[Recoil logic](docs/en/recoil-logic.md)** for coefficient/noise/bias/limit
 
 ## Features
 
-- Per-player burst growth and four patterns: `valorant`, `vertical`, `random`, `custom`.
+- Per-player burst growth and five patterns: `valorant`, `vertical`, `horizontal`, `random`, `custom`.
 - Numbers-only presets for AR, SMG, LMG, SR, DMR, SG, pistols, or any custom weapon. Categories are not encoded in Java.
 - Explicit custom pattern `loop`, `hold`, or `stop` behavior.
 - Relative rotation-only packets: no coordinate update, velocity reset, or teleport-confirmation cycle.
@@ -220,7 +220,7 @@ Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet acces
 .\gradlew.bat clean build
 ```
 
-Output: `build/libs/MagicRecoil-0.3.0-alpha.2.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
+Output: `build/libs/MagicRecoil-0.3.0-alpha.3.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
 
 `./gradlew test` runs automated tests; the HTML report is `build/reports/tests/test/index.html`. GitHub Actions builds and tests on Linux and Windows and uploads the plugin and source JARs. See [Development](docs/en/development.md).
 

@@ -23,8 +23,12 @@ public final class RecoilSession {
         shoot(now, random, 1);
     }
 
-    public void shoot(long now, RandomGenerator random, double multiplier) {
-        if (!Double.isFinite(multiplier) || multiplier < 0 || multiplier > 1) throw new IllegalArgumentException("Recoil multiplier must be in [0, 1]");
+    public void shoot(long now, RandomGenerator random, double aimMultiplier) {
+        shoot(now, random, aimMultiplier, false);
+    }
+
+    void shoot(long now, RandomGenerator random, double aimMultiplier, boolean moving) {
+        if (!Double.isFinite(aimMultiplier) || aimMultiplier < 0 || aimMultiplier > 1) throw new IllegalArgumentException("Recoil multiplier must be in [0, 1]");
         if (shots > 0 && expired(now)) {
             buffer.clear();
             shots = 0;
@@ -33,15 +37,15 @@ public final class RecoilSession {
             plannedRise = 0;
         }
         RotationDelta delta = settings.pattern().sampleUnbounded(settings, shots, random);
+        if (moving) delta = delta.scale(settings.movingRecoilMultiplier());
         if (settings.pattern() == RecoilPattern.VALORANT && delta.pitch() < 0) {
             double rise = Math.min(-delta.pitch(), Math.max(0, settings.valorantMaxRise() - plannedRise));
             delta = new RotationDelta(delta.yaw(), -rise);
         }
         delta = delta.limit(settings.maxRecoil());
         if (settings.pattern() == RecoilPattern.VALORANT) plannedRise += Math.max(0, -delta.pitch());
-        // Scale the completed shot, preserving the unmodified pattern phase, growth and burst cap accounting.
-        if (multiplier != 1) delta = new RotationDelta(delta.yaw() * multiplier, delta.pitch() * multiplier);
-        buffer.add(delta, settings.steps());
+        // Aiming scales the bounded shot without changing the burst's rise budget.
+        buffer.add(delta.scale(aimMultiplier), settings.steps());
         shots = Math.min(shots + 1, 1_000_000);
         lastShotNanos = now;
     }

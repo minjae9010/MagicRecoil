@@ -137,6 +137,9 @@ public final class AutoFireManager implements Listener {
         try { spell.hardCast(new SpellData(player)); }
         finally { invoking = null; invokingPlayer = null; }
     }
+
+    public boolean isCastingFor(UUID player) { return player.equals(invokingPlayer); }
+
     public void stop(UUID id) { requireMainThread(); sessions.remove(id); }
     private void restore(Player player) {
         for (ItemStack item : player.getInventory().getContents()) UseItemSupport.restore(item);

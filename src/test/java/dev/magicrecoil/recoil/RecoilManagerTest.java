@@ -2,12 +2,14 @@ package dev.magicrecoil.recoil;
 
 import dev.magicrecoil.packet.RotationAdapter;
 import org.bukkit.Bukkit;
+import org.bukkit.Input;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import java.util.List;
 import java.util.UUID;
 import static dev.magicrecoil.recoil.RecoilSettingsTest.settings;
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +26,52 @@ class RecoilManagerTest {
                 assertThrows(IllegalArgumentException.class, () -> manager.shoot(player, "gun", config, multiplier));
                 assertEquals(0, manager.activePlayers());
             }
+        }
+    }
+
+    @Test void eachShotUsesCurrentMovementInputAndAimMultiplier() throws Exception {
+        try (var bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(Bukkit::isPrimaryThread).thenReturn(true);
+            var scheduler = mock(BukkitScheduler.class);
+            bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+            var plugin = mock(JavaPlugin.class);
+            when(plugin.isEnabled()).thenReturn(true);
+            when(scheduler.runTaskTimer(eq(plugin), any(Runnable.class), eq(1L), eq(1L)))
+                    .thenReturn(mock(BukkitTask.class));
+            var player = mock(Player.class);
+            var id = UUID.randomUUID();
+            when(player.getUniqueId()).thenReturn(id);
+            when(player.isOnline()).thenReturn(true);
+            bukkit.when(() -> Bukkit.getPlayer(id)).thenReturn(player);
+            var input = mock(Input.class);
+            when(player.getCurrentInput()).thenReturn(input);
+            var adapter = mock(RotationAdapter.class);
+            when(adapter.rotate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+            var manager = new RecoilManager(plugin, adapter);
+            var config = settings("pattern: vertical\nrecoil: 2\nhorizontal: 0.5\nhorizontal-bias: 1\ngrowth: 0\nrecoil-steps: 1");
+
+            manager.shoot(player, "ar", config);
+            var tick = ArgumentCaptor.forClass(Runnable.class);
+            verify(scheduler).runTaskTimer(eq(plugin), tick.capture(), eq(1L), eq(1L));
+            tick.getValue().run();
+            manager.shoot(player, "ar", config, 0.5);
+            tick.getValue().run();
+
+            when(input.isForward()).thenReturn(true);
+            manager.shoot(player, "ar", config);
+            tick.getValue().run();
+            manager.shoot(player, "ar", config, 0.5);
+            tick.getValue().run();
+
+            when(input.isBackward()).thenReturn(true);
+            manager.shoot(player, "ar", config);
+            tick.getValue().run();
+
+            var delta = ArgumentCaptor.forClass(RotationDelta.class);
+            verify(adapter, times(5)).rotate(eq(player), delta.capture());
+            assertEquals(List.of(new RotationDelta(1, -2), new RotationDelta(0.5, -1),
+                    new RotationDelta(1.5, -3), new RotationDelta(0.75, -1.5), new RotationDelta(1, -2)),
+                    delta.getAllValues());
         }
     }
 

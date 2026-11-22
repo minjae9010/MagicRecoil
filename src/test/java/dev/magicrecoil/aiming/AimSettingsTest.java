@@ -2,6 +2,8 @@ package dev.magicrecoil.aiming;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
+import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -63,5 +65,20 @@ class AimSettingsTest {
         s = AimSettings.from(c.getConfigurationSection("Weapon_파이먼_조준"));
         assertEquals(1, s.recoilMultiplier()); assertEquals(1, s.movementSpeedMultiplier());
         assertTrue(s.zoomEnabled()); assertEquals(AimSettings.ZoomMode.SLOWNESS, s.zoomMode());
+    }
+    @Test void normalizedNamesAreDistinctAndCollectionsAreImmutable() throws Exception {
+        var settings = settings("stop-on-spells: [' Reload ', RELOAD]\nstop-on-buff-end: [FiringBuff]");
+        assertEquals(List.of("reload"), settings.stopOnSpells());
+        assertEquals(List.of("firingbuff"), settings.stopOnBuffEnd());
+        assertThrows(UnsupportedOperationException.class, () -> settings.recoilSpells().add("another"));
+    }
+
+    @Test void shippedExampleLoadsAndTheStopHookUsesAnExistingSpell() throws Exception {
+        var config = new YamlConfiguration();
+        config.load(Path.of("examples/aim-integration.yml").toFile());
+        var settings = AimSettings.from(config.getConfigurationSection("Weapon_Aim"));
+        assertEquals(List.of("weapon_recoil"), settings.recoilSpells());
+        assertEquals(List.of("weapon_stopaim"), settings.stopOnSpells());
+        assertTrue(config.contains("Weapon_StopAim.spell-class"));
     }
 }

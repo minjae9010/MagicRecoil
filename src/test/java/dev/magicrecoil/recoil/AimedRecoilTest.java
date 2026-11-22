@@ -6,6 +6,27 @@ import static dev.magicrecoil.recoil.RecoilSettingsTest.settings;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AimedRecoilTest {
+    @Test void movementRespectsShotAndBurstCaps() throws Exception {
+        var config = settings("""
+                pattern: valorant
+                recoil: 3
+                growth: 0
+                recoil-steps: 1
+                moving-recoil-multiplier: 2
+                max-recoil: 4
+                valorant-max-rise: 7
+                """);
+        var session = new RecoilSession("gun", config);
+        var random = new Random(1);
+
+        session.shoot(0, random, 1, true);
+        assertEquals(-4, session.next(0).pitch());
+        session.shoot(50_000_000, random, 1, true);
+        assertEquals(-3, session.next(50_000_000).pitch());
+        session.shoot(100_000_000, random, 1, true);
+        assertTrue(session.next(100_000_000).isZero());
+    }
+
     @Test void scalesBothAxesForAllPatternsWithoutChangingPhaseGrowthOrCap() throws Exception {
         for (String yaml : new String[] {"pattern: valorant", "pattern: vertical", "pattern: random",
                 "pattern: custom\ncustom-pattern:\n  - {vertical: 1, horizontal: -0.5}\n  - {vertical: 0.2, horizontal: 1}"}) {

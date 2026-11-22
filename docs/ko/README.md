@@ -2,7 +2,7 @@
 
 [프로젝트 소개](../../README.ko.md) · [English](../en/README.md) · [GitHub Wiki](https://github.com/minjae9010/MagicRecoil/wiki)
 
-총기에 반동을 처음 붙이는 운영자와 내부 구조를 확인할 개발자를 위한 안내입니다. 사용 목적에 맞는 경로를 고르면 필요한 문서만 순서대로 읽을 수 있습니다.
+처음 설치한다면 [설치와 첫 발사](getting-started.md)에서 게임 안의 시점이 움직이는지 먼저 확인하세요. 이미 동작하는 주문을 고치려면 [예시로 읽는 설정](configuration.md#예시로-읽는-설정)에서 YAML 한 줄을 바꾸고 차이를 확인할 수 있습니다.
 
 <!-- toc:start -->
 ## 목차
@@ -29,11 +29,12 @@
 | 처음 설치해서 실행 | [빠른 시작](getting-started.md) | JAR 위치, 최소 YAML, 콘솔 시험 |
 | 지원 버전 확인 | [버전 호환 안내](compatibility.md) | 최소 버전, 상대·절대 회전, 검증 조합 |
 | 수평 반동 켜기 | [반동 로직](recoil-logic.md) | vertical의 수평 0, random 예시, valorant 첫 4발 |
-| 각 옵션의 범위 확인 | [설정 전체 표](configuration.md) | 기본값, 단위, 유효성 검사, 적용 순서 |
+| 한 발의 세기나 연사 반동 조정 | [반동 속성 표](configuration.md#기본-옵션) | 화면에서 달라지는 점, 기본값, 단위 |
+| 조준할 때 이동 속도와 반동 조정 | [조준 속성 표](configuration.md#조준-속성) | 대상 주문 선택, 속도·반동 배율, 조준 해제 조건 |
 | 기존 총기에 적용 | [연동 가이드](integration.md) | Beam/PP 성공 이름, 호출 순서, 재장전 중지 |
 | 선택 조준·우클릭 연사 추가 | [조준과 입력](aim-and-input.md) | 전체 설정, 파이먼 연동, 사용 상태·반복 입력과 FOV 한계 |
 | 기존 총기 조작 비교 | [총기 플러그인 비교](input-comparison.md) | CrackShot 발사 큐, 반복 입력 타임아웃과 조준 구현 |
-| 헤드샷·적중 스펠 추가 | [명중 판정](hit-detection.md) | 눈높이 헤드샷, 6방향, 거리 데미지와 후속 주문 |
+| 헤드샷·방향·거리 피해 추가 | [명중 판정과 적중 스펠](hit-detection.md) | HitSpell, 기존 발사체 콜백, 판정별 후속 주문 |
 | 안 되는 원인 찾기 | [증상별 문제 해결](troubleshooting.md) | 수평 0, 전체 무반동, 초기화, 강도·탄퍼짐 |
 | 확인된 결과와 한계 파악 | [검증과 테스트](testing.md) | 자동/서버/실제 사용자 검증의 구분 |
 | 패킷·스케줄러 이해 | [구조](architecture.md) | 상대 회전, 클래스 로딩, 플레이어별 상태 |

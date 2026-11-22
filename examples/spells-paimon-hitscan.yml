@@ -1,0 +1,428 @@
+# 파이먼 단일 대상 히트스캔 | Paper 1.21.11 / MagicSpells 4.0 Beta 18 / MagicRecoil v0.3.0-alpha.2
+# shardra:shoot_dot을 사용하려면 해당 데이터 팩을 서버에 설치하세요.
+# 기존 파이먼 YAML을 이 파일로 교체하세요. 기존 공용 변수·스펠과 리소스팩도 필요합니다.
+# 우클릭 연사, 좌클릭 조준 토글, F키 재장전. 연사 간격은 2틱이며 입력 중단 후 5틱 안에 끝납니다.
+# 반동 수치와 지급 아이템의 이름·로어·모델은 원본과 같습니다.
+# 기존 지급 아이템의 판별을 위해 로어를 유지합니다. 이 히트스캔은 한 대상에서 멈춥니다.
+# 실제 피해는 아래 Weapon_파이먼_Hit의 헤드샷·방향·거리 배율을 따릅니다.
+
+magic-items:
+    파이먼:
+        type: "diamond_hoe"
+        custom-model-data: 122
+        name: "&6&l[&r&fAR&6&l]&r &f파이먼"
+        lore:
+            - "&6★ 2 &7균영잡힌 자동 소총"
+            - "&c● 피해:&f 10 / 15 (30%)"
+            - "&a• 넉백:&f 8"
+            - "&6• 발포 간격:&f 0.07"
+            - "&2• 탄창 크기:&f 30"
+            - "&5• 관통:&f 2"
+            - "&b• 이동속도:&f -7.5"
+            - "&8&o“정밀작전용 특수 타격대 병기”"
+        attributes:
+            - movement_speed -0.015 add_value mainhand   # defult: 0.2 5% = 0.01 / 10%=0.02
+            - entity_interaction_range -10 add_number mainhand
+        hide-tooltip: true
+        unbreakable: true
+
+    파이먼_탄창:
+        type: "orange_dye"
+        name: "&6&l[&r&fAR&6&l]&r &f파이먼 탄창"
+        lore:
+            - "&a◑ 장전 시간:&f 2.5"
+            - "&7• 탄속:&f 50"
+            - "&7• 탄퍼짐:&f 20"
+            - "&7• 적중범위:&f 1"
+
+variables:
+    Paimon:
+        type: player
+        default: 30
+        min: 0
+        max: 30
+        permanent: false
+    Paimon_Ammo:
+        type: player
+        default: 0
+        min: 0
+        max: 9999
+        permanent: false
+
+Human_Conjurs_파이먼:
+    spell-class: ".instant.ConjureSpell"
+    always-granted: true
+    add-to-inventory: true
+    delay: 2
+    items:
+        - 파이먼 1
+        - 파이먼_탄창 4
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+#  [ 명성 ] 플레이어 처치 횟수
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+명성_파이먼_Kill:
+    spell-class: ".PassiveSpell"
+    cooldown: 0.02
+    always-granted: true
+    triggers:
+        - kill player
+    modifiers:
+        - holdingprecise 파이먼 require
+    target-modifiers:
+        - hasitemprecise 좀비손톱 require
+    spells:
+        - 명성_파이먼_Command
+
+명성_파이먼_Command:
+    spell-class: ".ExternalCommandSpell"
+    always-granted: true
+    temporary-op: true
+    command-to-execute:
+        - "명성변수 돌격소총 파이먼 1"
+    modifiers:
+        - world admin deny
+        - world world deny
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+#  F키: 재장전
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Weapon_Reload_파이먼:
+    spell-class: ".PassiveSpell"
+    always-granted: true
+    cancel-default-action: true
+    str-modifier-failed: ""
+    str-missing-reagents: ""
+    triggers:
+        - offhandswap
+    modifiers:
+        - holdingprecise 파이먼 require
+        - variable reload=0 require
+        - variable Paimon_Ammo>0 require
+    # 잔탄 처리: 총에 남은 총알 + 남은 탄약을 합쳐서 30발까지만 채우고, 채운 만큼만 남은 탄약에서 뺌
+    # (연산자와 변수 이름 사이에 띄어쓰기를 넣지 마세요: "+Paimon" 처럼 붙여 써야 변수로 인식됨)
+    variable-mods-cast:
+        - Paimon_Ammo +Paimon
+        - Paimon =Paimon_Ammo
+        - Paimon_Ammo -Paimon
+        - reload +25
+    spells:
+        - Weapon_파이먼_연사해제
+        - Weapon_파이먼_조준해제
+        - Weapon_파이먼_반동해제
+    effects:
+        s1:
+            position: caster
+            effect: sound
+            sound: ppshreload
+            pitch: 1
+            volume: 1
+            category: players
+        s2:
+            position: caster
+            effect: soundpersonal
+            sound: ppshreload
+            pitch: 1
+            volume: 1
+            delay: 0
+            category: players
+        reload-cooldown:
+            position: caster
+            effect: itemcooldown
+            item: diamond_hoe
+            duration: 50 # 2.5 seconds
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+#  우클릭: 사격
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Weapon_파이먼_우클릭연사:
+    spell-class: "dev.magicrecoil.spells.AutoFireSpell"
+    always-granted: true
+    enabled: true
+    use-item: 파이먼
+    input-mode: BUFFERED_CLICK
+    fire-spell: Weapon_파이먼_Left_Ticks
+    interval-ticks: 2
+    stop-on-spells: [Weapon_Reload_파이먼]
+
+Weapon_파이먼_연사해제:
+    spell-class: "dev.magicrecoil.spells.StopAutoFireSpell"
+    helper-spell: true
+    always-granted: true
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+# 좌클릭: 조준
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Weapon_파이먼_조준:
+    spell-class: "dev.magicrecoil.spells.AimSpell"
+    always-granted: true
+    left-click-cast-item: 파이먼
+    ignore-global-cooldown: false
+    cooldown: 0.25
+    toggle: true
+    cancel-on-item-swap: true
+    cancel-on-hand-swap: true
+    cancel-on-death: true
+    cancel-on-logout: true
+    movement-speed-multiplier: 1.0
+    recoil-multiplier: 0.5
+    recoil-spells: [Weapon_파이먼_반동]
+    stop-on-spells: [Weapon_Reload_파이먼]
+    zoom:
+        enabled: true
+        mode: SLOWNESS
+        slowness-amplifier: 2
+    modifiers:
+        - holdingprecise 파이먼 require
+        - variable reload=0 require
+
+Weapon_파이먼_조준해제:
+    spell-class: "dev.magicrecoil.spells.StopAimSpell"
+    helper-spell: true
+    always-granted: true
+
+Weapon_파이먼_반동해제:
+    spell-class: "dev.magicrecoil.spells.StopRecoilSpell"
+    helper-spell: true
+    always-granted: true
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+# 1발의 탄약 차감·발사·반동·발사 효과
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Weapon_파이먼_Left_Ticks:
+    spell-class: ".MultiSpell"
+    always-granted: true
+    helper-spell: true
+    cast-time: 0
+    str-on-cooldown: ""
+    str-modifier-failed: ""
+    cooldown: 0.07
+    variable-mods-cast:
+        - Paimon -1
+    modifiers:
+        - holdingprecise 파이먼 require
+        - variable reload=0 require
+        - variable Paimon>0 require
+    spells:
+        - "Weapon_파이먼_Hit(targeting=none)"
+        - Weapon_파이먼_반동
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+# 반동&총알
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Weapon_파이먼_반동:
+    spell-class: "dev.magicrecoil.spells.RecoilSpell"
+    always-granted: true
+    helper-spell: true
+    recoil: 1.5              # 기본 반동 강도
+    moving-recoil-multiplier: 1.5
+    vertical: 0.4
+    horizontal: 0.4  # 수평 배율: 중앙 기준 좌우 양쪽으로 이동
+    pattern: valorant        # 프로젝트 근사 패턴; 실제 VALORANT 무기 데이터가 아님
+    valorant-max-rise: 15.0   # 연사당 위쪽 누적 반동 상한(도); 발수 고정 아님
+    vertical-min: 0.0        # 수직 계수 하한
+    vertical-max: 1.2
+    horizontal-min: -1.0
+    horizontal-max: 1.0
+    growth: 0.0              # 연사해도 발당 반동 강도는 동일
+    recoil-steps: 2          # 한 발의 반동을 2틱에 나누어 적용
+    reset-delay: 400         # ms, 마지막 반동 호출 후 연사 상태 초기화 간격
+    auto-return: false       # 조준을 이전 각도로 자동 복귀시키지 않음
+    require-success-of: Weapon_파이먼_Hit
+    stop-on-spells:
+        - Weapon_Reload_파이먼
+
+Weapon_파이먼_PP2: # 투사체 형식의 옛날 총알
+    spell-class: ".instant.ParticleProjectileSpell"
+    helper-spell: true
+    projectile-velocity: 50
+    projectile-gravity: 0
+    projectile-spread: 0
+    tick-interval: 1
+    intermediate-hitboxes: 9
+    start-x-offset: 0
+    start-y-offset: 1.62
+    start-z-offset: 0
+    hit-radius: 0.3
+    vertical-hit-radius: 0.3
+    ground-hit-radius: 0.01
+    hit-ground: true
+    hit-players: true
+    hit-non-players: true
+    stop-on-hit-entity: false
+    stop-on-hit-ground: true
+    max-entities-hit: 2
+    max-distance: 100
+    max-duration: 5
+    spell-on-hit-ground: Weapon_Bullet_SFX
+    spell-on-hit-entity: "Weapon_파이먼_Hit(targeting=entity_from_location)"
+    target-modifiers:
+        - hasitemprecise 좀비손톱 require
+        - variable immune_TG>0 deny
+    effects:
+        0:
+            position: special
+            effect: particles
+            particle-name: enchanted_hit
+            color: FFFFFF
+            speed: 0
+            horiz-spread: 0
+            vert-spread: 0
+            count: 1
+            radius: 100    # 파티클을 볼수있는 범위
+            force: true   # 파티클렌더링 32 → 512
+        1:
+            position: caster
+            effect: particles
+            particle-name: smoke
+            horiz-spread: 0
+            vert-spread: 0
+            y-offset: 1.8       #y축 오프셋
+            forward-offset: 2   #x축 오프셋
+            speed: 0.1
+            count: 4
+        s1:
+            position: caster
+            effect: sound
+            sound: m56
+            pitch: 1
+            volume: 1.5      # 소리 40m
+            category: players
+
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+#   데미지 설정
+# ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+Weapon_파이먼_Hit:
+    spell-class: "dev.magicrecoil.spells.HitSpell"
+    helper-spell: true
+    range: 300
+    damage: 10
+    damage-type: shardra:shoot_dot
+    can-target: [players, nonplayers]
+    target-modifiers:
+        - hasitemprecise 좀비손톱 require
+        - variable immune_TG>0 deny
+        - variable immune_Shoot>0 cast Weapon_파이먼_넉백
+        - variable immune_Shoot>0 deny
+    power-affects-damage: false
+    headshot-entities: [PLAYER, ZOMBIE, HUSK, DROWNED, SKELETON, STRAY]
+    headshot-height: 0.25
+    headshot-multiplier: 1.5
+    vertical-angle: 45
+    direction-multipliers:
+        front: 1.0
+        back: 1.2
+        left: 1.0
+        right: 1.0
+        above: 1.1
+        below: 1.0
+    distance-damage:
+        - {distance: 0, multiplier: 1.0}
+        - {distance: 30, multiplier: 1.0}
+        - {distance: 100, multiplier: 0.5}
+    spell-on-hit: "Weapon_파이먼_적중효과(targeting=entity)"
+    spell-on-headshot: "Weapon_파이먼_헤드샷효과(targeting=entity)"
+    effects:
+        1:
+            position: caster
+            effect: particles
+            particle-name: smoke
+            horiz-spread: 0
+            vert-spread: 0
+            y-offset: 1.8       #y축 오프셋
+            forward-offset: 2   #x축 오프셋
+            speed: 0.1
+            count: 4
+        s1:
+            position: caster
+            effect: sound
+            sound: m56
+            pitch: 1
+            volume: 1.5      # 소리 40m
+            category: players
+
+Weapon_파이먼_넉백:
+    spell-class: ".targeted.ForcetossSpell"
+    helper-spell: true
+    can-target: [players, nonplayers]
+    horizontal-force: 8
+    vertical-force: 0
+    power-affects-force: false
+    add-velocity-instead: false
+    target-modifiers:
+        - variable immune_Force>0 deny
+
+# 적중 효과
+
+Weapon_파이먼_적중효과:
+    spell-class: ".TargetedMultiSpell"
+    helper-spell: true
+    can-target: [players, nonplayers]
+    stop-on-fail: false
+    spells:
+        - Weapon_파이먼_넉백
+        - Weapon_파이먼_피격표시
+
+Weapon_파이먼_피격표시:
+    spell-class: ".targeted.DummySpell"
+    helper-spell: true
+    can-target: [players, nonplayers]
+    effects:
+        e1:
+            position: target
+            effect: particles
+            particle-name: dust
+            color: ff0000
+            horiz-spread: 0.3    #수직
+            vert-spread: 0.3     #수평
+            speed: 0
+            count: 50
+            offset: 0, 0.5, 0
+            radius: 100    # 파티클을 볼수있는 범위
+            force: true   # 파티클렌더링 32 → 512
+        s_tg:
+            position: target
+            effect: soundpersonal
+            sound: hurt
+            pitch: 1
+            volume: 1
+            category: players
+        s_me:
+            position: caster
+            effect: soundpersonal
+            sound: gun_hit
+            pitch: 1
+            volume: 1
+            category: players
+
+Weapon_파이먼_헤드샷효과:
+    spell-class: ".targeted.DummySpell"
+    helper-spell: true
+    can-target: [players, nonplayers]
+    effects:
+        e_block:
+            position: target
+            effect: particles
+            particle-name: block
+            material: redstone_block
+            horiz-spread: 0
+            vert-spread: 0
+            speed: 0.5
+            count: 50
+            offset: 0, 2, 0
+            radius: 100    # 파티클을 볼수있는 범위
+            force: true   # 파티클렌더링 32 → 512
+        s_me:
+            position: caster
+            effect: soundpersonal
+            sound: gun_hit_head
+            pitch: 1
+            volume: 1
+            category: players

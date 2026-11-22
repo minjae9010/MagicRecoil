@@ -10,6 +10,7 @@ import java.util.Map;
 /** Immutable settings, validated once when MagicSpells constructs a spell. */
 public record RecoilSettings(
         double recoil, double vertical, double horizontal, double smoothness, double growth,
+        double movingRecoilMultiplier,
         long resetDelayMillis, RecoilPattern pattern, boolean autoReturn,
         double verticalMin, double verticalMax, double horizontalMin, double horizontalMax,
         double horizontalBias, double maxRecoil, double valorantMaxRise, double randomness, int steps,
@@ -25,6 +26,7 @@ public record RecoilSettings(
         range("horizontal", horizontal, 0, 10);
         range("smoothness", smoothness, 0, 1);
         range("growth", growth, 0, 1);
+        range("moving-recoil-multiplier", movingRecoilMultiplier, 1, 10);
         range("reset-delay", resetDelayMillis, 50, 60000);
         range("vertical-min", verticalMin, -10, 10);
         range("vertical-max", verticalMax, -10, 10);
@@ -69,12 +71,16 @@ public record RecoilSettings(
                 points.add(new PatternPoint(v.doubleValue(), h.doubleValue()));
             }
         }
-        RecoilPattern pattern = enumeration(config, "pattern", "valorant", RecoilPattern.class);
+        Object rawPattern = config.get("pattern");
+        RecoilPattern pattern = rawPattern instanceof String name && name.trim().equalsIgnoreCase("horizental")
+                ? RecoilPattern.HORIZONTAL
+                : enumeration(config, "pattern", "valorant", RecoilPattern.class);
         if (config.contains("pattern-repeat") && pattern != RecoilPattern.CUSTOM) {
             throw new IllegalArgumentException("pattern-repeat requires pattern: custom");
         }
         return new RecoilSettings(number(config, "recoil", 2.5), number(config, "vertical", 1),
                 number(config, "horizontal", 0.4), smoothness, number(config, "growth", 0.08),
+                number(config, "moving-recoil-multiplier", 1.5),
                 integer(config, "reset-delay", 400), pattern, bool(config, "auto-return", false),
                 number(config, "vertical-min", 0), number(config, "vertical-max", 2),
                 number(config, "horizontal-min", -1), number(config, "horizontal-max", 1),

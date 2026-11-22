@@ -54,6 +54,7 @@ Positive horizontal turns right; negative turns left. A positive vertical coeffi
 | --- | --- |
 | `vertical` | Vertical coefficient 1, horizontal 0. With default bias and bounds, **no horizontal recoil**; increasing `horizontal` or `pattern-randomness` alone does not enable it |
 | `valorant` | Upward recoil stops at the cumulative angle `valorant-max-rise`. Yaw uses differences of signed target offsets: **center → right → center → left → center**. The first four shots have zero base yaw; this is a project preset rule |
+| `horizontal` | Uses the same sideways sway from the first shot, with zero pitch. `horizental` selects the same pattern |
 | `random` | Independent coefficient draws from each axis's min/max interval on every shot. Can produce sideways motion from the first shot; alternating directions or noticeable movement on every shot are not guaranteed |
 | `custom` | One `custom-pattern` point per shot. A point with `horizontal: 0` has zero base horizontal coefficient. `loop` repeats, `hold` keeps the last point, `stop` produces zero on both axes after the list ends |
 

@@ -10,6 +10,10 @@ public record RotationDelta(double yaw, double pitch) {
         }
     }
 
+    RotationDelta scale(double multiplier) {
+        return multiplier == 1 ? this : new RotationDelta(yaw * multiplier, pitch * multiplier);
+    }
+
     public RotationDelta limit(double magnitude) {
         double length = Math.hypot(yaw, pitch);
         return length > magnitude ? new RotationDelta(yaw * magnitude / length, pitch * magnitude / length) : this;

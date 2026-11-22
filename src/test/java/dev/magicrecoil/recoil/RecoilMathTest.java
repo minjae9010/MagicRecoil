@@ -1,6 +1,8 @@
 package dev.magicrecoil.recoil;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Random;
 import static dev.magicrecoil.recoil.RecoilSettingsTest.settings;
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +24,32 @@ class RecoilMathTest {
         assertTrue(s.pattern().sample(s, 12, random).yaw() < 0);
         var vertical = settings("pattern: vertical\npattern-randomness: 1");
         for (int i = 0; i < 50; i++) assertEquals(0, vertical.pattern().sample(vertical, i, random).yaw());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"horizontal", "HoRiZeNtAl"})
+    void horizontalSwaysFromFirstShotWithoutPitch(String pattern) throws Exception {
+        var s = settings("pattern: " + pattern
+                + "\nrecoil: 1\nhorizontal: 1\ngrowth: 0\nvertical-min: 1\nrecoil-steps: 1");
+        var session = new RecoilSession("ar", s);
+        double yaw = 0;
+        for (int shot = 0; shot < 12; shot++) {
+            long now = shot * 100_000_000L;
+            session.shoot(now, random);
+            var delta = session.next(now);
+            assertEquals(0, delta.pitch(), 0);
+            yaw += delta.yaw();
+            if (shot == 0) assertEquals(1, yaw, 1e-9);
+            if (shot == 2) assertEquals(2, yaw, 1e-9);
+            if (shot == 8) assertEquals(-2, yaw, 1e-9);
+        }
+        assertEquals(0, yaw, 1e-9);
+        long nextBurst = 1_500_000_000L;
+        session.shoot(nextBurst, random);
+        assertEquals(1, session.next(nextBurst).yaw(), 1e-9);
+
+        var noisy = settings("pattern: " + pattern + "\npattern-randomness: 1");
+        assertEquals(0, noisy.pattern().sample(noisy, 0, random).pitch(), 0);
     }
 
     @Test void valorantRiseTapersThenStaysHorizontalBeyondOneMagazine() throws Exception {

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.3.0-alpha.3 — 2026-11-22
+
+- Add a horizontal recoil pattern and configurable recoil while movement keys are held. The movement multiplier defaults to 1.5. Set it to 1 to preserve stationary recoil strength while moving.
+- Optionally display the firing spell’s cooldown on the vanilla attack indicator after a single shot. Automatic fire skips the display.
+- Include the Paimon projectile, beam and hitscan configurations. Refresh the Korean and English Wiki with annotated examples, property defaults, ranges and hit callbacks.
+- Include active aim sessions in the status command and clear aim on an explicit player reset.
+
 ## 0.3.0-alpha.2 — 2026-11-20
 
 - Add `BeamHitSpell` integration for native MagicSpells beams, including hit geometry, headshots, direction and distance multipliers, and existing beam effects and piercing.

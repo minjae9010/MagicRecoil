@@ -3,7 +3,7 @@ package dev.magicrecoil.recoil;
 import java.util.random.RandomGenerator;
 
 public enum RecoilPattern {
-    VALORANT, VERTICAL, RANDOM, CUSTOM;
+    VALORANT, VERTICAL, RANDOM, CUSTOM, HORIZONTAL;
 
     /** shot is zero-based; this is an original pattern, not extracted game data. */
     public RotationDelta sample(RecoilSettings settings, int shot, RandomGenerator random) {
@@ -14,9 +14,10 @@ public enum RecoilPattern {
         double v = 1;
         double h = 0;
         switch (this) {
-            case VALORANT -> {
-                if (shot > 3) {
-                    double phase = (shot - 3) * Math.PI / 6;
+            case VALORANT, HORIZONTAL -> {
+                int swayShot = this == VALORANT ? shot - 4 : shot;
+                if (swayShot >= 0) {
+                    double phase = (swayShot + 1) * Math.PI / 6;
                     double previousGrowth = (1 + settings.growth() * (shot - 1)) / (1 + settings.growth() * shot);
                     // Differences of signed target offsets, not a sine added to aim every shot.
                     // Compensating for growth keeps the center crossings centered as strength changes.
@@ -37,13 +38,17 @@ public enum RecoilPattern {
                 h = point.horizontal();
             }
         }
-        v += between(random, -settings.randomness(), settings.randomness());
+        double pitch = 0;
+        if (this != HORIZONTAL) {
+            v += between(random, -settings.randomness(), settings.randomness());
+            v = Math.clamp(v, settings.verticalMin(), settings.verticalMax());
+            pitch = -v * settings.vertical();
+        }
         if (this != VERTICAL) h += between(random, -settings.randomness(), settings.randomness());
         h += settings.horizontalBias();
-        v = Math.clamp(v, settings.verticalMin(), settings.verticalMax());
         h = Math.clamp(h, settings.horizontalMin(), settings.horizontalMax());
         double strength = settings.recoil() * (1 + settings.growth() * shot);
-        return new RotationDelta(h * settings.horizontal() * strength, -v * settings.vertical() * strength);
+        return new RotationDelta(h * settings.horizontal() * strength, pitch * strength);
     }
 
     private static double between(RandomGenerator random, double min, double max) {

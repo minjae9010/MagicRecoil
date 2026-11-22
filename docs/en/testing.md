@@ -11,6 +11,7 @@ The detailed measurements below are the original 1.21.11/Beta 18 investigation. 
 <!-- toc:start -->
 ## On this page
 
+- [v0.3.0-alpha.3 release checks](#v030-alpha3-release-checks)
 - [Hit feature validation](#hit-feature-validation)
 - [Player PvP and swimming/gliding validation](#player-pvp-and-swimminggliding-validation)
 - [Environment](#environment)
@@ -23,6 +24,10 @@ The detailed measurements below are the original 1.21.11/Beta 18 investigation. 
 - [Right-click firing and FOV verification](#right-click-firing-and-fov-verification)
 - [CrackShot controls verification](#crackshot-controls-verification)
 <!-- toc:end -->
+
+## v0.3.0-alpha.3 release checks
+
+All 229 Gradle tests passed. On Paper 1.21.4 / MagicSpells Beta 17, the same shot produced yaw/pitch (1°, -2°) standing, (1.5°, -3°) moving and (0.75°, -1.5°) moving while aimed. Paper 1.21.11 / Beta 18 passed hit, beam, aiming and reload checks. The indicator packet check observed the cooldown gauge on manual single shots and no gauge packets from automatic fire. Human camera feel remains a manual acceptance item.
 
 ## Hit feature validation
 

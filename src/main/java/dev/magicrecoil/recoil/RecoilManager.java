@@ -27,16 +27,18 @@ public final class RecoilManager {
         return shoot(player, weapon, settings, 1);
     }
 
-    public boolean shoot(Player player, String weapon, RecoilSettings settings, double multiplier) {
+    public boolean shoot(Player player, String weapon, RecoilSettings settings, double aimMultiplier) {
         requireMainThread();
-        if (!Double.isFinite(multiplier) || multiplier < 0 || multiplier > 1) throw new IllegalArgumentException("Recoil multiplier must be in [0, 1]");
+        if (!Double.isFinite(aimMultiplier) || aimMultiplier < 0 || aimMultiplier > 1) throw new IllegalArgumentException("Recoil multiplier must be in [0, 1]");
         if (!plugin.isEnabled() || !player.isOnline() || player.isDead()) return false;
         RecoilSession session = sessions.get(player.getUniqueId());
         if (session == null || !session.weapon().equals(weapon) || session.settings() != settings) {
             session = new RecoilSession(weapon, settings);
             sessions.put(player.getUniqueId(), session);
         }
-        session.shoot(System.nanoTime(), ThreadLocalRandom.current(), multiplier);
+        var input = player.getCurrentInput();
+        boolean moving = input != null && (input.isForward() != input.isBackward() || input.isLeft() != input.isRight());
+        session.shoot(System.nanoTime(), ThreadLocalRandom.current(), aimMultiplier, moving);
         if (task == null) task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1, 1);
         return true;
     }

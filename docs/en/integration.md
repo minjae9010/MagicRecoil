@@ -8,6 +8,8 @@ Connect recoil while preserving the existing firing, ammunition, and reload logi
 ## On this page
 
 - [Preserve the gun, replace the recoil](#preserve-the-gun-replace-the-recoil)
+- [Optional aim state](#optional-aim-state)
+- [Single-shot attack cooldown indicator](#single-shot-attack-cooldown-indicator)
 - [Why the success guard exists](#why-the-success-guard-exists)
   - [Casting mode and success limitations](#casting-mode-and-success-limitations)
 - [Reload and stop integration](#reload-and-stop-integration)
@@ -46,6 +48,25 @@ spells:
 This is a **fragment**, not a complete replacement for `Weapon_AR_FireLoop`. The original weapon file was not attached. Therefore its ammo conditions, reload spell name, projectile success semantics, and firing buff lifecycle could not be audited. [weapon-integration.yml](../../examples/weapon-integration.yml) is safe to review as a recoil block replacement; it is not a claim of a completed original-file migration.
 
 For optional headshots, six directions, distance damage, and hit callbacks, see [HitSpell integration](hit-detection.md).
+
+## Optional aim state
+
+`dev.magicrecoil.spells.AimSpell` and `StopAimSpell` adjust movement speed and the listed recoil spells while aiming. Connect the aim YAML example to your existing MagicSpells input branch. Without zoom, defaults are toggle activation, 0.65 movement speed, and 0.5 recoil for names in `recoil-spells`. With the default 1.5 movement recoil multiplier, aiming while moving gives 0.75× base recoil before recoil caps affect the result. [Aim YAML example](../../examples/aim-integration.yml)
+
+`toggle: false` enables idempotent activation; it does not detect held mouse input. Stop through StopAimSpell or `stop-on-spells` / `stop-on-buff-end`. `cancel-on-item-swap` and `cancel-on-hand-swap` are independent and default to true. Retained slot state resumes only when the original slot and item match. Movement uses a named transient attribute modifier, preserving base speed and other plugins' modifiers.
+
+Death, logout, teleport, world changes, item drops, MagicSpells reload, and addon shutdown clear aim. `/magicrecoil reset` clears both recoil and aim. `movement-speed-multiplier` must be a finite YAML number in 0.01..1; `recoil-multiplier` accepts 0..1.
+
+## Single-shot attack cooldown indicator
+
+Add `attack-cooldown-indicator: true` alongside `cooldown` on the existing single-shot spell. MagicSpells continues to enforce the firing delay. A successful cast that starts a cooldown shows the vanilla attack gauge below the crosshair when the client's **Video Settings → Attack Indicator** is set to **Crosshair**.
+
+```yaml
+  cooldown: 0.2
+  attack-cooldown-indicator: true
+```
+
+AutoFireSpell casts skip the indicator, including when a single shot and automatic fire share the same spell. The vanilla gauge can differ from the spell cooldown by a few ticks. A normal attack can reset the gauge. MagicSpells still counts down from the original cast.
 
 ## Why the success guard exists
 
@@ -128,3 +149,17 @@ Follow [ADS ownership and Buff integration](aim-and-input.md#recoil-and-existing
 ## Single-shot click timing
 
 The MagicSpells Beta 18 `left-click-cast-item` and `right-click-cast-item` bindings skip further clicks within the default 500 ms `global-cooldown`. Set `ignore-global-cooldown: true` on the firing spell with the click binding to bypass that check for the spell. Its own `cooldown`, ammunition, and reload rules still apply. `AutoFireSpell` has a separate `interval-ticks` setting.
+
+Add this block to a MagicSpells spell YAML file and run `/ms reload`. Hold an unbound stick in your main hand and left-click toward a target outside melee reach, for example five blocks away. `cooldown: 0.2` sets a 0.2-second minimum interval for this spell.
+
+```yaml
+Test_SingleShot:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  always-granted: true
+  left-click-cast-item: stick
+  ignore-global-cooldown: true
+  cooldown: 0.2
+  can-target: [players, nonplayers]
+  range: 64
+  damage: 4
+```

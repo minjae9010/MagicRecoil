@@ -2,7 +2,7 @@
 
 [Project overview](../../README.md) · [한국어](../ko/README.md) · [GitHub Wiki](https://github.com/minjae9010/MagicRecoil/wiki)
 
-For operators connecting recoil to existing guns and developers inspecting the implementation. Choose a task below and follow the relevant reading path.
+For a first installation, follow [Getting started](getting-started.md) to see the camera move in game. To adjust a working spell, [read a spell by example](configuration.md#read-a-spell-by-example) and change one value to see what it does.
 
 <!-- toc:start -->
 ## On this page
@@ -29,11 +29,12 @@ A working recoil spell does not establish that ammunition or reload integration 
 | Install and run the addon | [Getting started](getting-started.md) | JAR location, minimal YAML, console checks |
 | Check supported versions | [Version compatibility](compatibility.md) | Minimum versions, relative/absolute mode, validation matrix |
 | Enable horizontal recoil | [Recoil logic](recoil-logic.md) | Zero yaw in vertical, random example, first four valorant shots |
-| Look up an option | [Configuration](configuration.md) | Defaults, units, valid ranges, operation order |
+| Change kick strength or the gap between bursts | [Recoil properties](configuration.md#basic-options) | What changes on screen, defaults and units |
+| Adjust movement speed and kick while aiming | [Aim properties](configuration.md#aim-settings) | Affected spells, multipliers and conditions that end aim |
 | Connect an existing gun | [Integration](integration.md) | Beam/PP guard names, shot order, reload cancellation |
 | Add optional ADS and right-click firing | [Aiming and input](aim-and-input.md) | Full settings, Paimon integration, native/repeated input and FOV limits |
 | Compare existing gun controls | [Gun-plugin comparison](input-comparison.md) | CrackShot firing queue, repeated-click timeouts and scope implementations |
-| Add headshots and hit spells | [Hit detection](hit-detection.md) | Eye-height headshots, six directions, distance damage and callbacks |
+| Add headshots and directional/distance damage | [Hit detection and callbacks](hit-detection.md) | HitSpell, existing-projectile callbacks, follow-up spells |
 | Diagnose a failure | [Troubleshooting](troubleshooting.md) | Missing yaw, no recoil, resets, strength and spread |
 | Review evidence and limits | [Testing](testing.md) | Automated, running-server, and human acceptance boundaries |
 | Understand packets and state | [Architecture](architecture.md) | Relative rotation, class loading, per-player state |

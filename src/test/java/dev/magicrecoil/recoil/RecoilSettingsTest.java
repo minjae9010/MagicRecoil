@@ -18,6 +18,7 @@ class RecoilSettingsTest {
     @Test void oneNumberWorks() throws Exception {
         var s = settings("recoil: 2.5");
         assertEquals(2.5, s.recoil());
+        assertEquals(1.5, s.movingRecoilMultiplier());
         assertFalse(s.autoReturn());
         assertEquals(3, s.steps());
         assertEquals(RecoilPattern.VALORANT, s.pattern());
@@ -26,6 +27,7 @@ class RecoilSettingsTest {
     @ParameterizedTest
     @ValueSource(strings = {"recoil: .nan", "recoil: .inf", "recoil: -1", "recoil: '2.5'", "recoil: 46",
             "vertical: -1", "horizontal: 11", "smoothness: 1.1", "growth: -1", "reset-delay: 0",
+            "moving-recoil-multiplier: 0.9", "moving-recoil-multiplier: 10.1", "moving-recoil-multiplier: .nan",
             "reset-delay: 400.5", "reset-delay: 60001", "recoil-steps: 0", "recoil-steps: 21",
             "max-recoil: 0", "valorant-max-rise: -1", "valorant-max-rise: 91", "valorant-max-rise: .nan",
             "pattern-randomness: 2", "auto-return: 'false'", "pattern: typo",

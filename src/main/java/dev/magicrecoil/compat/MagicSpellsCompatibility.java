@@ -36,6 +36,11 @@ import java.util.Map;
 public final class MagicSpellsCompatibility {
     private MagicSpellsCompatibility() {}
 
+    public static MagicConfig getConfig() throws ReflectiveOperationException {
+        // Beta 17 uses an instance method. Beta 18 and newer use a static method.
+        return (MagicConfig) MagicSpells.class.getMethod("getMagicConfig").invoke(MagicSpells.getInstance());
+    }
+
     public static void verifyApi() throws ReflectiveOperationException {
         staticMethod(MagicSpells.class, "getInstance", MagicSpells.class);
         staticMethod(MagicSpells.class, "getClassLoaders", List.class);
