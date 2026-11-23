@@ -1,5 +1,6 @@
 package dev.magicrecoil.hit;
 
+import com.nisovin.magicspells.util.SpellData;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.EntityType;
@@ -10,16 +11,17 @@ import java.util.List;
 public record HitResult(boolean headshot, HitDirection direction, double distance, double multiplier, double damage) {
     public static HitResult evaluate(HitSettings settings, EntityType type, BoundingBox bounds,
                                      Vector impact, boolean preciseImpact, Vector origin, Vector incoming,
-                                     float victimYaw, float power) {
-        return evaluate(settings, type, bounds, impact, preciseImpact, origin, incoming, victimYaw, power,
+                                     float victimYaw, SpellData data) {
+        return evaluate(settings, type, bounds, impact, preciseImpact, origin, incoming, victimYaw, data,
                 Pose.STANDING, Double.NaN);
     }
 
     public static HitResult evaluate(HitSettings settings, EntityType type, BoundingBox bounds,
                                      Vector impact, boolean preciseImpact, Vector origin, Vector incoming,
-                                     float victimYaw, float power, Pose pose, double eyeY) {
+                                     float victimYaw, SpellData data, Pose pose, double eyeY) {
         impact.checkFinite();
         origin.checkFinite();
+        float power = data.power();
         if (!Float.isFinite(power) || power < 0) throw new IllegalArgumentException("Invalid spell power");
         double epsilon = 1e-6;
         boolean inside = impact.getX() >= bounds.getMinX() - epsilon && impact.getX() <= bounds.getMaxX() + epsilon
@@ -31,7 +33,7 @@ public record HitResult(boolean headshot, HitDirection direction, double distanc
         double distance = origin.distance(impact);
         double multiplier = settings.distanceMultiplier(distance) * settings.directionMultipliers().get(direction)
                 * (head ? settings.headshotMultiplier() : 1);
-        double damage = settings.damage() * multiplier * (settings.powerAffectsDamage() ? power : 1);
+        double damage = settings.baseDamage(data) * multiplier * (settings.powerAffectsDamage() ? power : 1);
         return new HitResult(head, direction, distance, multiplier, damage);
     }
 

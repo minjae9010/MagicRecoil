@@ -109,7 +109,7 @@ def export_wiki(output, source_ref='main'):
         (output / f'{name}.md').write_text(text, encoding='utf-8', newline='\n')
     home = '''# MagicRecoil Wiki
 
-v0.3.0-alpha.3 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
+v0.3.0-alpha.4 · Paper 1.21.4+ · Java 21+ · MagicSpells 4.0-Beta-17+
 
 MagicRecoil은 Minecraft에서 발사할 때 시점이 얼마나 움직이는지, 조준 중에 이동 속도가 어떻게 바뀌는지, 명중하면 어떤 효과가 발생하는지 주문별로 설정합니다.
 

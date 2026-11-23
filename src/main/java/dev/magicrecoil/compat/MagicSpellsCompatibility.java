@@ -17,6 +17,8 @@ import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ValidTargetList;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.FunctionData;
 import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -31,6 +33,7 @@ import org.bukkit.event.HandlerList;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /** Checks binary contracts before MagicSpells starts instantiating addon spells. */
 public final class MagicSpellsCompatibility {
@@ -54,6 +57,8 @@ public final class MagicSpellsCompatibility {
         method(SpellData.class, "location", Location.class);
         method(SpellData.class, "location", SpellData.class, Location.class);
         method(SpellData.class, "power", float.class);
+        method(ConfigData.class, "get", Object.class, SpellData.class);
+        staticMethod(FunctionData.class, "build", FunctionData.class, String.class, Function.class, boolean.class);
         method(MagicConfig.class, "getSection", ConfigurationSection.class, String.class);
         method(Spell.class, "getInternalName", String.class);
         method(Spell.class, "getValidTargetList", ValidTargetList.class);

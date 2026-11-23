@@ -1,4 +1,18 @@
 # Isolated hit-smoke.py fixture. Counter hooks intentionally run console scoreboard commands.
+variables:
+  Orias_Charge:
+    type: player
+    default: 0
+    min: -20
+    max: 10
+    permanent: false
+MR_FormulaHit:
+  spell-class: dev.magicrecoil.spells.HitSpell
+  helper-spell: true
+  can-target: [villager]
+  damage: "10 + ( 0.8 * %var:Orias_Charge:0% )"
+  power-affects-damage: false
+  spell-on-hit: MR_Hook_hit
 MR_Hit:
   spell-class: dev.magicrecoil.spells.HitSpell
   helper-spell: true
@@ -38,7 +52,7 @@ MR_AimKeep:
 MR_Fire:
   spell-class: .MultiSpell
   spells: ["MR_Hit(targeting=none)", MR_Recoil]
-MR_Beam:
+MR_Beam: &beam
   spell-class: dev.magicrecoil.spells.BeamHitSpell
   helper-spell: true
   can-target: [villager]
@@ -50,7 +64,7 @@ MR_Beam:
   stop-on-hit-entity: false
   stop-on-hit-ground: true
   spell: "MR_Hit(targeting=entity_from_location)"
-MR_Projectile:
+MR_Projectile: &projectile
   spell-class: .instant.ParticleProjectileSpell
   projectile-velocity: 10
   projectile-gravity: 0
@@ -66,6 +80,12 @@ MR_Projectile:
   hit-radius: 0.2
   vertical-hit-radius: 0.2
   spell-on-hit-entity: "MR_Hit(targeting=entity_from_location)"
+MR_FormulaBeam:
+  <<: *beam
+  spell: "MR_FormulaHit(targeting=entity_from_location)"
+MR_FormulaProjectile:
+  <<: *projectile
+  spell-on-hit-entity: "MR_FormulaHit(targeting=entity_from_location)"
 MR_Projectile_MissingArgument:
   spell-class: .instant.ParticleProjectileSpell
   projectile-velocity: 10

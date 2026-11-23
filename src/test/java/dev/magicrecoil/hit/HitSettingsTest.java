@@ -1,5 +1,6 @@
 package dev.magicrecoil.hit;
 
+import com.nisovin.magicspells.util.SpellData;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +30,7 @@ class HitSettingsTest {
 
     @Test void defaultsAreConstantWithoutDistanceConfiguration() throws Exception {
         var settings = settings("");
-        assertEquals(4, settings.damage());
+        assertEquals(4, settings.baseDamage(SpellData.NULL));
         assertEquals("minecraft:arrow", settings.damageType().toString());
         assertEquals(1, settings.distanceMultiplier(200));
         assertEquals(1, settings.directionMultipliers().get(HitDirection.BACK));
@@ -40,7 +41,7 @@ class HitSettingsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"damage: .nan", "damage: .inf", "damage: -1", "damage: '4'", "range: 0", "range: 513",
+    @ValueSource(strings = {"damage: .nan", "damage: .inf", "damage: -1", "damage: 1000001", "damage: []", "range: 0", "range: 513",
             "damage-type: 4", "damage-type: ''", "damage-type: Example:Beam",
             "headshot-height: 0", "headshot-height: 1.1", "headshot-multiplier: -1", "vertical-angle: 0", "vertical-angle: 91",
             "power-affects-damage: 'false'", "headshot-entities: PLAYER", "headshot-entities: [typo]",

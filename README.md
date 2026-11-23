@@ -10,7 +10,7 @@ MagicRecoil adds a custom `RecoilSpell`. Keep your projectile, ammunition, damag
 
 Start with **[Getting started](docs/en/getting-started.md)**. For missing yaw, open **[Troubleshooting](docs/en/troubleshooting.md)**; use the **[documentation map](docs/en/README.md)** or **[Wiki](https://github.com/minjae9010/MagicRecoil/wiki)** to browse all topics.
 
-This release adds movement recoil scaling, a horizontal recoil pattern and a single-shot cooldown indicator. [v0.3.0-alpha.3](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.3)
+This release adds MagicSpells variables and arithmetic to `HitSpell` damage. [v0.3.0-alpha.4](https://github.com/minjae9010/MagicRecoil/releases/tag/v0.3.0-alpha.4)
 
 <!-- toc:start -->
 ## On this page
@@ -92,7 +92,7 @@ Version equality locks have been removed. Newer releases are accepted when the r
 
 ## Install
 
-1. Build the current `MagicRecoil-0.3.0-alpha.3.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
+1. Build the current `MagicRecoil-0.3.0-alpha.4.jar` below, or select a release with the required compatibility from [Releases](https://github.com/minjae9010/MagicRecoil/releases).
 2. Stop the server. Put the JAR in `plugins/` alongside MagicSpells. Do not place another copy inside `plugins/MagicSpells/`.
 3. Put the following spell in `plugins/MagicSpells/spells-recoil.yml`:
 
@@ -220,7 +220,7 @@ Install a JDK 21 and set `JAVA_HOME` to it. The first build needs internet acces
 .\gradlew.bat clean build
 ```
 
-Output: `build/libs/MagicRecoil-0.3.0-alpha.3.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
+Output: `build/libs/MagicRecoil-0.3.0-alpha.4.jar`. The `-sources.jar` is source code, not a server plugin. The plugin JAR does not bundle Paper, Minecraft, MagicSpells, ProtocolLib, or EffectLib. It declares Mojang mappings for Paper's runtime. `reobfJar` is not needed for this target.
 
 `./gradlew test` runs automated tests; the HTML report is `build/reports/tests/test/index.html`. GitHub Actions builds and tests on Linux and Windows and uploads the plugin and source JARs. See [Development](docs/en/development.md).
 

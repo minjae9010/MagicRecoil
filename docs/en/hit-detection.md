@@ -95,12 +95,21 @@ Standing/crouching players and mobs retain their configured upper-box fraction. 
 Requested damage = damage × distance multiplier × direction multiplier × headshot multiplier × power
 ```
 
+`damage` accepts a number or a quoted MagicSpells expression. It evaluates the expression with the spell data for each hit, then applies the multipliers.
+
+```yaml
+damage: "10 + ( 0.8 * %var:Orias_Charge:0% )"
+power-affects-damage: false
+```
+
+With `Orias_Charge` at 0 or 5, base damage is 10 or 14 health points, respectively. In this placeholder, `:0` rounds the variable to zero decimal places. Use `%castervar:Orias_Charge%` to explicitly read the caster's unrounded value. An invalid expression syntax fails configuration loading. If an expression cannot return a number in the valid range on a hit, base damage is 0 and the hit hooks still run.
+
 Bodyshots use a headshot multiplier of 1. `power-affects-damage: false` also replaces the power term with 1. The distance curve interpolates linearly and clamps outside its endpoints. At 32.5 blocks, the example curve gives 0.75. Increasing curves are supported too. Duplicate, descending, or nonfinite points fail configuration loading.
 
 | Property | Default | Range and effect |
 | --- | --- | --- |
 | `range` | 64 | 0.1..512 blocks. Farthest distance an instant ray searches for a target. Beams and particle projectiles use their own `max-distance`. |
-| `damage` | 4 | 0..1,000,000 health points before multipliers and defenses. Four points equal two hearts. Use 0 for impact effects alone. |
+| `damage` | 4 | Number or quoted MagicSpells expression. The base value must be 0..1,000,000 health points before multipliers and defenses. Four points equal two hearts. Use 0 for impact effects alone. |
 | `damage-type` | `minecraft:arrow` | Registered Minecraft damage type key, including data packs |
 | `power-affects-damage` | `true` | Multiplies damage by the incoming spell power when enabled. Disable to treat the power factor as 1. |
 | `headshot-entities` | `[PLAYER]` | Bukkit entity types eligible for headshots. Use `[PLAYER, ZOMBIE]` for both types or `[]` to classify all hits as bodyshots. |

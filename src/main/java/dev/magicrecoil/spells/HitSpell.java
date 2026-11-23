@@ -153,16 +153,16 @@ public final class HitSpell extends InstantSpell implements TargetedEntityFromLo
         LivingEntity target = data.target();
         if (target == null || !validTarget(data.caster(), target) || !target.getWorld().equals(origin.getWorld())
                 || data.location() == null || !target.getWorld().equals(data.location().getWorld())) return skipped(data);
-        HitResult result;
-        try {
-            result = HitResult.evaluate(settings, target.getType(), target.getBoundingBox(), data.location().toVector(),
-                    precise, origin.toVector(), incoming, target.getLocation().getYaw(), data.power(),
-                    target.getPose(), target.getEyeLocation().getY());
-        } catch (IllegalArgumentException error) { return skipped(data); }
-
-        // Also breaks synchronous A -> B -> A callback cycles.
+        // Also breaks synchronous A -> B -> A cycles during formula evaluation and callbacks.
         processing = true;
         try {
+            HitResult result;
+            try {
+                result = HitResult.evaluate(settings, target.getType(), target.getBoundingBox(), data.location().toVector(),
+                        precise, origin.toVector(), incoming, target.getLocation().getYaw(), data,
+                        target.getPose(), target.getEyeLocation().getY());
+            } catch (IllegalArgumentException error) { return skipped(data); }
+
             if (result.damage() > 0) {
                 var damageEvent = new SpellApplyDamageEvent(this, data.caster(), target, result.damage(), damageType, "magicrecoil");
                 damageEvent.callEvent();

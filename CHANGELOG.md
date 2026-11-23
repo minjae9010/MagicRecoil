@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.0-alpha.4 — 2026-11-23
+
+- Evaluate MagicSpells expressions in `HitSpell` damage on each hit. Variable-based damage works for hitscan, particle projectiles, and beams before applying the configured damage multipliers.
+
 ## 0.3.0-alpha.3 — 2026-11-22
 
 - Add a horizontal recoil pattern and configurable recoil while movement keys are held. The movement multiplier defaults to 1.5. Set it to 1 to preserve stationary recoil strength while moving.

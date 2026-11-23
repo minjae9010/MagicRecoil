@@ -1,5 +1,8 @@
 package dev.magicrecoil.hit;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.FunctionData;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
@@ -12,11 +15,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
-public record HitSettings(double range, double damage, NamespacedKey damageType, boolean powerAffectsDamage,
+public record HitSettings(double range, ConfigData<Double> damage, NamespacedKey damageType, boolean powerAffectsDamage,
                           double headshotHeight, double headshotMultiplier, Set<EntityType> headshotEntities,
                           double verticalAngle, Map<HitDirection, Double> directionMultipliers,
                           List<DistancePoint> distanceDamage, Map<String, String> hooks) {
+    private static final double MAX_DAMAGE = 1_000_000;
+
     public record DistancePoint(double distance, double multiplier) {}
 
     public HitSettings {
@@ -83,12 +89,27 @@ public record HitSettings(double range, double damage, NamespacedKey damageType,
         }
 
         return new HitSettings(number(config.get("range", 64), "range", 0.1, 512),
-                number(config.get("damage", 4), "damage", 0, 1_000_000),
+                readDamage(config.get("damage", 4)),
                 damageType(config),
                 bool(config, "power-affects-damage", true),
                 number(config.get("headshot-height", 0.25), "headshot-height", 0.01, 1),
                 number(config.get("headshot-multiplier", 2), "headshot-multiplier", 0, 100), entities,
                 number(config.get("vertical-angle", 45), "vertical-angle", 1, 90), directions, points, hooks);
+    }
+
+    private static ConfigData<Double> readDamage(Object raw) {
+        if (raw instanceof String expression) {
+            var formula = FunctionData.build(expression, Function.identity(), true);
+            if (formula == null) throw invalid("damage", "must be a valid MagicSpells numeric expression");
+            return formula;
+        }
+        double value = number(raw, "damage", 0, MAX_DAMAGE);
+        return data -> value;
+    }
+
+    public double baseDamage(SpellData data) {
+        Double value = damage.get(data);
+        return value != null && Double.isFinite(value) && value >= 0 && value <= MAX_DAMAGE ? value : 0;
     }
 
     private static NamespacedKey damageType(ConfigurationSection config) {
