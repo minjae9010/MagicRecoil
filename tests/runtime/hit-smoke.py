@@ -129,10 +129,10 @@ try:
     command('ms cast as RecoilProbe MR_Hit')
     time.sleep(.6)
     check('ray_body_front', (15998, 16002), {'hit': 1, 'body': 1, 'front': 1})
-    for charge, label, remaining in ((0, 'zero_charge', 10000), (5, 'updated_charge', 6000),
+    for charge, label, remaining in ((0, 'zero_charge', 14000), (4, 'updated_charge', 12000),
                                      (-20, 'negative_damage', 20000)):
         setup(yaw=180, pitch=5)
-        command(f'ms variable modify Orias_Charge RecoilProbe ={charge}')
+        command(f'ms variable modify ExampleCharge RecoilProbe ={charge}')
         command('ms cast as RecoilProbe MR_FormulaHit')
         time.sleep(.6)
         check(label, (remaining - 2, remaining + 2), {'hit': 1})
@@ -227,13 +227,13 @@ try:
     command('ms cast as RecoilProbe MR_Beam')
     time.sleep(.6)
     check('beam_radius_only_is_bodyshot', (13998, 14002), {'hit': 1, 'body': 1, 'back': 1})
-    command('ms variable modify Orias_Charge RecoilProbe =5')
+    command('ms variable modify ExampleCharge RecoilProbe =4')
     for spell, delay, label in (('MR_FormulaBeam', .6, 'formula_beam_after_reload'),
                                 ('MR_FormulaProjectile', 1.6, 'formula_projectile_after_reload')):
         setup()
         command(f'ms cast as RecoilProbe {spell}')
         time.sleep(delay)
-        check(label, (5998, 6002), {'hit': 1})
+        check(label, (11998, 12002), {'hit': 1})
     assert 'NoSuchMethodError' not in output() and 'NoClassDefFoundError' not in output(), output()[-6000:]
     print('ALL HIT RUNTIME CHECKS PASSED', flush=True)
 finally:

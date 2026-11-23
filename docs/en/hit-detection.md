@@ -98,11 +98,11 @@ Requested damage = damage × distance multiplier × direction multiplier × head
 `damage` accepts a number or a quoted MagicSpells expression. It evaluates the expression with the spell data for each hit, then applies the multipliers.
 
 ```yaml
-damage: "10 + ( 0.8 * %var:Orias_Charge:0% )"
+damage: "6 + (%var:ExampleCharge:0% / 2)"
 power-affects-damage: false
 ```
 
-With `Orias_Charge` at 0 or 5, base damage is 10 or 14 health points, respectively. In this placeholder, `:0` rounds the variable to zero decimal places. Use `%castervar:Orias_Charge%` to explicitly read the caster's unrounded value. An invalid expression syntax fails configuration loading. If an expression cannot return a number in the valid range on a hit, base damage is 0 and the hit hooks still run.
+With the example variable `ExampleCharge` at 0 or 4, base damage is 6 or 8 health points, respectively. In this placeholder, `:0` rounds the variable to zero decimal places. Use `%castervar:ExampleCharge%` to explicitly read the caster's unrounded value. An invalid expression syntax fails configuration loading. If an expression cannot return a number in the valid range on a hit, base damage is 0 and the hit hooks still run.
 
 Bodyshots use a headshot multiplier of 1. `power-affects-damage: false` also replaces the power term with 1. The distance curve interpolates linearly and clamps outside its endpoints. At 32.5 blocks, the example curve gives 0.75. Increasing curves are supported too. Duplicate, descending, or nonfinite points fail configuration loading.
 

@@ -1,6 +1,6 @@
 # Isolated hit-smoke.py fixture. Counter hooks intentionally run console scoreboard commands.
 variables:
-  Orias_Charge:
+  ExampleCharge:
     type: player
     default: 0
     min: -20
@@ -10,7 +10,7 @@ MR_FormulaHit:
   spell-class: dev.magicrecoil.spells.HitSpell
   helper-spell: true
   can-target: [villager]
-  damage: "10 + ( 0.8 * %var:Orias_Charge:0% )"
+  damage: "6 + (%var:ExampleCharge:0% / 2)"
   power-affects-damage: false
   spell-on-hit: MR_Hook_hit
 MR_Hit:
